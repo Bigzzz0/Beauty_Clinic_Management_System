@@ -1,0 +1,309 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model course {
+  course_id        Int                @id @default(autoincrement())
+  course_code      String?            @unique(map: "course_code") @db.VarChar(20)
+  course_name      String             @db.VarChar(100)
+  description      String?            @db.Text
+  standard_price   Decimal            @db.Decimal(10, 2)
+  staff_price      Decimal?           @db.Decimal(10, 2)
+  is_active        Boolean?           @default(true)
+  course_item      course_item[]
+  customer_course  customer_course[]
+  transaction_item transaction_item[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model course_item {
+  id        Int    @id @default(autoincrement())
+  course_id Int
+  item_name String @db.VarChar(100)
+  qty_limit Int    @default(1)
+  course    course @relation(fields: [course_id], references: [course_id], onDelete: Cascade, onUpdate: NoAction, map: "course_item_ibfk_1")
+
+  @@index([course_id], map: "course_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer {
+  customer_id        Int                  @id @default(autoincrement())
+  hn_code            String               @unique(map: "hn_code") @db.VarChar(20)
+  id_card_number     String?              @db.VarChar(13)
+  first_name         String               @db.VarChar(100)
+  last_name          String               @db.VarChar(100)
+  full_name          String?              @db.VarChar(200)
+  nickname           String?              @db.VarChar(50)
+  phone_number       String               @db.VarChar(20)
+  address            String?              @db.Text
+  birth_date         DateTime?            @db.Date
+  drug_allergy       String?              @db.Text
+  underlying_disease String?              @db.Text
+  personal_consult   String?              @db.VarChar(100)
+  member_level       String?              @default("General") @db.VarChar(50)
+  created_at         DateTime?            @default(now()) @db.Timestamp(0)
+  customer_course    customer_course[]
+  transaction_header transaction_header[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_course {
+  id                 Int                     @id @default(autoincrement())
+  customer_id        Int
+  course_id          Int
+  transaction_id     Int
+  total_sessions     Int
+  remaining_sessions Int
+  purchase_date      DateTime?               @db.Date
+  expiry_date        DateTime?               @db.Date
+  status             customer_course_status? @default(ACTIVE)
+  customer           customer                @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "customer_course_ibfk_1")
+  course             course                  @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction, map: "customer_course_ibfk_2")
+  service_usage      service_usage[]
+
+  @@index([course_id], map: "course_id")
+  @@index([customer_id], map: "customer_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model fee_log {
+  fee_id        Int              @id @default(autoincrement())
+  usage_id      Int
+  staff_id      Int
+  fee_type      fee_log_fee_type
+  amount        Decimal          @db.Decimal(10, 2)
+  service_usage service_usage    @relation(fields: [usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction, map: "fee_log_ibfk_1")
+  staff         staff            @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction, map: "fee_log_ibfk_2")
+
+  @@index([staff_id], map: "staff_id")
+  @@index([usage_id], map: "usage_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model inventory {
+  inventory_id Int       @id @default(autoincrement())
+  product_id   Int
+  full_qty     Int       @default(0)
+  opened_qty   Int       @default(0)
+  last_updated DateTime? @default(now()) @db.Timestamp(0)
+  product      product   @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "inventory_ibfk_1")
+
+  @@index([product_id], map: "product_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model inventory_usage {
+  id            Int           @id @default(autoincrement())
+  usage_id      Int
+  product_id    Int
+  qty_used      Int
+  lot_number    String?       @db.VarChar(50)
+  service_usage service_usage @relation(fields: [usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction, map: "inventory_usage_ibfk_1")
+  product       product       @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "inventory_usage_ibfk_2")
+
+  @@index([product_id], map: "product_id")
+  @@index([usage_id], map: "usage_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model patient_gallery {
+  gallery_id    Int                         @id @default(autoincrement())
+  customer_id   Int
+  usage_id      Int?
+  image_type    patient_gallery_image_type? @default(Before)
+  image_path    String                      @db.VarChar(255)
+  taken_date    DateTime                    @db.Date
+  notes         String?                     @db.Text
+  created_at    DateTime?                   @default(now()) @db.Timestamp(0)
+  service_usage service_usage?              @relation(fields: [usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_gallery_ibfk_1")
+
+  @@index([usage_id], map: "usage_id")
+}
+
+model payment_log {
+  payment_id         Int                        @id @default(autoincrement())
+  transaction_id     Int
+  staff_id           Int
+  amount_paid        Decimal                    @db.Decimal(10, 2)
+  payment_method     payment_log_payment_method
+  payment_date       DateTime?                  @default(now()) @db.Timestamp(0)
+  transaction_header transaction_header         @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "payment_log_ibfk_1")
+
+  @@index([transaction_id], map: "transaction_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model product {
+  product_id       Int                @id @default(autoincrement())
+  product_code     String?            @unique(map: "product_code") @db.VarChar(20)
+  product_name     String             @db.VarChar(100)
+  category         product_category
+  main_unit        String             @db.VarChar(20)
+  sub_unit         String             @db.VarChar(20)
+  pack_size        Int                @default(1)
+  is_liquid        Boolean?           @default(false)
+  cost_price       Decimal?           @default(0.00) @db.Decimal(10, 2)
+  standard_price   Decimal?           @default(0.00) @db.Decimal(10, 2)
+  staff_price      Decimal?           @default(0.00) @db.Decimal(10, 2)
+  is_active        Boolean?           @default(true)
+  inventory        inventory[]
+  inventory_usage  inventory_usage[]
+  stock_movement   stock_movement[]
+  transaction_item transaction_item[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model service_usage {
+  usage_id           Int               @id @default(autoincrement())
+  service_date       DateTime?         @default(now()) @db.Timestamp(0)
+  customer_id        Int
+  customer_course_id Int?
+  transaction_id     Int?
+  service_name       String            @db.VarChar(100)
+  note               String?           @db.Text
+  fee_log            fee_log[]
+  inventory_usage    inventory_usage[]
+  patient_gallery    patient_gallery[]
+  customer_course    customer_course?  @relation(fields: [customer_course_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_usage_ibfk_1")
+
+  @@index([customer_course_id], map: "customer_course_id")
+}
+
+model staff {
+  staff_id      Int            @id @default(autoincrement())
+  full_name     String         @db.VarChar(100)
+  position      staff_position
+  username      String         @unique(map: "username") @db.VarChar(50)
+  password_hash String         @db.VarChar(255)
+  is_active     Boolean?       @default(true)
+  created_at    DateTime?      @default(now()) @db.Timestamp(0)
+  fee_log       fee_log[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_movement {
+  movement_id            Int                        @id @default(autoincrement())
+  product_id             Int
+  staff_id               Int
+  action_type            stock_movement_action_type
+  qty_main               Int                        @default(0)
+  qty_sub                Int                        @default(0)
+  lot_number             String?                    @db.VarChar(50)
+  expiry_date            DateTime?                  @db.Date
+  evidence_image         String?                    @db.Text
+  note                   String?                    @db.Text
+  related_transaction_id Int?
+  related_usage_id       Int?
+  created_at             DateTime?                  @default(now()) @db.Timestamp(0)
+  product                product                    @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_movement_ibfk_1")
+
+  @@index([product_id], map: "product_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model transaction_header {
+  transaction_id    Int                                @id @default(autoincrement())
+  customer_id       Int
+  staff_id          Int
+  transaction_date  DateTime?                          @default(now()) @db.Timestamp(0)
+  total_amount      Decimal                            @default(0.00) @db.Decimal(10, 2)
+  discount          Decimal                            @default(0.00) @db.Decimal(10, 2)
+  net_amount        Decimal                            @default(0.00) @db.Decimal(10, 2)
+  remaining_balance Decimal                            @default(0.00) @db.Decimal(10, 2)
+  payment_status    transaction_header_payment_status? @default(UNPAID)
+  channel           transaction_header_channel?        @default(WALK_IN)
+  payment_log       payment_log[]
+  customer          customer                           @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_header_ibfk_1")
+  transaction_item  transaction_item[]
+
+  @@index([customer_id], map: "customer_id")
+}
+
+model transaction_item {
+  item_id            Int                @id @default(autoincrement())
+  transaction_id     Int
+  product_id         Int?
+  course_id          Int?
+  qty                Int                @default(1)
+  unit_price         Decimal            @db.Decimal(10, 2)
+  subtotal           Decimal            @db.Decimal(10, 2)
+  transaction_header transaction_header @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_item_ibfk_1")
+  product            product?           @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_item_ibfk_2")
+  course             course?            @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_item_ibfk_3")
+
+  @@index([course_id], map: "course_id")
+  @@index([product_id], map: "product_id")
+  @@index([transaction_id], map: "transaction_id")
+}
+
+enum staff_position {
+  Doctor
+  Therapist
+  Admin
+  Sale
+  Cashier
+}
+
+enum fee_log_fee_type {
+  DF
+  HAND_FEE
+}
+
+enum patient_gallery_image_type {
+  Before
+  After
+  Follow_up @map("Follow-up")
+  Document
+}
+
+enum product_category {
+  Botox
+  Filler
+  Treatment
+  Medicine
+  Equipment
+  Skin
+}
+
+enum stock_movement_action_type {
+  IN
+  OUT
+  TRANSFER
+  ADJUST_DAMAGED
+  ADJUST_EXPIRED
+  ADJUST_CLAIM
+  ADJUST_LOST
+  USAGE
+  VOID_RETURN
+}
+
+enum payment_log_payment_method {
+  CASH
+  TRANSFER
+  CREDIT
+}
+
+enum customer_course_status {
+  ACTIVE
+  EXPIRED
+  USED_UP
+}
+
+enum transaction_header_payment_status {
+  PAID
+  PARTIAL
+  UNPAID
+  VOIDED
+}
+
+enum transaction_header_channel {
+  WALK_IN
+  BOOKING
+  ONLINE
+}
