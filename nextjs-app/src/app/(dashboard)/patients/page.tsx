@@ -55,11 +55,11 @@ interface Customer {
 const getMemberBadgeColor = (level: string | null) => {
     switch (level?.toLowerCase()) {
         case 'platinum':
-            return 'bg-purple-100 text-purple-800 border-purple-200'
+            return 'bg-accent/20 text-accent border-accent/30'
         case 'gold':
-            return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+            return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300'
         default:
-            return 'bg-slate-100 text-slate-700 border-slate-200'
+            return 'bg-muted text-muted-foreground border-border'
     }
 }
 
@@ -118,12 +118,12 @@ export default function PatientsPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Users className="h-6 w-6 text-blue-500" />
+                        <Users className="h-6 w-6 text-primary" />
                         ทะเบียนคนไข้
                     </h1>
-                    <p className="text-slate-500">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
+                    <p className="text-muted-foreground">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
                 </div>
-                <Button className="bg-gradient-to-r from-blue-500 to-blue-600">
+                <Button variant="gradient">
                     <Plus className="h-4 w-4 mr-2" />
                     เพิ่มคนไข้ใหม่
                 </Button>
@@ -205,7 +205,7 @@ export default function PatientsPage() {
                                     ))
                                 ) : customers.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-12 text-slate-500">
+                                        <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                                             ไม่พบข้อมูลคนไข้
                                         </TableCell>
                                     </TableRow>
@@ -213,12 +213,12 @@ export default function PatientsPage() {
                                     customers.map((customer) => (
                                         <TableRow
                                             key={customer.customer_id}
-                                            className="cursor-pointer hover:bg-blue-50/50"
+                                            className="cursor-pointer hover:bg-primary/5"
                                             onClick={() => router.push(`/patients/${customer.customer_id}`)}
                                         >
                                             <TableCell>
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                                                    <UserCircle className="h-6 w-6 text-blue-600" />
+                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                                                    <UserCircle className="h-6 w-6 text-primary" />
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -231,7 +231,7 @@ export default function PatientsPage() {
                                                             {customer.member_level || 'General'}
                                                         </Badge>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                         <span className="font-mono">{customer.hn_code}</span>
                                                         {customer.nickname && (
                                                             <span>• "{customer.nickname}"</span>
@@ -247,7 +247,7 @@ export default function PatientsPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2 text-sm">
-                                                    <Phone className="h-4 w-4 text-slate-400" />
+                                                    <Phone className="h-4 w-4 text-muted-foreground" />
                                                     {customer.phone_number}
                                                 </div>
                                             </TableCell>

@@ -89,7 +89,8 @@ export function useAddPayment() {
         mutationFn: async (data: {
             transaction_id: number
             amount_paid: number
-            payment_method: 'CASH' | 'TRANSFER' | 'CREDIT'
+            payment_method: 'CASH' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT'
+            customer_id?: number
         }): Promise<PaymentLog> => {
             const res = await fetch('/api/payments', {
                 method: 'POST',

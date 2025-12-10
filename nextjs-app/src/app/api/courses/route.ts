@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
                 description: body.description || null,
                 standard_price: body.standard_price,
                 staff_price: body.staff_price || body.standard_price,
+                session_count: body.session_count || 1,
                 is_active: true,
                 course_item: body.items?.length > 0 ? {
                     create: body.items.map((item: { item_name: string; qty_limit: number }) => ({

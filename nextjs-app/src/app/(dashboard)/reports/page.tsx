@@ -29,6 +29,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import Link from 'next/link'
 
 interface SalesReport {
     summary: {
@@ -164,12 +165,28 @@ export default function ReportsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <BarChart3 className="h-6 w-6 text-blue-500" />
-                    รายงาน
-                </h1>
-                <p className="text-slate-500">สรุปข้อมูลการดำเนินงาน</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                        <BarChart3 className="h-6 w-6 text-primary" />
+                        รายงาน
+                    </h1>
+                    <p className="text-muted-foreground">สรุปข้อมูลการดำเนินงาน</p>
+                </div>
+                <div className="flex gap-2">
+                    <Link href="/reports/daily-sales">
+                        <Button variant="gradient">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            ยอดขายรายวัน
+                        </Button>
+                    </Link>
+                    <Link href="/reports/consultant-performance">
+                        <Button variant="success">
+                            <Users className="h-4 w-4 mr-2" />
+                            ผลงาน Consultant
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <Tabs defaultValue="sales" className="space-y-4">
@@ -216,46 +233,46 @@ export default function ReportsPage() {
 
                         {/* Summary Cards */}
                         <div className="grid gap-4 md:grid-cols-4">
-                            <Card className="bg-gradient-to-br from-green-50 to-green-100">
+                            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30">
                                 <CardContent className="p-4">
                                     <div className="flex items-center gap-2">
-                                        <TrendingUp className="h-5 w-5 text-green-600" />
-                                        <span className="text-sm text-green-700">ยอดขายรวม</span>
+                                        <TrendingUp className="h-5 w-5 text-emerald-600" />
+                                        <span className="text-sm text-emerald-700 dark:text-emerald-400">ยอดขายรวม</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-green-700 mt-1">
+                                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">
                                         {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalSales || 0)}
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+                            <Card className="bg-gradient-to-br from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30">
                                 <CardContent className="p-4">
                                     <div className="flex items-center gap-2">
-                                        <ArrowUpRight className="h-5 w-5 text-blue-600" />
-                                        <span className="text-sm text-blue-700">รับชำระแล้ว</span>
+                                        <ArrowUpRight className="h-5 w-5 text-primary" />
+                                        <span className="text-sm text-primary">รับชำระแล้ว</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-blue-700 mt-1">
+                                    <p className="text-2xl font-bold text-primary mt-1">
                                         {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalPaid || 0)}
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-gradient-to-br from-amber-50 to-amber-100">
+                            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30">
                                 <CardContent className="p-4">
                                     <div className="flex items-center gap-2">
                                         <ArrowDownRight className="h-5 w-5 text-amber-600" />
-                                        <span className="text-sm text-amber-700">ค้างชำระ</span>
+                                        <span className="text-sm text-amber-700 dark:text-amber-400">ค้างชำระ</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-amber-700 mt-1">
+                                    <p className="text-2xl font-bold text-amber-700 dark:text-amber-400 mt-1">
                                         {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalOutstanding || 0)}
                                     </p>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
+                            <Card className="bg-gradient-to-br from-accent/10 to-accent/20 dark:from-accent/20 dark:to-accent/30">
                                 <CardContent className="p-4">
                                     <div className="flex items-center gap-2">
-                                        <Calendar className="h-5 w-5 text-purple-600" />
-                                        <span className="text-sm text-purple-700">จำนวนบิล</span>
+                                        <Calendar className="h-5 w-5 text-accent" />
+                                        <span className="text-sm text-accent">จำนวนบิล</span>
                                     </div>
-                                    <p className="text-2xl font-bold text-purple-700 mt-1">
+                                    <p className="text-2xl font-bold text-accent mt-1">
                                         {salesLoading ? '...' : salesData?.summary?.transactionCount || 0}
                                     </p>
                                 </CardContent>
@@ -270,8 +287,8 @@ export default function ReportsPage() {
                             <CardContent>
                                 <div className="flex flex-wrap gap-4">
                                     {(salesData?.byPaymentMethod || []).map((p) => (
-                                        <div key={p.method} className="flex-1 min-w-[150px] p-4 rounded-lg bg-slate-50 text-center">
-                                            <p className="text-sm text-slate-600">{p.method === 'CASH' ? 'เงินสด' : p.method === 'TRANSFER' ? 'โอนเงิน' : 'บัตรเครดิต'}</p>
+                                        <div key={p.method} className="flex-1 min-w-[150px] p-4 rounded-lg bg-muted text-center">
+                                            <p className="text-sm text-muted-foreground">{p.method === 'CASH' ? 'เงินสด' : p.method === 'TRANSFER' ? 'โอนเงิน' : 'บัตรเครดิต'}</p>
                                             <p className="text-xl font-bold">{formatCurrency(p.amount)}</p>
                                         </div>
                                     ))}

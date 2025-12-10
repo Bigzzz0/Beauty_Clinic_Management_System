@@ -155,13 +155,13 @@ export default function TransferPage() {
                         <Truck className="h-6 w-6 text-blue-500" />
                         โอนย้าย / ส่งออก
                     </h1>
-                    <p className="text-slate-500">โอนสินค้าไปยังสาขาอื่น</p>
+                    <p className="text-muted-foreground">โอนสินค้าไปยังสาขาอื่น</p>
                 </div>
             </div>
 
-            <Alert variant="destructive" className="bg-amber-50 border-amber-200">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
+            <Alert variant="destructive" className="bg-warning/10 border-warning/20 text-warning">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertDescription className="text-warning-foreground">
                     ⚠️ กรุณาถ่ายรูปพัสดุก่อนจัดส่ง (บังคับ)
                 </AlertDescription>
             </Alert>
@@ -191,7 +191,7 @@ export default function TransferPage() {
                     <div className="space-y-3">
                         <Label>รายการสินค้า (พิมพ์ค้นหาได้)</Label>
                         {rows.map((row) => (
-                            <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-4 bg-slate-50 rounded-lg">
+                            <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-4 bg-muted/50 rounded-lg">
                                 <div className="md:col-span-7">
                                     <ProductSearchSelect
                                         products={products}
@@ -215,7 +215,7 @@ export default function TransferPage() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="text-red-500"
+                                        className="text-destructive"
                                         onClick={() => removeRow(row.id)}
                                         disabled={rows.length === 1}
                                     >
@@ -247,7 +247,7 @@ export default function TransferPage() {
                         <Label className="text-red-600">รูปถ่ายพัสดุ (บังคับ) *</Label>
                         <div className="mt-2 flex items-center gap-4">
                             <label className="cursor-pointer">
-                                <div className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-slate-50 ${!evidenceImage ? 'border-red-300 bg-red-50' : ''}`}>
+                                <div className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-muted/50 ${!evidenceImage ? 'border-destructive/30 bg-destructive/10' : ''}`}>
                                     <Upload className="h-4 w-4" />
                                     <span>อัพโหลดรูป</span>
                                 </div>
@@ -274,7 +274,7 @@ export default function TransferPage() {
                             ยกเลิก
                         </Button>
                         <Button
-                            className="bg-gradient-to-r from-blue-500 to-blue-600"
+                            className="bg-blue-600 hover:bg-blue-700"
                             onClick={handleSubmit}
                             disabled={transferMutation.isPending}
                         >

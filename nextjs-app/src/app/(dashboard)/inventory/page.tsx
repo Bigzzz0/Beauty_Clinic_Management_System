@@ -3,20 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-    Package,
-    PackagePlus,
-    Truck,
-    ClipboardEdit,
-    Syringe,
-    Search,
-    ArrowUpDown,
-    CheckCircle,
-    AlertTriangle,
-    XCircle,
-    TrendingDown,
-    Calendar,
-    FileSpreadsheet
+    Search, Filter, Plus, Package, ArrowUpDown, MoreHorizontal,
+    History, AlertTriangle, CheckCircle, XCircle, TrendingDown,
+    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { formatDateTime } from '@/lib/utils'
@@ -203,49 +194,46 @@ export default function InventoryPage() {
 
     const getCategoryColor = (cat: string) => {
         const colors: Record<string, string> = {
-            Botox: 'text-pink-400',
-            Filler: 'text-purple-400',
-            Treatment: 'text-blue-400',
-            Medicine: 'text-green-400',
-            Equipment: 'text-slate-400',
-            Skin: 'text-amber-400',
+            Botox: 'text-primary',
+            Filler: 'text-accent',
+            Treatment: 'text-blue-500',
+            Medicine: 'text-success',
+            Equipment: 'text-muted-foreground',
+            Skin: 'text-amber-500',
         }
-        return colors[cat] || 'text-slate-400'
+        return colors[cat] || 'text-muted-foreground'
     }
 
     return (
-        <div className="space-y-6 bg-slate-900 min-h-screen -m-6 p-6 text-white">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Package className="h-6 w-6 text-purple-400" />
+                        <Package className="h-6 w-6 text-primary" />
                         รายงานคลังสินค้า
                     </h1>
-                    <p className="text-slate-400">ติดตามสต๊อกและการเคลื่อนไหวของสินค้า</p>
+                    <p className="text-muted-foreground">ติดตามสต๊อกและการเคลื่อนไหวของสินค้า</p>
                 </div>
             </div>
 
             {/* Tabs */}
             <Tabs defaultValue="stock" className="space-y-6">
-                <TabsList className="bg-slate-800 border border-slate-700 p-1">
+                <TabsList>
                     <TabsTrigger
                         value="stock"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white text-slate-400"
                     >
                         <Package className="h-4 w-4 mr-2" />
                         สต๊อกคงเหลือ
                     </TabsTrigger>
                     <TabsTrigger
                         value="usage"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white text-slate-400"
                     >
                         <Calendar className="h-4 w-4 mr-2" />
                         การใช้ประจำวัน
                     </TabsTrigger>
                     <TabsTrigger
                         value="card"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white text-slate-400"
                     >
                         <FileSpreadsheet className="h-4 w-4 mr-2" />
                         Stock Card
@@ -256,46 +244,46 @@ export default function InventoryPage() {
                 <TabsContent value="stock" className="space-y-6">
                     {/* Summary Stats */}
                     <div className="grid gap-4 sm:grid-cols-4">
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">สินค้าทั้งหมด</p>
-                                <p className="text-3xl font-bold text-white">{inventory.length}</p>
+                                <p className="text-sm text-muted-foreground">สินค้าทั้งหมด</p>
+                                <p className="text-3xl font-bold">{inventory.length}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-400" />
-                                    <p className="text-sm text-slate-400">สต๊อกปกติ</p>
+                                    <CheckCircle className="h-4 w-4 text-success" />
+                                    <p className="text-sm text-muted-foreground">สต๊อกปกติ</p>
                                 </div>
-                                <p className="text-3xl font-bold text-green-400">{normalStock}</p>
+                                <p className="text-3xl font-bold text-success">{normalStock}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
-                                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
-                                    <p className="text-sm text-slate-400">สต๊อกต่ำ</p>
+                                    <AlertTriangle className="h-4 w-4 text-warning" />
+                                    <p className="text-sm text-muted-foreground">สต๊อกต่ำ</p>
                                 </div>
-                                <p className="text-3xl font-bold text-yellow-400">{lowStock}</p>
+                                <p className="text-3xl font-bold text-warning">{lowStock}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-2">
-                                    <XCircle className="h-4 w-4 text-red-400" />
-                                    <p className="text-sm text-slate-400">หมด</p>
+                                    <XCircle className="h-4 w-4 text-destructive" />
+                                    <p className="text-sm text-muted-foreground">หมด</p>
                                 </div>
-                                <p className="text-3xl font-bold text-red-400">{outOfStock}</p>
+                                <p className="text-3xl font-bold text-destructive">{outOfStock}</p>
                             </CardContent>
                         </Card>
                     </div>
 
                     {/* Today's Movement */}
-                    <Card className="bg-slate-800 border-slate-700">
+                    <Card>
                         <CardContent className="p-4">
-                            <p className="text-sm text-slate-400 mb-1">ความเคลื่อนไหววันนี้</p>
-                            <div className="flex items-center gap-2 text-purple-400">
+                            <p className="text-sm text-muted-foreground mb-1">ความเคลื่อนไหววันนี้</p>
+                            <div className="flex items-center gap-2 text-primary">
                                 <TrendingDown className="h-5 w-5" />
                                 <span>เบิกออก</span>
                                 <span className="font-bold">{dailyUsage?.summary.total_times || 0} รายการ</span>
@@ -307,10 +295,12 @@ export default function InventoryPage() {
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {quickActions.map((action) => (
                             <Link key={action.href} href={action.href}>
-                                <Card className={`cursor-pointer bg-gradient-to-br ${action.color} text-white transition-transform hover:scale-105 border-0`}>
+                                <Card className="hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
                                     <CardContent className="flex items-center gap-3 p-4">
-                                        <action.icon className="h-6 w-6" />
-                                        <span className="font-medium">{action.label}</span>
+                                        <div className={`p-2 rounded-lg bg-gradient-to-br ${action.color} text-white`}>
+                                            <action.icon className="h-5 w-5" />
+                                        </div>
+                                        <span className="font-medium text-foreground">{action.label}</span>
                                     </CardContent>
                                 </Card>
                             </Link>
@@ -320,41 +310,41 @@ export default function InventoryPage() {
                     {/* Search and Filter */}
                     <div className="flex flex-col gap-4 md:flex-row">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="ค้นหาสินค้า..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                                className="pl-10"
                             />
                         </div>
                         <Select value={category} onValueChange={setCategory}>
-                            <SelectTrigger className="w-full md:w-48 bg-slate-800 border-slate-700 text-white">
+                            <SelectTrigger className="w-full md:w-48">
                                 <SelectValue placeholder="หมวดหมู่ทั้งหมด" />
                             </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700">
-                                <SelectItem value="all" className="text-white hover:bg-slate-700">ทั้งหมด</SelectItem>
+                            <SelectContent>
+                                <SelectItem value="all">ทั้งหมด</SelectItem>
                                 {categories.map((cat) => (
-                                    <SelectItem key={cat} value={cat} className="text-white hover:bg-slate-700">{cat}</SelectItem>
+                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
                     {/* Inventory Table */}
-                    <Card className="bg-slate-800 border-slate-700">
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="text-white">รายการสต๊อกคงเหลือ</CardTitle>
+                            <CardTitle>รายการสต๊อกคงเหลือ</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-lg border border-slate-700 overflow-hidden">
+                            <div className="rounded-lg border overflow-hidden">
                                 <Table>
-                                    <TableHeader className="bg-slate-900">
-                                        <TableRow className="border-slate-700 hover:bg-slate-800">
-                                            <TableHead className="text-slate-400 w-16">สถานะ</TableHead>
-                                            <TableHead className="text-slate-400">รหัส</TableHead>
+                                    <TableHeader>
+                                        <TableRow className="bg-muted/50">
+                                            <TableHead className="w-16">สถานะ</TableHead>
+                                            <TableHead>รหัส</TableHead>
                                             <TableHead
-                                                className="text-slate-400 cursor-pointer"
+                                                className="cursor-pointer hover:text-primary transition-colors"
                                                 onClick={() => handleSort('product_name')}
                                             >
                                                 <div className="flex items-center gap-1">
@@ -362,49 +352,60 @@ export default function InventoryPage() {
                                                     <ArrowUpDown className="h-3 w-3" />
                                                 </div>
                                             </TableHead>
-                                            <TableHead className="text-slate-400">หมวด</TableHead>
-                                            <TableHead className="text-slate-400 text-right">สต๊อกคงเหลือ</TableHead>
+                                            <TableHead>หมวด</TableHead>
+                                            <TableHead className="text-right">สต๊อกคงเหลือ</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {isLoading ? (
                                             [...Array(5)].map((_, i) => (
-                                                <TableRow key={i} className="border-slate-700">
+                                                <TableRow key={i}>
                                                     <TableCell colSpan={5}>
-                                                        <div className="h-12 animate-pulse rounded bg-slate-700" />
+                                                        <div className="h-12 animate-pulse rounded bg-muted" />
                                                     </TableCell>
                                                 </TableRow>
                                             ))
                                         ) : inventory.length === 0 ? (
-                                            <TableRow className="border-slate-700">
-                                                <TableCell colSpan={5} className="text-center py-8 text-slate-400">
-                                                    ไม่พบข้อมูลสินค้า
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="h-64 text-center">
+                                                    <EmptyState
+                                                        icon={Package}
+                                                        title="ไม่พบข้อมูลสินค้า"
+                                                        description={search ? `ไม่พบสินค้าที่ตรงกับ "${search}"` : "ยังไม่มีสินค้าในคลัง เริ่มต้นด้วยการเพิ่มสินค้าใหม่"}
+                                                        action={
+                                                            <Link href="/inventory/stock-in">
+                                                                <Button variant="outline" className="mt-4">
+                                                                    รับสินค้าเข้า
+                                                                </Button>
+                                                            </Link>
+                                                        }
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             inventory.map((item) => {
                                                 const status = getStockStatus(item)
                                                 return (
-                                                    <TableRow key={item.product_id} className="border-slate-700 hover:bg-slate-700/50">
+                                                    <TableRow key={item.product_id} className="hover:bg-muted/50">
                                                         <TableCell>
-                                                            {status === 'normal' && <CheckCircle className="h-5 w-5 text-green-400" />}
-                                                            {status === 'low' && <AlertTriangle className="h-5 w-5 text-yellow-400" />}
-                                                            {status === 'out' && <XCircle className="h-5 w-5 text-red-400" />}
+                                                            {status === 'normal' && <CheckCircle className="h-5 w-5 text-success" />}
+                                                            {status === 'low' && <AlertTriangle className="h-5 w-5 text-warning" />}
+                                                            {status === 'out' && <XCircle className="h-5 w-5 text-destructive" />}
                                                         </TableCell>
-                                                        <TableCell className="text-purple-400 font-mono text-sm">
+                                                        <TableCell className="font-mono text-sm text-muted-foreground">
                                                             {item.product_code}
                                                         </TableCell>
-                                                        <TableCell className="text-white font-medium">
+                                                        <TableCell className="font-medium">
                                                             {item.product_name}
                                                         </TableCell>
                                                         <TableCell className={getCategoryColor(item.category)}>
                                                             {item.category}
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            <span className="text-white font-medium">{item.full_qty}</span>
-                                                            <span className="text-slate-400 ml-1">{item.main_unit}</span>
+                                                            <span className="font-medium">{item.full_qty}</span>
+                                                            <span className="text-muted-foreground ml-1">{item.main_unit}</span>
                                                             {item.opened_qty > 0 && (
-                                                                <span className="text-pink-400 ml-1">(+{item.opened_qty} {item.sub_unit})</span>
+                                                                <span className="text-primary ml-1">(+{item.opened_qty} {item.sub_unit})</span>
                                                             )}
                                                         </TableCell>
                                                     </TableRow>
@@ -421,15 +422,15 @@ export default function InventoryPage() {
                 {/* Daily Usage Tab */}
                 <TabsContent value="usage" className="space-y-6">
                     {/* Date Picker */}
-                    <Card className="bg-slate-800 border-slate-700">
+                    <Card>
                         <CardContent className="p-4">
                             <div className="flex items-center gap-3">
-                                <Calendar className="h-5 w-5 text-slate-400" />
+                                <Calendar className="h-5 w-5 text-muted-foreground" />
                                 <Input
                                     type="date"
                                     value={selectedDate}
                                     onChange={(e) => setSelectedDate(e.target.value)}
-                                    className="w-48 bg-slate-900 border-slate-700 text-white"
+                                    className="w-48"
                                 />
                             </div>
                         </CardContent>
@@ -437,27 +438,27 @@ export default function InventoryPage() {
 
                     {/* Summary Stats */}
                     <div className="grid gap-4 sm:grid-cols-3">
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">สินค้าที่ใช้</p>
-                                <p className="text-3xl font-bold text-white">
-                                    {dailyUsage?.summary.products_used || 0} <span className="text-lg text-slate-400">รายการ</span>
+                                <p className="text-sm text-muted-foreground">สินค้าที่ใช้</p>
+                                <p className="text-3xl font-bold">
+                                    {dailyUsage?.summary.products_used || 0} <span className="text-lg text-muted-foreground">รายการ</span>
                                 </p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">จำนวนครั้ง</p>
-                                <p className="text-3xl font-bold text-white">
-                                    {dailyUsage?.summary.total_times || 0} <span className="text-lg text-slate-400">ครั้ง</span>
+                                <p className="text-sm text-muted-foreground">จำนวนครั้ง</p>
+                                <p className="text-3xl font-bold">
+                                    {dailyUsage?.summary.total_times || 0} <span className="text-lg text-muted-foreground">ครั้ง</span>
                                 </p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">หน่วยที่ใช้ไป</p>
-                                <p className="text-3xl font-bold text-pink-400">
-                                    {dailyUsage?.summary.total_units || 0} <span className="text-lg text-slate-400">Units</span>
+                                <p className="text-sm text-muted-foreground">หน่วยที่ใช้ไป</p>
+                                <p className="text-3xl font-bold text-primary">
+                                    {dailyUsage?.summary.total_units || 0} <span className="text-lg text-muted-foreground">Units</span>
                                 </p>
                             </CardContent>
                         </Card>
@@ -465,16 +466,16 @@ export default function InventoryPage() {
 
                     {/* Category Breakdown */}
                     {dailyUsage?.by_category && Object.keys(dailyUsage.by_category).length > 0 && (
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardHeader>
-                                <CardTitle className="text-white text-lg">แยกตามหมวดหมู่</CardTitle>
+                                <CardTitle className="text-lg">แยกตามหมวดหมู่</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
                                     {Object.entries(dailyUsage.by_category).map(([cat, units]) => (
-                                        <div key={cat} className="p-3 rounded-lg bg-slate-900">
+                                        <div key={cat} className="p-3 rounded-lg bg-muted/50">
                                             <p className={`text-sm ${getCategoryColor(cat)}`}>{cat}</p>
-                                            <p className="text-xl font-bold text-white">{units} <span className="text-sm text-slate-400">units</span></p>
+                                            <p className="text-xl font-bold">{units} <span className="text-sm text-muted-foreground">units</span></p>
                                         </div>
                                     ))}
                                 </div>
@@ -483,41 +484,41 @@ export default function InventoryPage() {
                     )}
 
                     {/* Product Usage Table */}
-                    <Card className="bg-slate-800 border-slate-700">
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="text-white">การใช้แยกตามสินค้า</CardTitle>
+                            <CardTitle>การใช้แยกตามสินค้า</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-lg border border-slate-700 overflow-hidden">
+                            <div className="rounded-lg border overflow-hidden">
                                 <Table>
-                                    <TableHeader className="bg-slate-900">
-                                        <TableRow className="border-slate-700">
-                                            <TableHead className="text-slate-400">รหัส</TableHead>
-                                            <TableHead className="text-slate-400">สินค้า</TableHead>
-                                            <TableHead className="text-slate-400">หมวด</TableHead>
-                                            <TableHead className="text-slate-400 text-center">จำนวนครั้ง</TableHead>
-                                            <TableHead className="text-slate-400 text-right">รวมใช้ไป</TableHead>
+                                    <TableHeader>
+                                        <TableRow className="bg-muted/50">
+                                            <TableHead>รหัส</TableHead>
+                                            <TableHead>สินค้า</TableHead>
+                                            <TableHead>หมวด</TableHead>
+                                            <TableHead className="text-center">จำนวนครั้ง</TableHead>
+                                            <TableHead className="text-right">รวมใช้ไป</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {!dailyUsage?.by_product?.length ? (
-                                            <TableRow className="border-slate-700">
-                                                <TableCell colSpan={5} className="text-center py-8 text-slate-400">
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                                     ไม่มีข้อมูลการใช้
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             dailyUsage.by_product.map((item) => (
-                                                <TableRow key={item.product_id} className="border-slate-700 hover:bg-slate-700/50">
-                                                    <TableCell className="text-purple-400 font-mono text-sm">
+                                                <TableRow key={item.product_id} className="hover:bg-muted/50">
+                                                    <TableCell className="text-muted-foreground font-mono text-sm">
                                                         {item.product_code}
                                                     </TableCell>
-                                                    <TableCell className="text-white">{item.product_name}</TableCell>
+                                                    <TableCell>{item.product_name}</TableCell>
                                                     <TableCell className={getCategoryColor(item.category)}>{item.category}</TableCell>
-                                                    <TableCell className="text-center text-white">{item.times}</TableCell>
+                                                    <TableCell className="text-center">{item.times}</TableCell>
                                                     <TableCell className="text-right">
-                                                        <span className="text-pink-400 font-bold">{item.total_used}</span>
-                                                        <span className="text-slate-400 ml-1">{item.sub_unit}</span>
+                                                        <span className="text-primary font-bold">{item.total_used}</span>
+                                                        <span className="text-muted-foreground ml-1">{item.sub_unit}</span>
                                                     </TableCell>
                                                 </TableRow>
                                             ))
@@ -530,35 +531,35 @@ export default function InventoryPage() {
 
                     {/* Detail Log */}
                     {dailyUsage?.detail_log && dailyUsage.detail_log.length > 0 && (
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardHeader>
-                                <CardTitle className="text-white">รายละเอียดการใช้</CardTitle>
+                                <CardTitle>รายละเอียดการใช้</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="rounded-lg border border-slate-700 overflow-hidden">
+                                <div className="rounded-lg border overflow-hidden">
                                     <Table>
-                                        <TableHeader className="bg-slate-900">
-                                            <TableRow className="border-slate-700">
-                                                <TableHead className="text-slate-400">เวลา</TableHead>
-                                                <TableHead className="text-slate-400">สินค้า</TableHead>
-                                                <TableHead className="text-slate-400 text-center">จำนวน</TableHead>
-                                                <TableHead className="text-slate-400">ลูกค้า</TableHead>
-                                                <TableHead className="text-slate-400">หมายเหตุ</TableHead>
+                                        <TableHeader>
+                                            <TableRow className="bg-muted/50">
+                                                <TableHead>เวลา</TableHead>
+                                                <TableHead>สินค้า</TableHead>
+                                                <TableHead className="text-center">จำนวน</TableHead>
+                                                <TableHead>ลูกค้า</TableHead>
+                                                <TableHead>หมายเหตุ</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {dailyUsage.detail_log.map((log, i) => (
-                                                <TableRow key={i} className="border-slate-700 hover:bg-slate-700/50">
-                                                    <TableCell className="text-slate-400 text-sm">
+                                                <TableRow key={i} className="hover:bg-muted/50">
+                                                    <TableCell className="text-muted-foreground text-sm">
                                                         {log.time ? new Date(log.time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '-'}
                                                     </TableCell>
-                                                    <TableCell className="text-white">{log.product_name}</TableCell>
+                                                    <TableCell>{log.product_name}</TableCell>
                                                     <TableCell className="text-center">
-                                                        <span className="text-pink-400 font-bold">{log.qty_used}</span>
-                                                        <span className="text-slate-400 ml-1">{log.sub_unit}</span>
+                                                        <span className="text-primary font-bold">{log.qty_used}</span>
+                                                        <span className="text-muted-foreground ml-1">{log.sub_unit}</span>
                                                     </TableCell>
-                                                    <TableCell className="text-white">{log.customer_name || '-'}</TableCell>
-                                                    <TableCell className="text-slate-400 text-sm">{log.note || '-'}</TableCell>
+                                                    <TableCell>{log.customer_name || '-'}</TableCell>
+                                                    <TableCell className="text-muted-foreground text-sm">{log.note || '-'}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -572,28 +573,28 @@ export default function InventoryPage() {
                 {/* Stock Card Tab */}
                 <TabsContent value="card" className="space-y-6">
                     {/* Month/Year Filter */}
-                    <Card className="bg-slate-800 border-slate-700">
+                    <Card>
                         <CardContent className="p-4">
                             <div className="flex items-center gap-4">
                                 <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                                    <SelectTrigger className="w-48 bg-slate-900 border-slate-700 text-white">
+                                    <SelectTrigger className="w-48">
                                         <SelectValue placeholder="เลือกเดือน" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-800 border-slate-700">
+                                    <SelectContent>
                                         {months.map((m) => (
-                                            <SelectItem key={m.value} value={m.value.toString()} className="text-white hover:bg-slate-700">
+                                            <SelectItem key={m.value} value={m.value.toString()}>
                                                 {m.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                                    <SelectTrigger className="w-32 bg-slate-900 border-slate-700 text-white">
+                                    <SelectTrigger className="w-32">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-800 border-slate-700">
+                                    <SelectContent>
                                         {[2024, 2025, 2026].map((y) => (
-                                            <SelectItem key={y} value={y.toString()} className="text-white hover:bg-slate-700">
+                                            <SelectItem key={y} value={y.toString()}>
                                                 {y}
                                             </SelectItem>
                                         ))}
@@ -605,95 +606,95 @@ export default function InventoryPage() {
 
                     {/* Summary Stats */}
                     <div className="grid gap-4 sm:grid-cols-4">
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">สินค้าทั้งหมด</p>
-                                <p className="text-3xl font-bold text-white">{stockCard?.summary.total_products || 0}</p>
+                                <p className="text-sm text-muted-foreground">สินค้าทั้งหมด</p>
+                                <p className="text-3xl font-bold">{stockCard?.summary.total_products || 0}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">รับเข้ารวม</p>
-                                <p className="text-3xl font-bold text-green-400">+{stockCard?.summary.total_in || 0}</p>
+                                <p className="text-sm text-muted-foreground">รับเข้ารวม</p>
+                                <p className="text-3xl font-bold text-success">+{stockCard?.summary.total_in || 0}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">เบิกออกรวม</p>
-                                <p className="text-3xl font-bold text-pink-400">-{stockCard?.summary.total_out || 0}</p>
+                                <p className="text-sm text-muted-foreground">เบิกออกรวม</p>
+                                <p className="text-3xl font-bold text-primary">-{stockCard?.summary.total_out || 0}</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-800 border-slate-700">
+                        <Card>
                             <CardContent className="p-4">
-                                <p className="text-sm text-slate-400">ปรับยอดรวม</p>
-                                <p className="text-3xl font-bold text-amber-400">{stockCard?.summary.total_adjustment || 0}</p>
+                                <p className="text-sm text-muted-foreground">ปรับยอดรวม</p>
+                                <p className="text-3xl font-bold text-amber-500">{stockCard?.summary.total_adjustment || 0}</p>
                             </CardContent>
                         </Card>
                     </div>
 
                     {/* Stock Card Table */}
-                    <Card className="bg-slate-800 border-slate-700">
+                    <Card>
                         <CardHeader>
-                            <CardTitle className="text-white">
+                            <CardTitle>
                                 Stock Card - {months.find(m => m.value === selectedMonth)?.label} {selectedYear + 543}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-lg border border-slate-700 overflow-x-auto">
+                            <div className="rounded-lg border overflow-x-auto">
                                 <Table>
-                                    <TableHeader className="bg-slate-900">
-                                        <TableRow className="border-slate-700">
-                                            <TableHead className="text-slate-400">รหัส</TableHead>
-                                            <TableHead className="text-slate-400">สินค้า</TableHead>
-                                            <TableHead className="text-slate-400">หมวด</TableHead>
-                                            <TableHead className="text-slate-400 text-right">ยกมา</TableHead>
-                                            <TableHead className="text-slate-400 text-right">รับเข้า</TableHead>
-                                            <TableHead className="text-slate-400 text-right">เบิกออก</TableHead>
-                                            <TableHead className="text-slate-400 text-right">ปรับยอด</TableHead>
-                                            <TableHead className="text-slate-400 text-right">คงเหลือ</TableHead>
+                                    <TableHeader>
+                                        <TableRow className="bg-muted/50">
+                                            <TableHead>รหัส</TableHead>
+                                            <TableHead>สินค้า</TableHead>
+                                            <TableHead>หมวด</TableHead>
+                                            <TableHead className="text-right">ยกมา</TableHead>
+                                            <TableHead className="text-right">รับเข้า</TableHead>
+                                            <TableHead className="text-right">เบิกออก</TableHead>
+                                            <TableHead className="text-right">ปรับยอด</TableHead>
+                                            <TableHead className="text-right">คงเหลือ</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {!stockCard?.stock_card?.length ? (
-                                            <TableRow className="border-slate-700">
-                                                <TableCell colSpan={8} className="text-center py-8 text-slate-400">
+                                            <TableRow>
+                                                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                                                     ไม่มีข้อมูล
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             stockCard.stock_card.map((item) => (
-                                                <TableRow key={item.product_id} className="border-slate-700 hover:bg-slate-700/50">
-                                                    <TableCell className="text-purple-400 font-mono text-sm">
+                                                <TableRow key={item.product_id} className="hover:bg-muted/50">
+                                                    <TableCell className="text-muted-foreground font-mono text-sm">
                                                         {item.product_code}
                                                     </TableCell>
-                                                    <TableCell className="text-white">{item.product_name}</TableCell>
+                                                    <TableCell>{item.product_name}</TableCell>
                                                     <TableCell className={getCategoryColor(item.category)}>{item.category}</TableCell>
-                                                    <TableCell className="text-right text-white">{item.begin_balance}</TableCell>
+                                                    <TableCell className="text-right">{item.begin_balance}</TableCell>
                                                     <TableCell className="text-right">
                                                         {item.stock_in > 0 ? (
-                                                            <span className="text-green-400">+{item.stock_in}</span>
+                                                            <span className="text-success">+{item.stock_in}</span>
                                                         ) : (
-                                                            <span className="text-slate-500">-</span>
+                                                            <span className="text-muted-foreground">-</span>
                                                         )}
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         {item.stock_out > 0 ? (
-                                                            <span className="text-pink-400">-{item.stock_out}</span>
+                                                            <span className="text-destructive">-{item.stock_out}</span>
                                                         ) : (
-                                                            <span className="text-slate-500">-</span>
+                                                            <span className="text-muted-foreground">-</span>
                                                         )}
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         {item.adjustment > 0 ? (
-                                                            <span className="text-amber-400">{item.adjustment}</span>
+                                                            <span className="text-amber-500">{item.adjustment}</span>
                                                         ) : (
-                                                            <span className="text-slate-500">-</span>
+                                                            <span className="text-muted-foreground">-</span>
                                                         )}
                                                     </TableCell>
                                                     <TableCell className="text-right font-bold">
-                                                        <span className="text-white">{item.end_balance}</span>
+                                                        <span>{item.end_balance}</span>
                                                         {item.opened_qty > 0 && (
-                                                            <span className="text-pink-400 text-sm">(+{item.opened_qty})</span>
+                                                            <span className="text-primary text-sm">(+{item.opened_qty})</span>
                                                         )}
                                                     </TableCell>
                                                 </TableRow>

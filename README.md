@@ -1,6 +1,23 @@
 # Beauty Clinic Management System 💅
 
-ระบบบริหารจัดการคลินิกความงามและคลังยา (Beauty Clinic Management System)
+ระบบบริหารจัดการคลินิกความงามครบวงจร (Full-featured Beauty Clinic Management System)
+
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma)
+
+## ✨ Key Features
+
+- 👥 **Patient Management** - ระบบจัดการข้อมูลลูกค้า พร้อม HN อัตโนมัติ
+- 🛒 **POS System** - ระบบขายสินค้าและบริการ
+- 📦 **Inventory Management** - จัดการคลังสินค้าและวัตถุดิบ
+- 💉 **Course Management** - ระบบคอร์สรักษาแบบหลายครั้ง
+- 💰 **Commission Tracking** - คำนวณค่าคอมมิชชั่นอัตโนมัติ
+- 📊 **Reports & Analytics** - รายงานยอดขาย, ค่ามือ, และหนี้ค้างชำระ
+- 💳 **Deposit System** - ระบบมัดจำลูกค้า
+- 🧾 **Receipt Printing** - พิมพ์ใบเสร็จแบบพรีเมียม
+- 🌙 **Dark/Light Mode** - รองรับทั้ง 2 ธีม
 
 ## 🛠️ Tech Stack
 
@@ -14,6 +31,7 @@
 | **State Management** | Zustand + TanStack Query |
 | **Authentication** | JWT (jsonwebtoken + bcryptjs) |
 | **Forms** | React Hook Form + Zod |
+| **Fonts** | Inter + Noto Sans Thai |
 
 ## 📁 Project Structure
 
@@ -25,23 +43,26 @@ Beauty_Clinic_Management_System/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── (dashboard)/ # Dashboard pages
+│   │   │   │   ├── dashboard/
 │   │   │   │   ├── patients/
 │   │   │   │   ├── pos/
 │   │   │   │   ├── inventory/
+│   │   │   │   ├── transactions/
+│   │   │   │   ├── debtors/
+│   │   │   │   ├── service/
 │   │   │   │   ├── reports/
+│   │   │   │   │   ├── consultant-performance/
+│   │   │   │   │   └── daily-sales/
 │   │   │   │   └── settings/
+│   │   │   │       ├── commission-rates/
+│   │   │   │       └── deposits/
 │   │   │   └── api/         # API Routes
-│   │   │       ├── auth/
-│   │   │       ├── patients/
-│   │   │       ├── products/
-│   │   │       ├── transactions/
-│   │   │       └── reports/
-│   │   ├── components/      # Reusable components
+│   │   ├── components/
+│   │   │   ├── layout/      # Sidebar, Header
+│   │   │   └── ui/          # shadcn/ui components
 │   │   ├── lib/             # Utilities & Prisma client
 │   │   └── stores/          # Zustand stores
-│   ├── .env.example         # Environment template
 │   └── package.json
-├── .gitignore
 └── README.md
 ```
 
@@ -49,16 +70,16 @@ Beauty_Clinic_Management_System/
 
 ### Prerequisites
 
-- **Node.js** v18 หรือสูงกว่า
-- **MySQL** v8.0 หรือสูงกว่า
-- **npm** หรือ **pnpm**
+- **Node.js** v18 or higher
+- **MySQL** v8.0 or higher
+- **npm** or **pnpm**
 
 ### 1. Clone & Install
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/Beauty-Clinic-Management-System.git
-cd Beauty-Clinic-Management-System
+git clone https://github.com/Bigzzz0/Beauty_Clinic_Management_System.git
+cd Beauty_Clinic_Management_System
 
 # Go to app directory
 cd nextjs-app
@@ -69,7 +90,7 @@ npm install
 
 ### 2. Database Setup
 
-สร้าง MySQL Database:
+Create MySQL Database:
 
 ```sql
 CREATE DATABASE beauty_clinic_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -79,16 +100,16 @@ CREATE DATABASE beauty_clinic_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_c
 
 ```bash
 # Copy environment template
-copy .env.example .env
+cp .env.example .env   # or: copy .env.example .env (Windows)
 ```
 
-แก้ไขไฟล์ `.env`:
+Edit `.env` file:
 
 ```env
 # Database connection
 DATABASE_URL="mysql://root:YOUR_PASSWORD@localhost:3306/beauty_clinic_db"
 
-# JWT Secret (เปลี่ยนใน production)
+# JWT Secret (change in production!)
 JWT_SECRET="your-super-secret-jwt-key"
 
 # App URL
@@ -98,13 +119,13 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ### 4. Initialize Database with Prisma
 
 ```bash
-# Push schema to database (สร้าง tables อัตโนมัติ)
+# Push schema to database
 npx prisma db push
 
 # Generate Prisma client
 npx prisma generate
 
-# (Optional) เปิด Prisma Studio เพื่อดูข้อมูล
+# (Optional) Open Prisma Studio
 npx prisma studio
 ```
 
@@ -114,7 +135,7 @@ npx prisma studio
 npm run dev
 ```
 
-เปิดเบราว์เซอร์ไปที่ `http://localhost:3000`
+Open browser at `http://localhost:3000`
 
 ## 📝 Available Scripts
 
@@ -130,53 +151,53 @@ npm run dev
 
 ## 🔐 Default Login
 
-หลังจาก setup เสร็จ สามารถ login ด้วย:
-
 | Username | Password | Role |
 |----------|----------|------|
 | `admin` | `admin123` | Admin |
 
-> ⚠️ **อย่าลืมเปลี่ยน password ใน production!**
+> ⚠️ **Change password in production!**
+
+## 🎨 UI/UX Features
+
+- **Brand Colors**: Pink/Purple gradient theme
+- **Responsive Design**: Works on all screen sizes
+- **Premium Aesthetics**: Glassmorphism, gradients, and micro-animations
+- **Thai Language Support**: Full Thai UI with Noto Sans Thai font
+- **Semantic Colors**: Proper light/dark mode support
 
 ## 🔧 Troubleshooting
 
 ### Database Connection Issues
 
-1. **ตรวจสอบ MySQL ทำงานอยู่:**
-   ```bash
-   # Windows: ตรวจสอบใน Services
-   # หรือลอง connect ด้วย MySQL Workbench
-   ```
-
-2. **ตรวจสอบ DATABASE_URL ใน .env:**
-   - username และ password ถูกต้อง
-   - database name ถูกต้อง
-   - port ถูกต้อง (default: 3306)
-
+1. **Check MySQL is running**
+2. **Verify DATABASE_URL** in `.env` - username, password, database name, port
 3. **Reset Prisma:**
    ```bash
    npx prisma generate
-   npx prisma db push --force-reset  # ⚠️ จะลบข้อมูลทั้งหมด
+   npx prisma db push --force-reset  # ⚠️ Deletes all data!
    ```
 
 ### Common Errors
 
 | Error | Solution |
 |-------|----------|
-| `P1000: Authentication failed` | ตรวจสอบ username/password ใน DATABASE_URL |
-| `P1001: Can't reach database` | ตรวจสอบว่า MySQL ทำงานอยู่ |
-| `P1003: Database does not exist` | สร้าง database ก่อน: `CREATE DATABASE beauty_clinic_db` |
+| `P1000: Authentication failed` | Check username/password in DATABASE_URL |
+| `P1001: Can't reach database` | Ensure MySQL is running |
+| `P1003: Database does not exist` | Create database first |
 
-## ✅ Features
+## ✅ Features Checklist
 
-- [x] � Authentication (Login/Logout)
-- [x] � Patient Management (CRUD)
-- [x] � Product/Inventory Management
-- [x] 🛒 POS System
-- [x] � Course Management
-- [x] � Transaction & Payment
-- [x] 📈 Reports (Sales, Commission, Debts)
-- [x] ⚙️ Settings
+- [x] 🔐 Authentication (Login/Logout)
+- [x] 👥 Patient Management (CRUD + HN Auto-generation)
+- [x] 📦 Product/Inventory Management
+- [x] 🛒 POS System with Multiple Payment Methods
+- [x] 💉 Course Management (Multi-session)
+- [x] 💰 Transaction & Payment with Debt Tracking
+- [x] 📈 Reports (Sales, Commission, Consultant Performance)
+- [x] 💳 Customer Deposit System
+- [x] 🧾 Premium Receipt Printing
+- [x] ⚙️ Settings (Commission Rates, Staff Management)
+- [x] 🌙 Dark/Light Mode Theme
 
 ## 📄 License
 
@@ -185,4 +206,5 @@ ISC
 ---
 
 **Created:** December 2025  
-**Version:** 2.0.0 (Next.js Migration)
+**Version:** 2.1.0  
+**Repository:** [github.com/Bigzzz0/Beauty_Clinic_Management_System](https://github.com/Bigzzz0/Beauty_Clinic_Management_System)

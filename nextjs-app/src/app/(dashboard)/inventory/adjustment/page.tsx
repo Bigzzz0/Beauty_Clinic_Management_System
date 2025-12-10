@@ -124,10 +124,10 @@ export default function AdjustmentPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <ClipboardEdit className="h-6 w-6 text-amber-500" />
+                        <ClipboardEdit className="h-6 w-6 text-warning" />
                         ปรับยอด / ของเสีย
                     </h1>
-                    <p className="text-slate-500">บันทึกการปรับปรุงจำนวนสินค้า</p>
+                    <p className="text-muted-foreground">บันทึกการปรับปรุงจำนวนสินค้า</p>
                 </div>
             </div>
 
@@ -228,7 +228,7 @@ export default function AdjustmentPage() {
                             ยกเลิก
                         </Button>
                         <Button
-                            className="bg-gradient-to-r from-amber-500 to-amber-600"
+                            className="bg-warning text-warning-foreground hover:bg-warning/90"
                             onClick={handleSubmit}
                             disabled={adjustMutation.isPending}
                         >

@@ -5,6 +5,7 @@ import {
     Wallet, Search, Phone, DollarSign, CreditCard, Banknote, QrCode,
     AlertTriangle
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
@@ -122,15 +123,15 @@ export default function DebtorPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Wallet className="h-6 w-6 text-red-500" />
+                        <Wallet className="h-6 w-6 text-destructive" />
                         ติดตามหนี้
                     </h1>
-                    <p className="text-slate-500">ลูกค้าที่ค้างชำระ</p>
+                    <p className="text-muted-foreground">ลูกค้าที่ค้างชำระ</p>
                 </div>
-                <Card className="bg-red-50 border-red-200">
+                <Card className="bg-destructive/10 border-destructive/20">
                     <CardContent className="p-4">
-                        <p className="text-sm text-red-600">ยอดหนี้รวม</p>
-                        <p className="text-2xl font-bold text-red-700">{formatCurrency(totalDebt)}</p>
+                        <p className="text-sm text-destructive">ยอดหนี้รวม</p>
+                        <p className="text-2xl font-bold text-destructive">{formatCurrency(totalDebt)}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -139,7 +140,7 @@ export default function DebtorPage() {
             <Card>
                 <CardContent className="p-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="ค้นหา ชื่อ / HN / เบอร์โทร..."
                             value={search}
@@ -159,7 +160,7 @@ export default function DebtorPage() {
                     <div className="rounded-lg border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50">
+                                <TableRow className="bg-muted/50">
                                     <TableHead>ลูกค้า</TableHead>
                                     <TableHead>เบอร์โทร</TableHead>
                                     <TableHead>จำนวนบิล</TableHead>
@@ -178,8 +179,12 @@ export default function DebtorPage() {
                                     ))
                                 ) : filteredDebtors.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-12 text-slate-500">
-                                            ไม่มีลูกหนี้
+                                        <TableCell colSpan={5} className="h-64 text-center">
+                                            <EmptyState
+                                                icon={Wallet}
+                                                title="ไม่มีรายการลูกหนี้"
+                                                description={search ? `ไม่พบลูกหนี้ที่ตรงกับ "${search}"` : "ไม่พบลูกค้าที่มียอดค้างชำระในขณะนี้"}
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -208,7 +213,7 @@ export default function DebtorPage() {
                                             <TableCell>
                                                 <Button
                                                     size="sm"
-                                                    className="bg-green-500 hover:bg-green-600"
+                                                    variant="success"
                                                     onClick={() => setSelectedDebtor(debtor)}
                                                 >
                                                     <DollarSign className="h-4 w-4 mr-1" />
@@ -237,7 +242,7 @@ export default function DebtorPage() {
                     {selectedDebtor && (
                         <div className="space-y-4">
                             {/* Customer Info */}
-                            <div className="p-3 rounded-lg bg-slate-50">
+                            <div className="p-3 rounded-lg bg-muted">
                                 <p className="text-sm text-slate-500">ยอดหนี้รวม</p>
                                 <p className="text-2xl font-bold text-red-600">{formatCurrency(selectedDebtor.total_debt)}</p>
                             </div>
@@ -311,7 +316,8 @@ export default function DebtorPage() {
 
                             {/* Submit */}
                             <Button
-                                className="w-full bg-gradient-to-r from-green-500 to-green-600"
+                                className="w-full"
+                                variant="success"
                                 disabled={!selectedTransaction || !payAmount || payMutation.isPending}
                                 onClick={handlePay}
                             >

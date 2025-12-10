@@ -135,10 +135,10 @@ export default function StockInPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <PackagePlus className="h-6 w-6 text-green-500" />
+                        <PackagePlus className="h-6 w-6 text-success" />
                         รับสินค้าเข้า
                     </h1>
-                    <p className="text-slate-500">บันทึกสินค้าเข้าคลัง (ระบบบันทึกวันเวลาอัตโนมัติ)</p>
+                    <p className="text-muted-foreground">บันทึกสินค้าเข้าคลัง (ระบบบันทึกวันเวลาอัตโนมัติ)</p>
                 </div>
             </div>
 
@@ -152,7 +152,7 @@ export default function StockInPage() {
                     {rows.map((row) => {
                         const product = getProduct(row.product_id)
                         return (
-                            <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-4 bg-slate-50 rounded-lg">
+                            <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-4 bg-muted/50 rounded-lg">
                                 <div className="md:col-span-7">
                                     <Label>สินค้า (พิมพ์ค้นหาได้)</Label>
                                     <ProductSearchSelect
@@ -182,7 +182,7 @@ export default function StockInPage() {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="text-red-500"
+                                        className="text-destructive"
                                         onClick={() => removeRow(row.id)}
                                         disabled={rows.length === 1}
                                     >
@@ -241,7 +241,7 @@ export default function StockInPage() {
                             ยกเลิก
                         </Button>
                         <Button
-                            className="bg-gradient-to-r from-green-500 to-green-600"
+                            variant="success"
                             onClick={handleSubmit}
                             disabled={stockInMutation.isPending}
                         >

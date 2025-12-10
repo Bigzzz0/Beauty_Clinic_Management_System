@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import {
     Settings, Package, GraduationCap, Users, Plus, Search,
-    Edit, Trash2, Save, X, Eye, EyeOff
+    Edit, Trash2, Save, X, Eye, EyeOff, DollarSign, Wallet
 } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
@@ -71,6 +72,7 @@ interface Course {
     description: string | null
     standard_price: number
     staff_price: number
+    session_count: number
     is_active: boolean
     course_item: Array<{ id: number; item_name: string; qty_limit: number }>
 }
@@ -88,14 +90,14 @@ const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
-        Botox: 'bg-purple-100 text-purple-700',
-        Filler: 'bg-pink-100 text-pink-700',
-        Treatment: 'bg-blue-100 text-blue-700',
-        Medicine: 'bg-green-100 text-green-700',
-        Equipment: 'bg-amber-100 text-amber-700',
-        Skin: 'bg-rose-100 text-rose-700',
+        Botox: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+        Filler: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+        Treatment: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+        Medicine: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+        Equipment: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+        Skin: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
     }
-    return colors[cat] || 'bg-slate-100 text-slate-700'
+    return colors[cat] || 'bg-muted text-muted-foreground'
 }
 
 export default function SettingsPage() {
@@ -284,12 +286,34 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Settings className="h-6 w-6 text-slate-500" />
-                    ตั้งค่าระบบ
-                </h1>
-                <p className="text-slate-500">จัดการสินค้า, คอร์ส, และพนักงาน</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                        <Settings className="h-6 w-6 text-primary" />
+                        ตั้งค่าระบบ
+                    </h1>
+                    <p className="text-muted-foreground">จัดการสินค้า, คอร์ส, และพนักงาน</p>
+                </div>
+                <div className="flex gap-2">
+                    <Link href="/settings/categories">
+                        <Button variant="outline" className="gap-2">
+                            <Package className="h-4 w-4" />
+                            หมวดหมู่
+                        </Button>
+                    </Link>
+                    <Link href="/settings/commission-rates">
+                        <Button variant="outline" className="gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            อัตราค่าคอม
+                        </Button>
+                    </Link>
+                    <Link href="/settings/deposits">
+                        <Button variant="outline" className="gap-2">
+                            <Wallet className="h-4 w-4" />
+                            จัดการมัดจำ
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <Tabs defaultValue="products" className="space-y-4">
@@ -315,7 +339,7 @@ export default function SettingsPage() {
                             <CardTitle>รายการสินค้า ({products.length})</CardTitle>
                             <div className="flex gap-2">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         placeholder="ค้นหา..."
                                         value={productSearch}
@@ -333,7 +357,7 @@ export default function SettingsPage() {
                             <div className="rounded-lg border overflow-hidden">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-slate-50">
+                                        <TableRow className="bg-muted/50">
                                             <TableHead>รหัส</TableHead>
                                             <TableHead>ชื่อสินค้า</TableHead>
                                             <TableHead>หมวด</TableHead>
@@ -363,7 +387,7 @@ export default function SettingsPage() {
                                                         <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(p); setProductDialog(true) }}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setDeleteProductId(p.product_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProductId(p.product_id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -395,7 +419,7 @@ export default function SettingsPage() {
                                             <TableHead>รหัส</TableHead>
                                             <TableHead>ชื่อคอร์ส</TableHead>
                                             <TableHead className="text-right">ราคา</TableHead>
-                                            <TableHead>รายการ</TableHead>
+                                            <TableHead className="text-center">จำนวนครั้ง</TableHead>
                                             <TableHead>สถานะ</TableHead>
                                             <TableHead className="w-24"></TableHead>
                                         </TableRow>
@@ -406,8 +430,8 @@ export default function SettingsPage() {
                                                 <TableCell className="font-mono text-sm">{c.course_code}</TableCell>
                                                 <TableCell className="font-medium">{c.course_name}</TableCell>
                                                 <TableCell className="text-right">{formatCurrency(Number(c.standard_price))}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="secondary">{c.course_item?.length || 0} รายการ</Badge>
+                                                <TableCell className="text-center">
+                                                    <Badge variant="outline">{c.session_count || 1} ครั้ง</Badge>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant={c.is_active ? 'default' : 'secondary'}>
@@ -419,7 +443,7 @@ export default function SettingsPage() {
                                                         <Button variant="ghost" size="icon" onClick={() => { setEditingCourse(c); setCourseDialog(true) }}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setDeleteCourseId(c.course_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCourseId(c.course_id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -473,7 +497,7 @@ export default function SettingsPage() {
                                                         <Button variant="ghost" size="icon" onClick={() => { setEditingStaff(s); setStaffDialog(true) }}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setDeleteStaffId(s.staff_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteStaffId(s.staff_id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -580,6 +604,11 @@ export default function SettingsPage() {
                                 <Label>ราคาพนักงาน</Label>
                                 <Input type="number" value={editingCourse?.staff_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, staff_price: parseFloat(e.target.value) })} />
                             </div>
+                        </div>
+                        <div>
+                            <Label>จำนวนครั้ง (Sessions) *</Label>
+                            <Input type="number" min={1} value={editingCourse?.session_count || 1} onChange={(e) => setEditingCourse({ ...editingCourse, session_count: parseInt(e.target.value) || 1 })} />
+                            <p className="text-xs text-muted-foreground mt-1">จำนวนครั้งที่ลูกค้าสามารถมาใช้บริการได้</p>
                         </div>
                         {editingCourse?.course_id && (
                             <div className="flex items-center gap-2">

@@ -24,7 +24,43 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { transaction_id, amount_paid, payment_method } = body
+        const { transaction_id, amount_paid, payment_method, customer_id } = body
+
+        // For DEPOSIT payment, verify and deduct from customer deposit balance
+        if (payment_method === 'DEPOSIT') {
+            if (!customer_id) {
+                return NextResponse.json({ error: 'customer_id required for deposit payment' }, { status: 400 })
+            }
+
+            // Get current deposit balance
+            const latestDeposit = await prisma.customer_deposit.findFirst({
+                where: { customer_id },
+                orderBy: { created_at: 'desc' },
+            })
+
+            const currentBalance = latestDeposit ? Number(latestDeposit.balance_after) : 0
+
+            if (currentBalance < amount_paid) {
+                return NextResponse.json({
+                    error: 'ยอดมัดจำไม่เพียงพอ',
+                    current_balance: currentBalance,
+                    requested: amount_paid,
+                }, { status: 400 })
+            }
+
+            // Deduct from deposit balance
+            await prisma.customer_deposit.create({
+                data: {
+                    customer_id,
+                    transaction_id,
+                    amount: amount_paid,
+                    type: 'DEDUCT',
+                    balance_after: currentBalance - amount_paid,
+                    note: `ชำระรายการ #${transaction_id}`,
+                    created_by: staffId,
+                },
+            })
+        }
 
         // Create payment log
         const payment = await prisma.payment_log.create({

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
     Search, ShoppingCart, Trash2, Plus, Minus,
     CreditCard, Banknote, QrCode, AlertTriangle,
-    User, Stethoscope, HandHelping, ChevronDown
+    User, Stethoscope, HandHelping, ChevronDown, Wallet, Printer
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
@@ -53,6 +53,10 @@ export default function POSPage() {
     const [cashAmount, setCashAmount] = useState('')
     const [transferAmount, setTransferAmount] = useState('')
     const [creditAmount, setCreditAmount] = useState('')
+    const [depositAmount, setDepositAmount] = useState('')
+    const [customerDepositBalance, setCustomerDepositBalance] = useState(0)
+    const [lastTransactionId, setLastTransactionId] = useState<number | null>(null)
+    const [showReceiptPrompt, setShowReceiptPrompt] = useState(false)
 
     const { data: products = [] } = useProducts({ search: searchProduct })
     const { data: courses = [] } = useCourses()
@@ -102,7 +106,7 @@ export default function POSPage() {
 
     // Calculate total payment from split amounts
     const getTotalPayment = () => {
-        return (parseFloat(cashAmount) || 0) + (parseFloat(transferAmount) || 0) + (parseFloat(creditAmount) || 0)
+        return (parseFloat(cashAmount) || 0) + (parseFloat(transferAmount) || 0) + (parseFloat(creditAmount) || 0) + (parseFloat(depositAmount) || 0)
     }
 
     const getRemainingBalance = () => {
@@ -125,6 +129,17 @@ export default function POSPage() {
             }
         )
         setSearchCustomer('')
+
+        // Fetch customer deposit balance
+        try {
+            const res = await fetch(`/api/deposits/balance/${customer.customer_id}`)
+            if (res.ok) {
+                const data = await res.json()
+                setCustomerDepositBalance(data.balance || 0)
+            }
+        } catch {
+            setCustomerDepositBalance(0)
+        }
     }
 
     const handleCheckout = async () => {
@@ -180,6 +195,14 @@ export default function POSPage() {
                     payment_method: 'CREDIT',
                 }))
             }
+            if (parseFloat(depositAmount) > 0) {
+                payments.push(addPayment.mutateAsync({
+                    transaction_id: transaction.transaction_id,
+                    amount_paid: parseFloat(depositAmount),
+                    payment_method: 'DEPOSIT',
+                    customer_id: customerId,
+                }))
+            }
 
             await Promise.all(payments)
 
@@ -190,12 +213,18 @@ export default function POSPage() {
                 toast.success('บันทึกการขายสำเร็จ')
             }
 
+            // Save transaction ID for receipt
+            setLastTransactionId(transaction.transaction_id)
+            setShowReceiptPrompt(true)
+
             clearCart()
             setShowPaymentDialog(false)
             setCashAmount('')
             setTransferAmount('')
             setCreditAmount('')
+            setDepositAmount('')
             setIsPartialPayment(false)
+            setCustomerDepositBalance(0)
         } catch {
             toast.error('เกิดข้อผิดพลาดในการบันทึก')
         }
@@ -207,71 +236,49 @@ export default function POSPage() {
             setCashAmount(getTotal().toString())
             setTransferAmount('')
             setCreditAmount('')
+            setDepositAmount('')
         }
     }, [showPaymentDialog])
 
     return (
         <div className="flex h-[calc(100vh-8rem)] gap-6">
-            {/* Products Section */}
+            {/* Courses Section */}
             <div className="flex-1 space-y-4 overflow-hidden">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                        placeholder="ค้นหาสินค้า/คอร์ส..."
+                        placeholder="ค้นหาคอร์ส..."
                         value={searchProduct}
                         onChange={(e) => setSearchProduct(e.target.value)}
                         className="pl-10"
                     />
                 </div>
 
-                <Tabs defaultValue="courses" className="h-full">
-                    <TabsList>
-                        <TabsTrigger value="courses">คอร์ส</TabsTrigger>
-                        <TabsTrigger value="products">สินค้า</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="courses" className="h-[calc(100%-3rem)] overflow-auto">
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            {courses.map((course) => (
+                <div className="h-[calc(100%-4rem)] overflow-auto">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {courses
+                            .filter(course =>
+                                course.course_name.toLowerCase().includes(searchProduct.toLowerCase())
+                            )
+                            .map((course) => (
                                 <Card
                                     key={course.course_id}
-                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-purple-200"
+                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50"
                                     onClick={() => addCourse(course)}
                                 >
                                     <CardContent className="p-4">
-                                        <Badge variant="secondary" className="mb-2 bg-purple-100 text-purple-700">
+                                        <Badge variant="secondary" className="mb-2 bg-accent/20 text-accent">
                                             คอร์ส
                                         </Badge>
                                         <h4 className="font-medium">{course.course_name}</h4>
-                                        <p className="mt-1 text-lg font-bold text-purple-600">
+                                        <p className="mt-1 text-lg font-bold text-accent">
                                             {formatCurrency(course.standard_price)}
                                         </p>
                                     </CardContent>
                                 </Card>
                             ))}
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="products" className="h-[calc(100%-3rem)] overflow-auto">
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            {products.map((product) => (
-                                <Card
-                                    key={product.product_id}
-                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-pink-200"
-                                    onClick={() => addProduct(product)}
-                                >
-                                    <CardContent className="p-4">
-                                        <Badge className="mb-2">{product.category}</Badge>
-                                        <h4 className="font-medium">{product.product_name}</h4>
-                                        <p className="mt-1 text-lg font-bold text-pink-600">
-                                            {formatCurrency(product.standard_price)}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </TabsContent>
-                </Tabs>
+                    </div>
+                </div>
             </div>
 
             {/* Cart Section */}
@@ -288,15 +295,15 @@ export default function POSPage() {
                         <Label className="mb-2 block">ลูกค้า</Label>
                         {customerId ? (
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between rounded-lg bg-pink-50 p-3">
+                                <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3">
                                     <div className="flex items-center gap-2">
-                                        <User className="h-5 w-5 text-pink-600" />
-                                        <span className="font-medium text-pink-700">{customerName}</span>
+                                        <User className="h-5 w-5 text-primary" />
+                                        <span className="font-medium text-primary">{customerName}</span>
                                     </div>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => setCustomer(0, '', null)}
+                                        onClick={() => setCustomer(0, '', undefined)}
                                     >
                                         เปลี่ยน
                                     </Button>
@@ -330,13 +337,13 @@ export default function POSPage() {
                                         {customers.map((customer) => (
                                             <div
                                                 key={customer.customer_id}
-                                                className="cursor-pointer p-3 hover:bg-slate-50"
+                                                className="cursor-pointer p-3 hover:bg-muted"
                                                 onClick={() => handleSelectCustomer(customer)}
                                             >
                                                 <p className="font-medium">
                                                     {customer.first_name} {customer.last_name}
                                                 </p>
-                                                <p className="text-sm text-slate-500">{customer.hn_code} • {customer.phone_number}</p>
+                                                <p className="text-sm text-muted-foreground">{customer.hn_code} • {customer.phone_number}</p>
                                                 {(customer.drug_allergy || customer.underlying_disease) && (
                                                     <Badge className="mt-1 bg-red-100 text-red-700 text-xs">⚠️ มีข้อควรระวัง</Badge>
                                                 )}
@@ -359,13 +366,13 @@ export default function POSPage() {
                                     open={expandedItem === item.id}
                                     onOpenChange={(open) => setExpandedItem(open ? item.id : null)}
                                 >
-                                    <div className="rounded-lg bg-slate-50 p-3">
+                                    <div className="rounded-lg bg-muted p-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex-1">
                                                 <p className="font-medium">
                                                     {item.product?.product_name || item.course?.course_name}
                                                 </p>
-                                                <p className="text-sm text-slate-500">
+                                                <p className="text-sm text-muted-foreground">
                                                     {formatCurrency(item.unit_price)}
                                                 </p>
                                             </div>
@@ -397,81 +404,6 @@ export default function POSPage() {
                                                 </Button>
                                             </div>
                                         </div>
-
-                                        {/* Staff Assignment Toggle */}
-                                        <CollapsibleTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="w-full mt-2 text-xs">
-                                                <ChevronDown className={`h-4 w-4 mr-1 transition-transform ${expandedItem === item.id ? 'rotate-180' : ''}`} />
-                                                {item.staff?.doctor_name || item.staff?.therapist_name
-                                                    ? `👨‍⚕️ ${item.staff.doctor_name || '-'} | 👩‍⚕️ ${item.staff.therapist_name || '-'}`
-                                                    : 'กำหนดแพทย์/พนักงาน'
-                                                }
-                                            </Button>
-                                        </CollapsibleTrigger>
-
-                                        <CollapsibleContent className="mt-2 space-y-2">
-                                            <div>
-                                                <Label className="text-xs flex items-center gap-1">
-                                                    <Stethoscope className="h-3 w-3" />
-                                                    แพทย์ (DF)
-                                                </Label>
-                                                <Select
-                                                    value={item.staff?.doctor_id?.toString() || ''}
-                                                    onValueChange={(v) => {
-                                                        const doc = doctors.find(d => d.staff_id === parseInt(v))
-                                                        setItemStaff(item.id, {
-                                                            ...item.staff,
-                                                            doctor_id: parseInt(v) || null,
-                                                            doctor_name: doc?.full_name || null,
-                                                            therapist_id: item.staff?.therapist_id || null,
-                                                            therapist_name: item.staff?.therapist_name || null,
-                                                        })
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="h-8 text-xs">
-                                                        <SelectValue placeholder="เลือกแพทย์" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {doctors.map((doc) => (
-                                                            <SelectItem key={doc.staff_id} value={doc.staff_id.toString()}>
-                                                                {doc.full_name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
-                                            <div>
-                                                <Label className="text-xs flex items-center gap-1">
-                                                    <HandHelping className="h-3 w-3" />
-                                                    พนักงาน (Hand Fee)
-                                                </Label>
-                                                <Select
-                                                    value={item.staff?.therapist_id?.toString() || ''}
-                                                    onValueChange={(v) => {
-                                                        const th = therapists.find(t => t.staff_id === parseInt(v))
-                                                        setItemStaff(item.id, {
-                                                            ...item.staff,
-                                                            doctor_id: item.staff?.doctor_id || null,
-                                                            doctor_name: item.staff?.doctor_name || null,
-                                                            therapist_id: parseInt(v) || null,
-                                                            therapist_name: th?.full_name || null,
-                                                        })
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="h-8 text-xs">
-                                                        <SelectValue placeholder="เลือกพนักงาน" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {therapists.map((th) => (
-                                                            <SelectItem key={th.staff_id} value={th.staff_id.toString()}>
-                                                                {th.full_name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </CollapsibleContent>
                                     </div>
                                 </Collapsible>
                             ))
@@ -487,7 +419,7 @@ export default function POSPage() {
                         <div className="mb-2 flex items-center justify-between">
                             <span>ส่วนลด</span>
                             <div className="flex items-center gap-1">
-                                <span className="text-slate-500">฿</span>
+                                <span className="text-muted-foreground">฿</span>
                                 <Input
                                     type="number"
                                     value={discount}
@@ -498,13 +430,13 @@ export default function POSPage() {
                         </div>
                         <div className="mb-4 flex justify-between text-lg font-bold">
                             <span>สุทธิ</span>
-                            <span className="text-pink-600">{formatCurrency(getTotal())}</span>
+                            <span className="text-primary">{formatCurrency(getTotal())}</span>
                         </div>
 
                         <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
                             <DialogTrigger asChild>
                                 <Button
-                                    className="w-full bg-gradient-to-r from-green-500 to-green-600"
+                                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600"
                                     disabled={items.length === 0 || !customerId}
                                 >
                                     ชำระเงิน
@@ -568,13 +500,43 @@ export default function POSPage() {
                                                 />
                                             </div>
                                         </div>
+
+                                        {/* Deposit Payment - Only show if customer has balance */}
+                                        {customerDepositBalance > 0 && (
+                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                                                <Wallet className="h-5 w-5 text-emerald-600" />
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-center">
+                                                        <Label className="text-xs">ใช้เงินมัดจำ</Label>
+                                                        <span className="text-xs text-emerald-600 font-medium">
+                                                            ยอดคงเหลือ: ฿{customerDepositBalance.toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <Input
+                                                        type="number"
+                                                        value={depositAmount}
+                                                        onChange={(e) => {
+                                                            const val = parseFloat(e.target.value) || 0
+                                                            if (val <= customerDepositBalance) {
+                                                                setDepositAmount(e.target.value)
+                                                            } else {
+                                                                setDepositAmount(customerDepositBalance.toString())
+                                                            }
+                                                        }}
+                                                        placeholder="0"
+                                                        max={customerDepositBalance}
+                                                        className="h-9"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Summary */}
                                     <div className="rounded-lg bg-slate-100 p-4 space-y-2">
                                         <div className="flex justify-between">
                                             <span>ยอดที่ต้องชำระ</span>
-                                            <span className="font-bold text-pink-600">{formatCurrency(getTotal())}</span>
+                                            <span className="font-bold text-primary">{formatCurrency(getTotal())}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>รวมที่ชำระ</span>
@@ -605,7 +567,7 @@ export default function POSPage() {
                                     )}
 
                                     <Button
-                                        className="w-full bg-gradient-to-r from-green-500 to-green-600"
+                                        className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600"
                                         onClick={handleCheckout}
                                         disabled={createTransaction.isPending || addPayment.isPending || getTotalPayment() <= 0}
                                     >
@@ -621,6 +583,36 @@ export default function POSPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Receipt Prompt Dialog */}
+            <Dialog open={showReceiptPrompt} onOpenChange={setShowReceiptPrompt}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Printer className="h-5 w-5 text-green-500" />
+                            บันทึกสำเร็จ
+                        </DialogTitle>
+                    </DialogHeader>
+                    <p className="text-muted-foreground">ต้องการพิมพ์ใบเสร็จหรือไม่?</p>
+                    <div className="flex gap-2 justify-end mt-4">
+                        <Button variant="outline" onClick={() => setShowReceiptPrompt(false)}>
+                            ไม่ต้อง
+                        </Button>
+                        <Button
+                            variant="success"
+                            onClick={() => {
+                                setShowReceiptPrompt(false)
+                                if (lastTransactionId) {
+                                    window.open(`/receipt/${lastTransactionId}`, '_blank')
+                                }
+                            }}
+                        >
+                            <Printer className="h-4 w-4 mr-2" />
+                            พิมพ์ใบเสร็จ
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

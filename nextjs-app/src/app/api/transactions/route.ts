@@ -104,25 +104,63 @@ export async function POST(request: NextRequest) {
         const totalAmount = items.reduce((sum: number, item: { subtotal: number }) => sum + item.subtotal, 0)
         const netAmount = totalAmount - (discount || 0)
 
-        const transaction = await prisma.transaction_header.create({
-            data: {
-                customer_id,
-                staff_id: staff.staff_id,
-                total_amount: totalAmount,
-                discount: discount || 0,
-                net_amount: netAmount,
-                remaining_balance: netAmount,
-                payment_status: 'UNPAID',
-                transaction_item: {
-                    create: items.map((item: { product_id?: number; course_id?: number; qty: number; unit_price: number; subtotal: number }) => ({
-                        product_id: item.product_id || null,
-                        course_id: item.course_id || null,
-                        qty: item.qty,
-                        unit_price: item.unit_price,
-                        subtotal: item.subtotal,
-                    })),
+        // Get course details for session_count
+        const courseIds = items
+            .filter((item: { course_id?: number }) => item.course_id)
+            .map((item: { course_id: number }) => item.course_id)
+
+        const courses = courseIds.length > 0 ? await prisma.course.findMany({
+            where: { course_id: { in: courseIds } },
+            select: { course_id: true, session_count: true }
+        }) : []
+
+        const transaction = await prisma.$transaction(async (tx) => {
+            // 1. Create transaction with items
+            const newTransaction = await tx.transaction_header.create({
+                data: {
+                    customer_id,
+                    staff_id: staff.staff_id,
+                    total_amount: totalAmount,
+                    discount: discount || 0,
+                    net_amount: netAmount,
+                    remaining_balance: netAmount,
+                    payment_status: 'UNPAID',
+                    transaction_item: {
+                        create: items.map((item: { product_id?: number; course_id?: number; qty: number; unit_price: number; subtotal: number }) => ({
+                            product_id: item.product_id || null,
+                            course_id: item.course_id || null,
+                            qty: item.qty,
+                            unit_price: item.unit_price,
+                            subtotal: item.subtotal,
+                        })),
+                    },
                 },
-            },
+            })
+
+            // 2. Auto-create customer_course for each course purchased
+            for (const item of items as Array<{ course_id?: number; qty: number }>) {
+                if (item.course_id) {
+                    const course = courses.find(c => c.course_id === item.course_id)
+                    const sessionCount = course?.session_count || 1
+
+                    // Create customer_course for each quantity purchased
+                    for (let i = 0; i < item.qty; i++) {
+                        await tx.customer_course.create({
+                            data: {
+                                customer_id,
+                                course_id: item.course_id,
+                                transaction_id: newTransaction.transaction_id,
+                                total_sessions: sessionCount,
+                                remaining_sessions: sessionCount,
+                                purchase_date: new Date(),
+                                status: 'ACTIVE',
+                            },
+                        })
+                    }
+                }
+            }
+
+            return newTransaction
         })
 
         return NextResponse.json(transaction, { status: 201 })

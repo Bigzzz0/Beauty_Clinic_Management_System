@@ -5,6 +5,8 @@ import {
     FileText, Search, Eye, Printer, Ban, ChevronLeft, ChevronRight,
     CheckCircle, Clock, XCircle
 } from 'lucide-react'
+import Link from 'next/link'
+import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
@@ -52,7 +54,7 @@ interface Transaction {
     discount: number
     net_amount: number
     remaining_balance: number
-    payment_status: 'PAID' | 'PARTIAL' | 'UNPAID' | 'CANCELLED'
+    payment_status: 'PAID' | 'PARTIAL' | 'UNPAID' | 'CANCELLED' | 'VOIDED'
     customer: {
         customer_id: number
         hn_code: string
@@ -157,10 +159,10 @@ export default function TransactionsPage() {
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-blue-500" />
+                    <FileText className="h-6 w-6 text-primary" />
                     ประวัติบิล
                 </h1>
-                <p className="text-slate-500">รายการธุรกรรมทั้งหมด</p>
+                <p className="text-muted-foreground">รายการธุรกรรมทั้งหมด</p>
             </div>
 
             {/* Filters */}
@@ -168,7 +170,7 @@ export default function TransactionsPage() {
                 <CardContent className="p-4">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="ค้นหาเลขบิล / ชื่อลูกค้า / HN..."
                                 value={search}
@@ -201,7 +203,7 @@ export default function TransactionsPage() {
                     <div className="rounded-lg border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50">
+                                <TableRow className="bg-muted/50">
                                     <TableHead>เลขบิล</TableHead>
                                     <TableHead>วันที่</TableHead>
                                     <TableHead>ลูกค้า</TableHead>
@@ -221,8 +223,19 @@ export default function TransactionsPage() {
                                     ))
                                 ) : transactions.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-12 text-slate-500">
-                                            ไม่พบรายการ
+                                        <TableCell colSpan={6} className="h-64 text-center">
+                                            <EmptyState
+                                                icon={FileText}
+                                                title="ไม่พบรายการบิล"
+                                                description={search || status ? "ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา" : "ยังไม่มีประวัติการทำรายการ"}
+                                                action={
+                                                    <Link href="/pos">
+                                                        <Button variant="outline" className="mt-4">
+                                                            ไปที่หน้าขาย (POS)
+                                                        </Button>
+                                                    </Link>
+                                                }
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -237,7 +250,7 @@ export default function TransactionsPage() {
                                             <TableCell>
                                                 <div>
                                                     <p className="font-medium">{tx.customer.first_name} {tx.customer.last_name}</p>
-                                                    <p className="text-xs text-slate-500">{tx.customer.hn_code}</p>
+                                                    <p className="text-xs text-muted-foreground">{tx.customer.hn_code}</p>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -262,7 +275,7 @@ export default function TransactionsPage() {
                                                     >
                                                         <Printer className="h-4 w-4" />
                                                     </Button>
-                                                    {isAdmin && tx.payment_status !== 'VOIDED' && (
+                                                    {isAdmin() && tx.payment_status !== 'VOIDED' && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -284,7 +297,7 @@ export default function TransactionsPage() {
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between mt-4">
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-muted-foreground">
                                 หน้า {page} จาก {totalPages}
                             </p>
                             <div className="flex gap-2">
@@ -320,9 +333,9 @@ export default function TransactionsPage() {
                     {selectedTx && (
                         <div className="space-y-4">
                             {/* Customer */}
-                            <div className="p-3 rounded-lg bg-slate-50">
+                            <div className="p-3 rounded-lg bg-muted">
                                 <p className="font-medium">{selectedTx.customer.first_name} {selectedTx.customer.last_name}</p>
-                                <p className="text-sm text-slate-500">{selectedTx.customer.hn_code}</p>
+                                <p className="text-sm text-muted-foreground">{selectedTx.customer.hn_code}</p>
                             </div>
 
                             {/* Items */}
@@ -380,7 +393,7 @@ export default function TransactionsPage() {
                             </div>
 
                             {Number(selectedTx.remaining_balance) > 0 && (
-                                <div className="p-3 rounded-lg bg-red-50 text-red-700">
+                                <div className="p-3 rounded-lg bg-destructive/10 text-destructive">
                                     <p className="text-sm">ยอดค้างชำระ: <strong>{formatCurrency(Number(selectedTx.remaining_balance))}</strong></p>
                                 </div>
                             )}

@@ -27,6 +27,8 @@ interface PendingService {
     customer_id: number | null
     customer_name: string | null
     course_name: string | null
+    session_number: number | null
+    total_sessions: number
 }
 
 interface Product {
@@ -173,10 +175,10 @@ export default function UsageRecordPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Syringe className="h-6 w-6 text-purple-500" />
+                        <Syringe className="h-6 w-6 text-primary" />
                         บันทึกการใช้ยา
                     </h1>
-                    <p className="text-slate-500">ตัดสต๊อกจากการทำหัตถการ (ระบบบันทึกวันเวลาอัตโนมัติ)</p>
+                    <p className="text-muted-foreground">ตัดสต๊อกจากการทำหัตถการ (ระบบบันทึกวันเวลาอัตโนมัติ)</p>
                 </div>
             </div>
 
@@ -193,8 +195,8 @@ export default function UsageRecordPage() {
                             ))}
                         </div>
                     ) : pendingServices.length === 0 ? (
-                        <div className="py-12 text-center text-slate-500">
-                            <Check className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                        <div className="py-12 text-center text-muted-foreground">
+                            <Check className="h-12 w-12 mx-auto mb-4 text-success" />
                             <p>ไม่มีรายการรอบันทึก</p>
                         </div>
                     ) : (
@@ -206,25 +208,30 @@ export default function UsageRecordPage() {
                                 >
                                     <CollapsibleTrigger asChild>
                                         <div
-                                            className="flex items-center justify-between p-4 rounded-lg bg-purple-50 cursor-pointer hover:bg-purple-100 transition-colors"
+                                            className="flex items-center justify-between p-4 rounded-lg bg-card border hover:bg-muted/50 transition-colors cursor-pointer"
                                             onClick={() => toggleService(service.usage_id)}
                                         >
                                             <div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     <p className="font-medium">{service.customer_name || 'ลูกค้า'}</p>
                                                     <Badge variant="secondary">{service.service_name}</Badge>
+                                                    {service.session_number && service.total_sessions > 0 && (
+                                                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                                                            ครั้งที่ {service.session_number}/{service.total_sessions}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                                 {service.course_name && (
-                                                    <p className="text-sm text-slate-500">{service.course_name}</p>
+                                                    <p className="text-sm text-muted-foreground">{service.course_name}</p>
                                                 )}
-                                                <p className="text-xs text-slate-400 mt-1">
+                                                <p className="text-xs text-muted-foreground mt-1">
                                                     {formatDateTime(service.service_date)}
                                                 </p>
                                             </div>
                                             {expandedService === service.usage_id ? (
-                                                <ChevronUp className="h-5 w-5 text-slate-400" />
+                                                <ChevronUp className="h-5 w-5 text-muted-foreground" />
                                             ) : (
-                                                <ChevronDown className="h-5 w-5 text-slate-400" />
+                                                <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                             )}
                                         </div>
                                     </CollapsibleTrigger>
@@ -236,7 +243,7 @@ export default function UsageRecordPage() {
                                             {(usageRows[service.usage_id] || []).map((row) => {
                                                 const product = getProduct(row.product_id)
                                                 return (
-                                                    <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-3 bg-slate-50 rounded-lg">
+                                                    <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-3 bg-muted/50 rounded-lg">
                                                         <div className="md:col-span-7">
                                                             <ProductSearchSelect
                                                                 products={products}
@@ -260,7 +267,7 @@ export default function UsageRecordPage() {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="text-red-500"
+                                                                className="text-destructive"
                                                                 onClick={() => removeRow(service.usage_id, row.id)}
                                                                 disabled={(usageRows[service.usage_id] || []).length === 1}
                                                             >
@@ -278,7 +285,7 @@ export default function UsageRecordPage() {
 
                                             <div className="flex justify-end">
                                                 <Button
-                                                    className="bg-gradient-to-r from-purple-500 to-purple-600"
+                                                    variant="gradient"
                                                     onClick={() => handleSubmit(service.usage_id)}
                                                     disabled={usageMutation.isPending}
                                                 >

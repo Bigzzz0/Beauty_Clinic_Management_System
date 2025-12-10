@@ -46,6 +46,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
                 description: body.description,
                 standard_price: body.standard_price,
                 staff_price: body.staff_price,
+                session_count: body.session_count || 1,
                 is_active: body.is_active,
             },
         })

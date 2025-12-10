@@ -37,18 +37,28 @@ export async function GET() {
             },
         })
 
-        // Format response
-        const formatted = pendingServices.map((service) => ({
-            usage_id: service.usage_id,
-            service_date: service.service_date,
-            service_name: service.service_name,
-            note: service.note,
-            customer_id: service.customer_course?.customer_id,
-            customer_name: service.customer_course?.customer
-                ? `${service.customer_course.customer.first_name} ${service.customer_course.customer.last_name}`
-                : null,
-            course_name: service.customer_course?.course?.course_name,
-        }))
+        // Format response with session number
+        const formatted = pendingServices.map((service) => {
+            const cc = service.customer_course
+            const total_sessions = cc?.total_sessions || 0
+            const remaining_sessions = cc?.remaining_sessions || 0
+            // Session number = total - remaining (this service already deducted 1)
+            const session_number = total_sessions > 0 ? total_sessions - remaining_sessions : null
+
+            return {
+                usage_id: service.usage_id,
+                service_date: service.service_date,
+                service_name: service.service_name,
+                note: service.note,
+                customer_id: cc?.customer_id,
+                customer_name: cc?.customer
+                    ? `${cc.customer.first_name} ${cc.customer.last_name}`
+                    : null,
+                course_name: cc?.course?.course_name,
+                session_number,
+                total_sessions,
+            }
+        })
 
         return NextResponse.json(formatted)
     } catch (error) {

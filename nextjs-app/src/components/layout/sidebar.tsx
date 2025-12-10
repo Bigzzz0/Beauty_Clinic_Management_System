@@ -46,6 +46,12 @@ const menuItems = [
         roles: ['Admin', 'Sale', 'Cashier'],
     },
     {
+        title: 'รับบริการ',
+        icon: ClipboardList,
+        href: '/service',
+        roles: ['Admin', 'Doctor', 'Therapist'],
+    },
+    {
         title: 'ลูกหนี้',
         icon: CreditCard,
         href: '/debtors',
@@ -116,7 +122,7 @@ export function Sidebar() {
         >
             <div className="flex h-16 items-center justify-between border-b border-slate-700 px-4">
                 <div className={cn('flex items-center gap-3', !isSidebarOpen && 'hidden')}>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-600">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
                         <span className="text-lg font-bold">BC</span>
                     </div>
                     <div>
@@ -146,10 +152,10 @@ export function Sidebar() {
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                     isActive(item.href)
-                                        ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-white'
-                                        : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                                        ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
+                                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
                                 )}
                             >
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -174,10 +180,10 @@ export function Sidebar() {
                                     key={item.href}
                                     href={item.href}
                                     className={cn(
-                                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
-                                            ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-white'
-                                            : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                                            ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
+                                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
                                     )}
                                 >
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -196,10 +202,10 @@ export function Sidebar() {
                                     key={item.href}
                                     href={item.href}
                                     className={cn(
-                                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
-                                            ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-white'
-                                            : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                                            ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
+                                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
                                     )}
                                 >
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -214,10 +220,10 @@ export function Sidebar() {
                     <Link
                         href="/settings"
                         className={cn(
-                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                             isActive('/settings')
-                                ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-white'
-                                : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                                ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
+                                : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
                         )}
                     >
                         <Settings className="h-5 w-5 flex-shrink-0" />
@@ -229,7 +235,7 @@ export function Sidebar() {
             {/* User Section */}
             <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700 p-3">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-sm font-medium">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-medium">
                         {user?.full_name?.charAt(0) || 'U'}
                     </div>
                     <div className={cn('flex-1', !isSidebarOpen && 'hidden')}>

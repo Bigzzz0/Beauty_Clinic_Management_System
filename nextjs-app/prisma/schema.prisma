@@ -7,6 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ตารางหมวดหมู่ (Dynamic categories management)
+model category {
+  id          Int      @id @default(autoincrement())
+  type        String   @db.VarChar(50)       // 'PRODUCT' หรือ 'COMMISSION'
+  name        String   @db.VarChar(100)      // ชื่อหมวดหมู่
+  code        String   @db.VarChar(50)       // code สำหรับใช้งาน
+  description String?  @db.VarChar(255)
+  is_active   Boolean  @default(true)
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  
+  @@unique([type, code])
+  @@index([type])
+}
+
 model course {
   course_id        Int                @id @default(autoincrement())
   course_code      String?            @unique(map: "course_code") @db.VarChar(20)
@@ -14,6 +29,7 @@ model course {
   description      String?            @db.Text
   standard_price   Decimal            @db.Decimal(10, 2)
   staff_price      Decimal?           @db.Decimal(10, 2)
+  session_count    Int                @default(1)  // จำนวนครั้งต่อคอร์ส
   is_active        Boolean?           @default(true)
   course_item      course_item[]
   customer_course  customer_course[]
@@ -33,23 +49,29 @@ model course_item {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model customer {
-  customer_id        Int                  @id @default(autoincrement())
-  hn_code            String               @unique(map: "hn_code") @db.VarChar(20)
-  id_card_number     String?              @db.VarChar(13)
-  first_name         String               @db.VarChar(100)
-  last_name          String               @db.VarChar(100)
-  full_name          String?              @db.VarChar(200)
-  nickname           String?              @db.VarChar(50)
-  phone_number       String               @db.VarChar(20)
-  address            String?              @db.Text
-  birth_date         DateTime?            @db.Date
-  drug_allergy       String?              @db.Text
-  underlying_disease String?              @db.Text
-  personal_consult   String?              @db.VarChar(100)
-  member_level       String?              @default("General") @db.VarChar(50)
-  created_at         DateTime?            @default(now()) @db.Timestamp(0)
-  customer_course    customer_course[]
-  transaction_header transaction_header[]
+  customer_id          Int                  @id @default(autoincrement())
+  hn_code              String               @unique(map: "hn_code") @db.VarChar(20)
+  id_card_number       String?              @db.VarChar(13)
+  first_name           String               @db.VarChar(100)
+  last_name            String               @db.VarChar(100)
+  full_name            String?              @db.VarChar(200)
+  nickname             String?              @db.VarChar(50)
+  phone_number         String               @db.VarChar(20)
+  address              String?              @db.Text
+  birth_date           DateTime?            @db.Date
+  drug_allergy         String?              @db.Text
+  underlying_disease   String?              @db.Text
+  personal_consult     String?              @db.VarChar(100) // Legacy field
+  personal_consult_id  Int?                 // New relation to staff
+  personal_consultant  staff?               @relation("PersonalConsultant", fields: [personal_consult_id], references: [staff_id], onDelete: SetNull, onUpdate: NoAction)
+  member_level         String?              @default("General") @db.VarChar(50)
+  created_at           DateTime?            @default(now()) @db.Timestamp(0)
+  customer_course      customer_course[]
+  transaction_header   transaction_header[]
+  customer_deposit     customer_deposit[]   // Deposit history
+  service_usage        service_usage[]      // Service usage history
+
+  @@index([personal_consult_id], map: "personal_consult_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -143,7 +165,7 @@ model product {
   product_id       Int                @id @default(autoincrement())
   product_code     String?            @unique(map: "product_code") @db.VarChar(20)
   product_name     String             @db.VarChar(100)
-  category         product_category
+  category         String             @db.VarChar(50)  // Dynamic category (now String)
   main_unit        String             @db.VarChar(20)
   sub_unit         String             @db.VarChar(20)
   pack_size        Int                @default(1)
@@ -165,25 +187,30 @@ model service_usage {
   customer_id        Int
   customer_course_id Int?
   transaction_id     Int?
+  doctor_id          Int?              // หมอที่ทำ
+  therapist_id       Int?              // ผู้ช่วยที่ทำ
   service_name       String            @db.VarChar(100)
   note               String?           @db.Text
   fee_log            fee_log[]
   inventory_usage    inventory_usage[]
   patient_gallery    patient_gallery[]
+  customer           customer          @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "service_usage_customer_fk")
   customer_course    customer_course?  @relation(fields: [customer_course_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_usage_ibfk_1")
 
+  @@index([customer_id], map: "customer_id")
   @@index([customer_course_id], map: "customer_course_id")
 }
 
 model staff {
-  staff_id      Int            @id @default(autoincrement())
-  full_name     String         @db.VarChar(100)
-  position      staff_position
-  username      String         @unique(map: "username") @db.VarChar(50)
-  password_hash String         @db.VarChar(255)
-  is_active     Boolean?       @default(true)
-  created_at    DateTime?      @default(now()) @db.Timestamp(0)
-  fee_log       fee_log[]
+  staff_id            Int            @id @default(autoincrement())
+  full_name           String         @db.VarChar(100)
+  position            staff_position
+  username            String         @unique(map: "username") @db.VarChar(50)
+  password_hash       String         @db.VarChar(255)
+  is_active           Boolean?       @default(true)
+  created_at          DateTime?      @default(now()) @db.Timestamp(0)
+  fee_log             fee_log[]
+  consulted_customers customer[]     @relation("PersonalConsultant")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -287,6 +314,7 @@ enum payment_log_payment_method {
   CASH
   TRANSFER
   CREDIT
+  DEPOSIT  // ใช้เงินมัดจำในบัญชีลูกค้า
 }
 
 enum customer_course_status {
@@ -306,4 +334,47 @@ enum transaction_header_channel {
   WALK_IN
   BOOKING
   ONLINE
+}
+
+// หมวดหมู่ค่ามือ (Commission category)
+enum commission_category {
+  TREATMENT_COVER   // หมอการคลุมทรีทเมนต์
+  LASER             // เลเซอร์/ทรีทเมนต์
+  STAFF_ASSIST      // ค่าช่วยผลักงานพนักงาน
+}
+
+// ตารางอัตราค่ามือ (Commission rate table)
+model commission_rate {
+  id            Int             @id @default(autoincrement())
+  category      String          @db.VarChar(50)  // Dynamic category (now String)
+  item_name     String          @db.VarChar(100)
+  rate_amount   Decimal         @default(30.00) @db.Decimal(10, 2)
+  position_type staff_position? // ใช้กับตำแหน่งไหน (null = ทุกตำแหน่ง)
+  is_active     Boolean         @default(true)
+  created_at    DateTime        @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?       @updatedAt
+}
+
+// ระบบมัดจำลูกค้า (Customer deposit system)
+enum deposit_transaction_type {
+  ADD       // เติมเงินมัดจำ
+  DEDUCT    // หักใช้งาน
+  REFUND    // คืนเงิน
+  ADJUST    // ปรับยอด
+}
+
+model customer_deposit {
+  id              Int                       @id @default(autoincrement())
+  customer_id     Int
+  transaction_id  Int?                      // linked transaction (if deduct/add from transaction)
+  amount          Decimal                   @db.Decimal(10, 2)
+  type            deposit_transaction_type
+  balance_after   Decimal                   @db.Decimal(10, 2) // ยอดคงเหลือหลังทำรายการ
+  note            String?                   @db.VarChar(255)
+  created_at      DateTime                  @default(now()) @db.Timestamp(0)
+  created_by      Int?                      // staff_id who created
+  customer        customer                  @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([customer_id], map: "customer_deposit_customer_id")
+  @@index([transaction_id], map: "customer_deposit_transaction_id")
 }
