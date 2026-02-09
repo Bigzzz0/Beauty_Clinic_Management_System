@@ -5,8 +5,18 @@ import { useRouter } from 'next/navigation'
 import {
     User, ArrowLeft, Edit, Save, X, AlertTriangle,
     Phone, MapPin, Calendar, Cake, Users2,
-    Clock, Syringe, Camera, Upload, Plus
+    Clock, Syringe, Camera, Upload, Plus, Trash2
 } from 'lucide-react'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
@@ -106,6 +116,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
     const [editForm, setEditForm] = useState<Partial<PatientDetail>>({})
     const [uploadOpen, setUploadOpen] = useState(false)
     const [uploadData, setUploadData] = useState({ image_data: '', image_type: 'Before' as 'Before' | 'After', notes: '' })
+    const [deleteId, setDeleteId] = useState<number | null>(null)
 
     // Fetch patient details
     const { data: patient, isLoading } = useQuery<PatientDetail>({
@@ -186,6 +197,24 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             setUploadData({ image_data: '', image_type: 'Before', notes: '' })
         },
         onError: () => toast.error('อัพโหลดไม่สำเร็จ'),
+    })
+
+    // Delete gallery image mutation
+    const deleteMutation = useMutation({
+        mutationFn: async (galleryId: number) => {
+            const res = await fetch(`/api/gallery/${galleryId}`, {
+                method: 'DELETE',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            })
+            if (!res.ok) throw new Error('Failed')
+            return res.json()
+        },
+        onSuccess: () => {
+            toast.success('ลบรูปภาพสำเร็จ')
+            queryClient.invalidateQueries({ queryKey: ['patient-gallery', customerId] })
+            setDeleteId(null)
+        },
+        onError: () => toast.error('ลบรูปภาพไม่สำเร็จ'),
     })
 
     const handleEdit = () => {
@@ -626,12 +655,24 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                         />
                                                         <Badge
                                                             className={`absolute top-2 left-2 ${img.image_type === 'Before'
-                                                                    ? 'bg-blue-100 text-blue-700'
-                                                                    : 'bg-green-100 text-green-700'
+                                                                ? 'bg-blue-100 text-blue-700'
+                                                                : 'bg-green-100 text-green-700'
                                                                 }`}
                                                         >
                                                             {img.image_type}
                                                         </Badge>
+
+                                                        {/* Delete Button - Only visible on hover */}
+                                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="icon"
+                                                                className="h-8 w-8 rounded-full"
+                                                                onClick={() => setDeleteId(img.gallery_id)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -639,6 +680,26 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                     ))}
                                 </div>
                             )}
+
+                            <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>ยืนยันการลบรูปภาพ</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            คุณต้องการลบรูปภาพนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้ และไฟล์รูปภาพจะถูกลบออกจากระบบอย่างถาวร
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+                                            className="bg-red-600 hover:bg-red-700"
+                                        >
+                                            ยืนยันลบ
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </CardContent>
                     </Card>
                 </TabsContent>
