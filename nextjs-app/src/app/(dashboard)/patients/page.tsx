@@ -264,7 +264,7 @@ export default function PatientsPage() {
                                             <TableCell className="text-right">
                                                 {customer.total_debt > 0 ? (
                                                     <Badge className="bg-red-100 text-red-700 border-red-200">
-                                                        ติดเงิน ฿{customer.total_debt.toLocaleString()}
+                                                        ค้างชำระ ฿{customer.total_debt.toLocaleString()}
                                                     </Badge>
                                                 ) : (
                                                     <span className="text-sm text-green-600">-</span>
