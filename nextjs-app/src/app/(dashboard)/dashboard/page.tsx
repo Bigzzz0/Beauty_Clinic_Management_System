@@ -12,37 +12,7 @@ import {
     ArrowUpRight,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-const stats = [
-    {
-        title: 'ลูกค้าทั้งหมด',
-        value: '1,234',
-        change: '+12%',
-        icon: Users,
-        color: 'from-primary to-primary/80',
-    },
-    {
-        title: 'ยอดขายวันนี้',
-        value: '฿45,600',
-        change: '+8%',
-        icon: ShoppingCart,
-        color: 'from-emerald-500 to-emerald-600',
-    },
-    {
-        title: 'สินค้าในคลัง',
-        value: '456',
-        change: '-3%',
-        icon: Package,
-        color: 'from-accent to-accent/80',
-    },
-    {
-        title: 'ยอดขายเดือนนี้',
-        value: '฿1.2M',
-        change: '+15%',
-        icon: TrendingUp,
-        color: 'from-primary to-accent',
-    },
-]
+import { useQuery } from '@tanstack/react-query'
 
 const upcomingAppointments = [
     { time: '09:00', customer: 'คุณสมหญิง', service: 'Botox 50 Units' },
@@ -59,6 +29,44 @@ const lowStockItems = [
 
 export default function DashboardPage() {
     const { user } = useAuthStore()
+
+    // ดึงข้อมูลจาก API
+    const { data: apiData, isLoading } = useQuery({
+        queryKey: ['dashboard-stats'],
+        queryFn: async () => {
+            const response = await fetch('/api/transactions/sumeryDashboard') // ปรับ Path ให้ตรงกับ route.ts ของคุณ
+            if (!response.ok) throw new Error('Network error')
+            return response.json()
+        }
+    })
+
+    // แมพข้อมูลเข้ากับรูปแบบที่ HTML เดิมต้องการ
+    const stats = apiData ? [
+        { ...apiData[0], icon: Users, color: 'from-primary to-primary/80' },
+        { ...apiData[1], icon: ShoppingCart, color: 'from-emerald-500 to-emerald-600' },
+        { ...apiData[2], icon: Package, color: 'from-accent to-accent/80' },
+        { ...apiData[3], icon: TrendingUp, color: 'from-primary to-accent' },
+    ] : []
+
+    const { data: lowStockItems = [], isLoading: isLoadingStock } = useQuery({
+        queryKey: ['low-stock-inventory'],
+        queryFn: async () => {
+            const response = await fetch('/api/inventory/low-stock')
+            if (!response.ok) throw new Error('Network error')
+            return response.json()
+        }
+    })
+
+    const { data: upcomingAppointments = [], isLoading: isLoadingAppoint } = useQuery({
+        queryKey: ['upcoming-appointments'],
+        queryFn: async () => {
+            const response = await fetch('/api/courses/upcoming')
+            if (!response.ok) throw new Error('Failed to fetch')
+            return response.json()
+        }
+    })
+    
+    if (isLoading) return <div className="p-8 text-center text-muted-foreground">กำลังโหลดข้อมูลแดชบอร์ด...</div>
 
     return (
         <div className="space-y-6">
@@ -107,7 +115,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {upcomingAppointments.map((apt, i) => (
+                            {upcomingAppointments.map((apt: any, i: number) => (
                                 <div
                                     key={i}
                                     className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
@@ -140,7 +148,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {lowStockItems.map((item, i) => (
+                            {lowStockItems.map((item: any, i: number) => (
                                 <div
                                     key={i}
                                     className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/20 p-3"
