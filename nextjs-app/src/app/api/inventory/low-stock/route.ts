@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { any } from 'zod'
 
 export async function GET() {
     try {
@@ -20,7 +21,7 @@ export async function GET() {
         })
 
         // จัดรูปแบบข้อมูล (Mapping) ให้ตรงกับที่ Frontend ต้องการ
-        const formattedData = inventoryItems.map(item => ({
+        const formattedData = inventoryItems.map((item: any) => ({
             name: item.product?.product_name || 'Unknown Product',
             qty: item.full_qty,
             // เนื่องจากใน Schema ไม่มีฟิลด์ min_stock_qty 

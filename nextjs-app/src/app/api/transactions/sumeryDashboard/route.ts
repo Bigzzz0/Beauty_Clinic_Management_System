@@ -13,6 +13,12 @@ async function getDashboardStats() {
     // 1. นับจำนวนลูกค้าทั้งหมด
     const totalCustomers = await prisma.customer.count()
 
+    const customerChangeFromLastMonth = await prisma.customer.count({
+        where: {
+            created_at: { gte: lastMonthStart}
+        }
+    })
+
     // 2. ยอดรวมการขายของวันนี้ (เฉพาะที่จ่ายเงินแล้ว)
     const salesToday = await prisma.transaction_header.aggregate({
         _sum: { net_amount: true },
@@ -23,8 +29,8 @@ async function getDashboardStats() {
     })
 
     // 3. นับจำนวนสินค้าในคลังที่ยังเปิดใช้งานอยู่
-    const totalProducts = await prisma.product.count({
-        where: { is_active: true }
+    const totalProducts = await prisma.inventory.aggregate({
+        _sum: { full_qty: true },
     })
 
     // 4. ยอดรวมการขายเดือนนี้
@@ -45,6 +51,11 @@ async function getDashboardStats() {
         }
     })
 
+    let CustomerChange = 0
+    if (customerChangeFromLastMonth > 0) {
+        CustomerChange = (customerChangeFromLastMonth / totalCustomers) * 100
+    }
+
     // คำนวณค่าตัวเลข
     const currentMonthValue = Number(salesThisMonth._sum?.net_amount ?? 0)
     const lastMonthValue = Number(salesLastMonth._sum?.net_amount ?? 0)
@@ -61,7 +72,7 @@ async function getDashboardStats() {
         {
             title: 'ลูกค้าทั้งหมด',
             value: totalCustomers.toLocaleString(),
-            change: '+2%', // ส่วนนี้สามารถเขียน Logic นับเทียบกับเดือนก่อนได้เช่นกัน
+            change: `${CustomerChange >= 0 ? '+' : ''}${CustomerChange.toFixed(0)}%`, // ส่วนนี้สามารถเขียน Logic นับเทียบกับเดือนก่อนได้เช่นกัน
             icon: 'Users',
         },
         {
@@ -72,7 +83,7 @@ async function getDashboardStats() {
         },
         {
             title: 'สินค้าในคลัง',
-            value: totalProducts.toLocaleString(),
+            value: totalProducts._sum.full_qty?.toLocaleString() || '0',
             change: '0%',
             icon: 'Package',
         },
