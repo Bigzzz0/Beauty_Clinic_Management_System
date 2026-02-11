@@ -87,10 +87,18 @@ export default function DashboardPage() {
                                 <div>
                                     <p className="text-sm text-muted-foreground">{stat.title}</p>
                                     <p className="mt-1 text-2xl font-bold">{stat.value}</p>
-                                    <p className="mt-1 flex items-center text-xs text-emerald-600">
-                                        <ArrowUpRight className="mr-1 h-3 w-3" />
-                                        {stat.change} จากเดือนที่แล้ว
-                                    </p>
+                                    {stat.title === 'ยอดขายวันนี้' && (
+                                        <p className="mt-1 flex items-center text-xs text-emerald-600">
+                                            <ArrowUpRight className="mr-1 h-3 w-3" />
+                                            {stat.change} จากเมื่อวาน
+                                        </p>
+                                    )}
+                                    {stat.title !== 'ยอดขายวันนี้' && (
+                                        <p className="mt-1 flex items-center text-xs text-emerald-600">
+                                            <ArrowUpRight className="mr-1 h-3 w-3" />
+                                            {stat.change} จากเดือนที่แล้ว
+                                        </p>
+                                    )}
                                 </div>
                                 <div
                                     className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white shadow-lg`}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { startOfDay, endOfDay, startOfMonth, subMonths } from 'date-fns'
+import { startOfDay, endOfDay, startOfMonth, subMonths, subDays } from 'date-fns'
 
 // ฟังก์ชันคำนวณข้อมูลสถิติ
 async function getDashboardStats() {
@@ -9,13 +9,14 @@ async function getDashboardStats() {
     const todayEnd = endOfDay(now)
     const monthStart = startOfMonth(now)
     const lastMonthStart = startOfMonth(subMonths(now, 1))
+    const yesterdayStart = startOfDay(subDays(now, 1))
 
     // 1. นับจำนวนลูกค้าทั้งหมด
     const totalCustomers = await prisma.customer.count()
 
     const customerChangeFromLastMonth = await prisma.customer.count({
         where: {
-            created_at: { gte: lastMonthStart}
+            created_at: { gte: lastMonthStart }
         }
     })
 
@@ -24,6 +25,13 @@ async function getDashboardStats() {
         _sum: { net_amount: true },
         where: {
             transaction_date: { gte: todayStart, lte: todayEnd },
+            payment_status: 'PAID'
+        }
+    })
+    const salesYesterday = await prisma.transaction_header.aggregate({
+        _sum: { net_amount: true },
+        where: {
+            transaction_date: { gte: yesterdayStart, lte: todayStart },
             payment_status: 'PAID'
         }
     })
@@ -56,6 +64,11 @@ async function getDashboardStats() {
         CustomerChange = (customerChangeFromLastMonth / totalCustomers) * 100
     }
 
+    let salesChange = 0
+    if (salesYesterday._sum.net_amount && salesToday._sum?.net_amount !== undefined) {
+        salesChange = ((Number(salesToday._sum?.net_amount ?? 0) - Number(salesYesterday._sum.net_amount)) / Number(salesYesterday._sum.net_amount)) * 100
+    }
+
     // คำนวณค่าตัวเลข
     const currentMonthValue = Number(salesThisMonth._sum?.net_amount ?? 0)
     const lastMonthValue = Number(salesLastMonth._sum?.net_amount ?? 0)
@@ -78,7 +91,7 @@ async function getDashboardStats() {
         {
             title: 'ยอดขายวันนี้',
             value: `฿${todayValue.toLocaleString()}`,
-            change: '+8%',
+            change: `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(0)}%`,
             icon: 'ShoppingCart',
         },
         {
