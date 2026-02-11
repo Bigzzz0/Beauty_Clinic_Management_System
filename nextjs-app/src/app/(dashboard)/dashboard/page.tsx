@@ -14,39 +14,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useQuery } from '@tanstack/react-query'
 
-
-
-const stats = [
-    {
-        title: 'ลูกค้าทั้งหมด',
-        value: '1,234',
-        change: '+12%',
-        icon: Users,
-        color: 'from-primary to-primary/80',
-    },
-    {
-        title: 'ยอดขายวันนี้',
-        value: '฿45,600',
-        change: '+8%',
-        icon: ShoppingCart,
-        color: 'from-emerald-500 to-emerald-600',
-    },
-    {
-        title: 'สินค้าในคลัง',
-        value: '456',
-        change: '-3%',
-        icon: Package,
-        color: 'from-accent to-accent/80',
-    },
-    {
-        title: 'ยอดขายเดือนนี้',
-        value: '฿1.2M',
-        change: '+15%',
-        icon: TrendingUp,
-        color: 'from-primary to-accent',
-    },
-]
-
 const upcomingAppointments = [
     { time: '09:00', customer: 'คุณสมหญิง', service: 'Botox 50 Units' },
     { time: '10:30', customer: 'คุณประภา', service: 'Filler ปาก' },
@@ -67,7 +34,7 @@ export default function DashboardPage() {
     const { data: apiData, isLoading } = useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: async () => {
-            const response = await fetch('/api/transactions') // ปรับ Path ให้ตรงกับ route.ts ของคุณ
+            const response = await fetch('/api/sumeryDashboard') // ปรับ Path ให้ตรงกับ route.ts ของคุณ
             if (!response.ok) throw new Error('Network error')
             return response.json()
         }
