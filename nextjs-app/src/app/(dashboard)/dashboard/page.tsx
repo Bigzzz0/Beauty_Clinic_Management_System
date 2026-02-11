@@ -34,7 +34,7 @@ export default function DashboardPage() {
     const { data: apiData, isLoading } = useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: async () => {
-            const response = await fetch('/api/sumeryDashboard') // ปรับ Path ให้ตรงกับ route.ts ของคุณ
+            const response = await fetch('/api/transactions/sumeryDashboard') // ปรับ Path ให้ตรงกับ route.ts ของคุณ
             if (!response.ok) throw new Error('Network error')
             return response.json()
         }
@@ -48,6 +48,15 @@ export default function DashboardPage() {
         { ...apiData[3], icon: TrendingUp, color: 'from-primary to-accent' },
     ] : []
 
+    const { data: lowStockItems = [], isLoading: isLoadingStock } = useQuery({
+        queryKey: ['low-stock-inventory'],
+        queryFn: async () => {
+            const response = await fetch('/api/inventory/low-stock')
+            if (!response.ok) throw new Error('Network error')
+            return response.json()
+        }
+    })
+    
     if (isLoading) return <div className="p-8 text-center text-muted-foreground">กำลังโหลดข้อมูลแดชบอร์ด...</div>
 
     return (
@@ -130,7 +139,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {lowStockItems.map((item, i) => (
+                            {lowStockItems.map((item: any, i: number) => (
                                 <div
                                     key={i}
                                     className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/20 p-3"
