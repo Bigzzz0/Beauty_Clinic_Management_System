@@ -1,173 +1,101 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
+import { startOfDay, endOfDay, startOfMonth, subMonths } from 'date-fns'
 
-function getStaffFromRequest(request: NextRequest): { staff_id: number; position: string } | null {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) return null
-    try {
-        const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { staff_id: number; position: string }
-        return decoded
-    } catch {
-        return null
+// ฟังก์ชันคำนวณข้อมูลสถิติ
+async function getDashboardStats() {
+    const now = new Date()
+    const todayStart = startOfDay(now)
+    const todayEnd = endOfDay(now)
+    const monthStart = startOfMonth(now)
+    const lastMonthStart = startOfMonth(subMonths(now, 1))
+
+    // 1. นับจำนวนลูกค้าทั้งหมด
+    const totalCustomers = await prisma.customer.count()
+
+    // 2. ยอดรวมการขายของวันนี้ (เฉพาะที่จ่ายเงินแล้ว)
+    const salesToday = await prisma.transaction_header.aggregate({
+        _sum: { net_amount: true },
+        where: {
+            transaction_date: { gte: todayStart, lte: todayEnd },
+            payment_status: 'PAID'
+        }
+    })
+
+    // 3. นับจำนวนสินค้าในคลังที่ยังเปิดใช้งานอยู่
+    const totalProducts = await prisma.product.count({
+        where: { is_active: true }
+    })
+
+    // 4. ยอดรวมการขายเดือนนี้
+    const salesThisMonth = await prisma.transaction_header.aggregate({
+        _sum: { net_amount: true },
+        where: {
+            transaction_date: { gte: monthStart },
+            payment_status: 'PAID'
+        }
+    })
+
+    // 5. ยอดรวมการขายเดือนที่แล้ว (เพื่อหา % Change)
+    const salesLastMonth = await prisma.transaction_header.aggregate({
+        _sum: { net_amount: true },
+        where: {
+            transaction_date: { gte: lastMonthStart, lt: monthStart },
+            payment_status: 'PAID'
+        }
+    })
+
+    // คำนวณค่าตัวเลข
+    const currentMonthValue = Number(salesThisMonth._sum?.net_amount ?? 0)
+    const lastMonthValue = Number(salesLastMonth._sum?.net_amount ?? 0)
+    const todayValue = Number(salesToday._sum?.net_amount ?? 0)
+
+    // คำนวณ % การเปลี่ยนแปลงของเดือนนี้เทียบกับเดือนที่แล้ว
+    let monthChange = 0
+    if (lastMonthValue > 0) {
+        monthChange = ((currentMonthValue - lastMonthValue) / lastMonthValue) * 100
     }
+
+    // จัด Format ข้อมูลส่งกลับไปให้ Frontend
+    return [
+        {
+            title: 'ลูกค้าทั้งหมด',
+            value: totalCustomers.toLocaleString(),
+            change: '+2%', // ส่วนนี้สามารถเขียน Logic นับเทียบกับเดือนก่อนได้เช่นกัน
+            icon: 'Users',
+        },
+        {
+            title: 'ยอดขายวันนี้',
+            value: `฿${todayValue.toLocaleString()}`,
+            change: '+8%',
+            icon: 'ShoppingCart',
+        },
+        {
+            title: 'สินค้าในคลัง',
+            value: totalProducts.toLocaleString(),
+            change: '0%',
+            icon: 'Package',
+        },
+        {
+            title: 'ยอดขายเดือนนี้',
+            value: currentMonthValue >= 1000000 
+                ? `฿${(currentMonthValue / 1000000).toFixed(1)}M` 
+                : `฿${currentMonthValue.toLocaleString()}`,
+            change: `${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(0)}%`,
+            icon: 'TrendingUp',
+        }
+    ]
 }
 
-// GET /api/transactions - List transactions with pagination
+// Main API Handler
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url)
-        const page = parseInt(searchParams.get('page') || '1')
-        const limit = parseInt(searchParams.get('limit') || '20')
-        const status = searchParams.get('status') // PAID, PARTIAL, UNPAID, CANCELLED
-        const search = searchParams.get('search') || ''
-
-        const skip = (page - 1) * limit
-
-        const where: Record<string, unknown> = {}
-
-        if (status) {
-            where.payment_status = status
-        }
-
-        if (search) {
-            where.OR = [
-                { transaction_id: parseInt(search) || undefined },
-                { customer: { first_name: { contains: search } } },
-                { customer: { last_name: { contains: search } } },
-                { customer: { hn_code: { contains: search } } },
-            ].filter(Boolean)
-        }
-
-        const [transactions, total] = await Promise.all([
-            prisma.transaction_header.findMany({
-                where,
-                include: {
-                    customer: {
-                        select: {
-                            customer_id: true,
-                            hn_code: true,
-                            first_name: true,
-                            last_name: true,
-                        },
-                    },
-                    transaction_item: {
-                        include: {
-                            product: { select: { product_name: true } },
-                            course: { select: { course_name: true } },
-                        },
-                    },
-                    payment_log: true,
-                },
-                skip,
-                take: limit,
-                orderBy: { transaction_date: 'desc' },
-            }),
-            prisma.transaction_header.count({ where }),
-        ])
-
-        return NextResponse.json({
-            data: transactions,
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            },
-        })
+        const dashboardStats = await getDashboardStats()
+        return NextResponse.json(dashboardStats)
     } catch (error) {
-        console.error('Error fetching transactions:', error)
+        console.error('Dashboard Stats Error:', error)
         return NextResponse.json(
-            { error: 'Failed to fetch transactions' },
-            { status: 500 }
-        )
-    }
-}
-
-// POST /api/transactions - Create new transaction (existing)
-export async function POST(request: NextRequest) {
-    try {
-        const staff = getStaffFromRequest(request)
-        if (!staff) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        const body = await request.json()
-        const { customer_id, discount, items } = body
-
-        if (!customer_id || !items || items.length === 0) {
-            return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
-        }
-
-        // Calculate totals
-        const totalAmount = items.reduce((sum: number, item: { subtotal: number }) => sum + item.subtotal, 0)
-        const netAmount = totalAmount - (discount || 0)
-
-        // Get course details for session_count
-        const courseIds = items
-            .filter((item: { course_id?: number }) => item.course_id)
-            .map((item: { course_id: number }) => item.course_id)
-
-        const courses = courseIds.length > 0 ? await prisma.course.findMany({
-            where: { course_id: { in: courseIds } },
-            select: { course_id: true, session_count: true }
-        }) : []
-
-        const transaction = await prisma.$transaction(async (tx) => {
-            // 1. Create transaction with items
-            const newTransaction = await tx.transaction_header.create({
-                data: {
-                    customer_id,
-                    staff_id: staff.staff_id,
-                    total_amount: totalAmount,
-                    discount: discount || 0,
-                    net_amount: netAmount,
-                    remaining_balance: netAmount,
-                    payment_status: 'UNPAID',
-                    transaction_item: {
-                        create: items.map((item: { product_id?: number; course_id?: number; qty: number; unit_price: number; subtotal: number }) => ({
-                            product_id: item.product_id || null,
-                            course_id: item.course_id || null,
-                            qty: item.qty,
-                            unit_price: item.unit_price,
-                            subtotal: item.subtotal,
-                        })),
-                    },
-                },
-            })
-
-            // 2. Auto-create customer_course for each course purchased
-            for (const item of items as Array<{ course_id?: number; qty: number }>) {
-                if (item.course_id) {
-                    const course = courses.find(c => c.course_id === item.course_id)
-                    const sessionCount = course?.session_count || 1
-
-                    // Create customer_course for each quantity purchased
-                    for (let i = 0; i < item.qty; i++) {
-                        await tx.customer_course.create({
-                            data: {
-                                customer_id,
-                                course_id: item.course_id,
-                                transaction_id: newTransaction.transaction_id,
-                                total_sessions: sessionCount,
-                                remaining_sessions: sessionCount,
-                                purchase_date: new Date(),
-                                status: 'ACTIVE',
-                            },
-                        })
-                    }
-                }
-            }
-
-            return newTransaction
-        })
-
-        return NextResponse.json(transaction, { status: 201 })
-    } catch (error) {
-        console.error('Error creating transaction:', error)
-        return NextResponse.json(
-            { error: 'Failed to create transaction' },
+            { error: 'Failed to fetch dashboard statistics' },
             { status: 500 }
         )
     }

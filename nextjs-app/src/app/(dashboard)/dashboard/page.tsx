@@ -12,6 +12,9 @@ import {
     ArrowUpRight,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useQuery } from '@tanstack/react-query'
+
+
 
 const stats = [
     {
@@ -59,6 +62,26 @@ const lowStockItems = [
 
 export default function DashboardPage() {
     const { user } = useAuthStore()
+
+    // ดึงข้อมูลจาก API
+    const { data: apiData, isLoading } = useQuery({
+        queryKey: ['dashboard-stats'],
+        queryFn: async () => {
+            const response = await fetch('/api/transactions') // ปรับ Path ให้ตรงกับ route.ts ของคุณ
+            if (!response.ok) throw new Error('Network error')
+            return response.json()
+        }
+    })
+
+    // แมพข้อมูลเข้ากับรูปแบบที่ HTML เดิมต้องการ
+    const stats = apiData ? [
+        { ...apiData[0], icon: Users, color: 'from-primary to-primary/80' },
+        { ...apiData[1], icon: ShoppingCart, color: 'from-emerald-500 to-emerald-600' },
+        { ...apiData[2], icon: Package, color: 'from-accent to-accent/80' },
+        { ...apiData[3], icon: TrendingUp, color: 'from-primary to-accent' },
+    ] : []
+
+    if (isLoading) return <div className="p-8 text-center text-muted-foreground">กำลังโหลดข้อมูลแดชบอร์ด...</div>
 
     return (
         <div className="space-y-6">
