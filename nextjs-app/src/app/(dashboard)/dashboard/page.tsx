@@ -56,6 +56,15 @@ export default function DashboardPage() {
             return response.json()
         }
     })
+
+    const { data: upcomingAppointments = [], isLoading: isLoadingAppoint } = useQuery({
+        queryKey: ['upcoming-appointments'],
+        queryFn: async () => {
+            const response = await fetch('/api/courses/upcoming')
+            if (!response.ok) throw new Error('Failed to fetch')
+            return response.json()
+        }
+    })
     
     if (isLoading) return <div className="p-8 text-center text-muted-foreground">กำลังโหลดข้อมูลแดชบอร์ด...</div>
 
@@ -106,7 +115,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {upcomingAppointments.map((apt, i) => (
+                            {upcomingAppointments.map((apt: any, i: number) => (
                                 <div
                                     key={i}
                                     className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
