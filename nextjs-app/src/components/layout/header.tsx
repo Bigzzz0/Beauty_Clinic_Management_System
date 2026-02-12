@@ -24,7 +24,7 @@ export function Header() {
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-card px-4 lg:px-6">
             <div className="flex items-center gap-4">
                 {isMobile && (
-                    <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                    <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="เปิดเมนู">
                         <Menu className="h-5 w-5" />
                     </Button>
                 )}
@@ -33,12 +33,13 @@ export function Header() {
                     <Input
                         placeholder="ค้นหาลูกค้า, สินค้า..."
                         className="w-64 pl-9"
+                        aria-label="ค้นหา"
                     />
                 </div>
             </div>
 
             <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative" aria-label="การแจ้งเตือน">
                     <Bell className="h-5 w-5 text-muted-foreground" />
                     <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-white">
                         3
@@ -47,7 +48,7 @@ export function Header() {
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="flex items-center gap-2">
+                        <Button variant="ghost" className="flex items-center gap-2" aria-label="เมนูผู้ใช้">
                             <Avatar className="h-8 w-8">
                                 <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
                                     {user?.full_name?.charAt(0) || 'U'}
