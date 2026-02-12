@@ -3,6 +3,7 @@
 ระบบบริหารจัดการคลินิกความงามครบวงจร (Full-featured Beauty Clinic Management System)
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
+![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma)
@@ -13,7 +14,8 @@
 - 🛒 **POS System** - ระบบขายสินค้าและบริการ
 - 📦 **Inventory Management** - จัดการคลังสินค้าและวัตถุดิบ
 - 💉 **Course Management** - ระบบคอร์สรักษาแบบหลายครั้ง
-- 💰 **Commission Tracking** - คำนวณค่าคอมมิชชั่นอัตโนมัติ
+- 📝 **Service Usage Recording** - บันทึกการใช้บริการและตัดสต๊อกหลังทำหัตถการ (Post-Treatment Deduction)
+- 💰 **Real-time Commission** - คำนวณค่ามือและค่าคอมมิชชั่นตามจริงจากการให้บริการ
 - 📊 **Reports & Analytics** - รายงานยอดขาย, ค่ามือ, และหนี้ค้างชำระ
 - 💳 **Deposit System** - ระบบมัดจำลูกค้า
 - 🧾 **Receipt Printing** - พิมพ์ใบเสร็จแบบพรีเมียม
@@ -24,11 +26,12 @@
 | Category | Technology |
 |----------|------------|
 | **Framework** | Next.js 16 (App Router) |
+| **Library** | React 19 |
 | **Language** | TypeScript |
 | **Styling** | Tailwind CSS v4 |
 | **UI Components** | Radix UI + shadcn/ui |
 | **Database** | MySQL + Prisma ORM |
-| **State Management** | Zustand + TanStack Query |
+| **State Management** | Zustand 5 + TanStack Query 5 |
 | **Authentication** | JWT (jsonwebtoken + bcryptjs) |
 | **Forms** | React Hook Form + Zod |
 | **Fonts** | Inter + Noto Sans Thai |
@@ -50,6 +53,7 @@ Beauty_Clinic_Management_System/
 │   │   │   │   ├── transactions/
 │   │   │   │   ├── debtors/
 │   │   │   │   ├── service/
+│   │   │   │   ├── receipt/     # Receipt printing
 │   │   │   │   ├── reports/
 │   │   │   │   │   ├── consultant-performance/
 │   │   │   │   │   └── daily-sales/
@@ -72,7 +76,7 @@ Beauty_Clinic_Management_System/
 
 - **Node.js** v18 or higher
 - **MySQL** v8.0 or higher
-- **npm** or **pnpm**
+- **pnpm** (Package Manager)
 
 ### 1. Clone & Install
 
@@ -85,7 +89,7 @@ cd Beauty_Clinic_Management_System
 cd nextjs-app
 
 # Install dependencies
-npm install
+pnpm install
 ```
 
 ### 2. Database Setup
@@ -116,23 +120,24 @@ JWT_SECRET="your-super-secret-jwt-key"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-### 4. Initialize Database with Prisma
+### 4. Initialize Database with Prisma & Seed Data
 
 ```bash
 # Push schema to database
-npx prisma db push
+pnpm dlx prisma db push
 
 # Generate Prisma client
-npx prisma generate
+pnpm dlx prisma generate
 
-# (Optional) Open Prisma Studio
-npx prisma studio
+# (Optional) Seed Mock Data (requires MySQL client)
+# Run this from the project root (outside nextjs-app)
+mysql -u root -p beauty_clinic_db < ../mock_data.sql
 ```
 
 ### 5. Run Development Server
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open browser at `http://localhost:3000`
@@ -141,19 +146,23 @@ Open browser at `http://localhost:3000`
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npx prisma studio` | Open Prisma database GUI |
-| `npx prisma db push` | Sync schema to database |
-| `npx prisma generate` | Generate Prisma client |
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build for production |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm dlx prisma studio` | Open Prisma database GUI |
+| `pnpm dlx prisma db push` | Sync schema to database |
+| `pnpm dlx prisma generate` | Generate Prisma client |
 
-## 🔐 Default Login
+## 🔐 Default Login (Mock Data)
 
 | Username | Password | Role |
 |----------|----------|------|
-| `admin` | `admin123` | Admin |
+| `admin_may` | `123` | Admin |
+| `dr_leo` | `123` | Doctor |
+| `gift_therapist` | `123` | Therapist |
+| `sale_jiin` | `123` | Sale |
+| `cashier_noon` | `123` | Cashier |
 
 > ⚠️ **Change password in production!**
 
@@ -173,8 +182,8 @@ Open browser at `http://localhost:3000`
 2. **Verify DATABASE_URL** in `.env` - username, password, database name, port
 3. **Reset Prisma:**
    ```bash
-   npx prisma generate
-   npx prisma db push --force-reset  # ⚠️ Deletes all data!
+   pnpm dlx prisma generate
+   pnpm dlx prisma db push --force-reset  # ⚠️ Deletes all data!
    ```
 
 ### Common Errors
@@ -192,6 +201,7 @@ Open browser at `http://localhost:3000`
 - [x] 📦 Product/Inventory Management
 - [x] 🛒 POS System with Multiple Payment Methods
 - [x] 💉 Course Management (Multi-session)
+- [x] 📝 Service Usage & Stock Deduction
 - [x] 💰 Transaction & Payment with Debt Tracking
 - [x] 📈 Reports (Sales, Commission, Consultant Performance)
 - [x] 💳 Customer Deposit System
@@ -205,6 +215,6 @@ ISC
 
 ---
 
-**Created:** December 2025  
-**Version:** 2.1.0  
+**Updated:** February 2026
+**Version:** 3.0.0
 **Repository:** [github.com/Bigzzz0/Beauty_Clinic_Management_System](https://github.com/Bigzzz0/Beauty_Clinic_Management_System)
