@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
     Settings, Package, GraduationCap, Users, Plus, Search,
-    Edit, Trash2, Save, X, Eye, EyeOff, DollarSign, Wallet
+    Edit, Trash2, Save, Eye, EyeOff, DollarSign, Wallet
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -49,21 +49,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-
-interface Product {
-    product_id: number
-    product_code: string
-    product_name: string
-    category: string
-    main_unit: string
-    sub_unit: string
-    pack_size: number
-    is_liquid: boolean
-    cost_price: number
-    standard_price: number
-    staff_price: number
-    is_active: boolean
-}
+import { Product, ProductCategory } from '@/types'
 
 interface Course {
     course_id: number
@@ -85,10 +71,10 @@ interface Staff {
     is_active: boolean
 }
 
-const CATEGORIES = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
+const CATEGORIES: ProductCategory[] = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
 const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
 
-const getCategoryColor = (cat: string) => {
+const getCategoryColor = (cat: ProductCategory | string) => {
     const colors: Record<string, string> = {
         Botox: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
         Filler: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
@@ -525,7 +511,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <Label>หมวดหมู่ *</Label>
-                            <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
+                            <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v as ProductCategory })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกหมวด" /></SelectTrigger>
                                 <SelectContent>
                                     {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
