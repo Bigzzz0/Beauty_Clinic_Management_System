@@ -14,11 +14,13 @@ export async function GET(request: NextRequest) {
         endDate.setDate(0) // Last day of month
 
         // Get fee logs for the month
-        const where: Record<string, unknown> = {
-            fee_date: {
-                gte: startDate,
-                lte: endDate,
-            },
+        const where: any = {
+            service_usage: {
+                service_date: {
+                    gte: startDate,
+                    lte: endDate,
+                }
+            }
         }
 
         if (staffId) {
@@ -35,14 +37,18 @@ export async function GET(request: NextRequest) {
                         position: true,
                     },
                 },
-                transaction_item: {
+                service_usage: {
                     select: {
-                        product: { select: { product_name: true } },
-                        course: { select: { course_name: true } },
-                    },
-                },
+                        service_date: true,
+                        service_name: true
+                    }
+                }
             },
-            orderBy: { fee_date: 'desc' },
+            orderBy: {
+                service_usage: {
+                    service_date: 'desc'
+                }
+            },
         })
 
         // Group by staff
@@ -74,7 +80,7 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            const amount = Number(fee.fee_amount)
+            const amount = Number(fee.amount)
             if (fee.fee_type === 'DF') {
                 byStaff[fee.staff.staff_id].df_total += amount
             } else {
@@ -82,11 +88,10 @@ export async function GET(request: NextRequest) {
             }
 
             byStaff[fee.staff.staff_id].items.push({
-                date: fee.fee_date,
+                date: fee.service_usage.service_date || new Date(),
                 type: fee.fee_type,
                 amount,
-                item: fee.transaction_item?.product?.product_name ||
-                    fee.transaction_item?.course?.course_name || '-',
+                item: fee.service_usage.service_name || '-',
             })
         })
 

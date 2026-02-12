@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
                     where: { id: customer_course_id },
                     data: {
                         remaining_sessions: newRemaining,
-                        status: newRemaining === 0 ? 'COMPLETED' as const : 'ACTIVE' as const,
+                        status: newRemaining === 0 ? 'USED_UP' : 'ACTIVE',
                     },
                 })
             }

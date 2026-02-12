@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
         const productId = searchParams.get('productId')
         const actionType = searchParams.get('actionType')
 
-        const where: Record<string, unknown> = {
-            movement_date: {
+        const where: any = {
+            created_at: {
                 gte: new Date(startDate),
                 lte: new Date(endDate + 'T23:59:59'),
             },
@@ -35,13 +35,9 @@ export async function GET(request: NextRequest) {
                         product_name: true,
                     },
                 },
-                staff: {
-                    select: {
-                        full_name: true,
-                    },
-                },
+                // Staff relation missing in schema
             },
-            orderBy: { movement_date: 'desc' },
+            orderBy: { created_at: 'desc' },
             take: 500,
         })
 
@@ -52,7 +48,7 @@ export async function GET(request: NextRequest) {
                 summaryByType[m.action_type] = { count: 0, qty: 0 }
             }
             summaryByType[m.action_type].count += 1
-            summaryByType[m.action_type].qty += Number(m.qty)
+            summaryByType[m.action_type].qty += Number(m.qty_main)
         })
 
         return NextResponse.json({
@@ -63,15 +59,15 @@ export async function GET(request: NextRequest) {
             })),
             movements: movements.map((m) => ({
                 movement_id: m.movement_id,
-                date: m.movement_date,
+                date: m.created_at,
                 product_code: m.product?.product_code,
                 product_name: m.product?.product_name,
                 action_type: m.action_type,
-                qty: Number(m.qty),
+                qty: Number(m.qty_main),
                 lot_number: m.lot_number,
-                photo_url: m.photo_url,
+                photo_url: m.evidence_image,
                 note: m.note,
-                staff: m.staff?.full_name,
+                staff: 'N/A', // Staff relation missing
             })),
         })
     } catch (error) {

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
             token,
             user: {
                 ...userWithoutPassword,
-                created_at: userWithoutPassword.created_at.toISOString(),
+                created_at: userWithoutPassword.created_at?.toISOString(),
             },
         })
     } catch (error) {

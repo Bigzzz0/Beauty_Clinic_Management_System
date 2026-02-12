@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         const skip = (page - 1) * limit
 
         // Build search conditions
-        const searchFilter: Prisma.CustomerWhereInput = search ? {
+        const searchFilter: Prisma.customerWhereInput = search ? {
             OR: [
                 { hn_code: { contains: search } },
                 { first_name: { contains: search } },
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         } : {}
 
         // Combine search and debt filter
-        const where: Prisma.CustomerWhereInput = {
+        const where: Prisma.customerWhereInput = {
             ...searchFilter,
             ...(hasDebt ? {
                 transaction_header: {
@@ -41,27 +41,13 @@ export async function GET(request: NextRequest) {
         }
 
         // Build orderBy
-        let orderBy: Prisma.CustomerOrderByWithRelationInput = { created_at: sortOrder }
+        let orderBy: Prisma.customerOrderByWithRelationInput = { created_at: sortOrder }
 
         if (sortBy === 'name') {
             orderBy = { full_name: sortOrder }
-        } else if (sortBy === 'last_visit') {
-            orderBy = {
-                transaction_header: {
-                    _max: {
-                        transaction_date: sortOrder
-                    }
-                }
-            }
-        } else if (sortBy === 'debt') {
-            orderBy = {
-                transaction_header: {
-                    _sum: {
-                        remaining_balance: sortOrder
-                    }
-                }
-            }
         } else {
+            // TODO: Re-enable 'last_visit' and 'debt' sorting once Prisma supports relation aggregates (e.g. _max, _sum) in orderBy, or implement a workaround.
+            // Currently disabled to fix build errors.
             orderBy = { created_at: sortOrder }
         }
 

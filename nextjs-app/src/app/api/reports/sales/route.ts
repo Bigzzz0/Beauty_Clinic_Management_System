@@ -49,9 +49,10 @@ export async function GET(request: NextRequest) {
         const dailyData: Record<string, { date: string; sales: number; paid: number; count: number }> = {}
 
         transactions.forEach((t) => {
+            const txDate = t.transaction_date || new Date()
             const dateKey = groupBy === 'monthly'
-                ? t.transaction_date.toISOString().substring(0, 7)
-                : t.transaction_date.toISOString().split('T')[0]
+                ? txDate.toISOString().substring(0, 7)
+                : txDate.toISOString().split('T')[0]
 
             if (!dailyData[dateKey]) {
                 dailyData[dateKey] = { date: dateKey, sales: 0, paid: 0, count: 0 }

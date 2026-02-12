@@ -44,15 +44,16 @@ export async function GET() {
                     full_name: `${t.customer.first_name} ${t.customer.last_name}`,
                     phone_number: t.customer.phone_number,
                     total_debt: 0,
-                    oldest_date: t.transaction_date,
+                    oldest_date: t.transaction_date || new Date(),
                     transaction_count: 0,
                 }
             }
 
             byCustomer[cid].total_debt += Number(t.remaining_balance)
             byCustomer[cid].transaction_count += 1
-            if (t.transaction_date < byCustomer[cid].oldest_date) {
-                byCustomer[cid].oldest_date = t.transaction_date
+            const txDate = t.transaction_date || new Date()
+            if (txDate < byCustomer[cid].oldest_date) {
+                byCustomer[cid].oldest_date = txDate
             }
         })
 
