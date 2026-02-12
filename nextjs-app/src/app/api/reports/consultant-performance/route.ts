@@ -36,64 +36,70 @@ export async function GET(request: NextRequest) {
             },
         })
 
-        // Get transactions for each consultant's customers within the month
-        const consultantPerformance = await Promise.all(
-            consultantStaff.map(async (staff) => {
-                const customerIds = staff.consulted_customers.map(c => c.customer_id)
-
-                if (customerIds.length === 0) {
-                    return {
-                        staff_id: staff.staff_id,
-                        full_name: staff.full_name,
-                        position: staff.position,
-                        customer_count: 0,
-                        new_customers_this_month: 0,
-                        total_sales: 0,
-                        transaction_count: 0,
-                        average_per_customer: 0,
-                    }
-                }
-
-                // Get transactions from this consultant's customers in the time period
-                const transactions = await prisma.transaction_header.findMany({
-                    where: {
-                        customer_id: { in: customerIds },
-                        transaction_date: {
-                            gte: startDate,
-                            lte: endDate,
-                        },
-                        payment_status: { not: 'VOIDED' },
-                    },
-                    select: {
-                        net_amount: true,
-                        transaction_id: true,
-                    },
-                })
-
-                // Count new customers this month
-                const newCustomersThisMonth = staff.consulted_customers.filter(
-                    (c) => c.created_at && c.created_at >= startDate && c.created_at <= endDate
-                ).length
-
-                const totalSales = transactions.reduce(
-                    (sum, t) => sum + Number(t.net_amount),
-                    0
-                )
-
-                return {
-                    staff_id: staff.staff_id,
-                    full_name: staff.full_name,
-                    position: staff.position,
-                    customer_count: staff.consulted_customers.length,
-                    new_customers_this_month: newCustomersThisMonth,
-                    total_sales: totalSales,
-                    transaction_count: transactions.length,
-                    average_per_customer: customerIds.length > 0
-                        ? Math.round(totalSales / customerIds.length)
-                        : 0,
-                }
-            })
+        // Get all customer IDs across all consultants
+        const allCustomerIds = consultantStaff.flatMap(s =>
+            s.consulted_customers.map(c => c.customer_id)
         )
+
+        // ⚡ Bolt: Fetch all transactions in one query to avoid N+1 problem
+        // Instead of querying inside the loop (N queries), we fetch once and group in memory (2 queries total)
+        const allTransactions = await prisma.transaction_header.findMany({
+            where: {
+                customer_id: { in: allCustomerIds },
+                transaction_date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+                payment_status: { not: 'VOIDED' },
+            },
+            select: {
+                net_amount: true,
+                transaction_id: true,
+                customer_id: true,
+            },
+        })
+
+        // Group transactions by customer_id
+        // Using Map for O(1) lookups instead of .filter() which would be O(N*M)
+        const transactionsByCustomer = new Map<number, typeof allTransactions>()
+        allTransactions.forEach(t => {
+            const existing = transactionsByCustomer.get(t.customer_id) || []
+            existing.push(t)
+            transactionsByCustomer.set(t.customer_id, existing)
+        })
+
+        // Process each consultant using the pre-fetched data
+        const consultantPerformance = consultantStaff.map((staff) => {
+            const customerIds = staff.consulted_customers.map(c => c.customer_id)
+
+            // Aggregate transactions for this consultant's customers from the map
+            const staffTransactions = customerIds.flatMap(cid =>
+                transactionsByCustomer.get(cid) || []
+            )
+
+            // Count new customers this month
+            const newCustomersThisMonth = staff.consulted_customers.filter(
+                (c) => c.created_at && c.created_at >= startDate && c.created_at <= endDate
+            ).length
+
+            const totalSales = staffTransactions.reduce(
+                (sum, t) => sum + Number(t.net_amount),
+                0
+            )
+
+            return {
+                staff_id: staff.staff_id,
+                full_name: staff.full_name,
+                position: staff.position,
+                customer_count: staff.consulted_customers.length,
+                new_customers_this_month: newCustomersThisMonth,
+                total_sales: totalSales,
+                transaction_count: staffTransactions.length,
+                average_per_customer: customerIds.length > 0
+                    ? Math.round(totalSales / customerIds.length)
+                    : 0,
+            }
+        })
 
         // Sort by total sales descending
         const sortedPerformance = consultantPerformance
