@@ -245,12 +245,13 @@ export default function POSPage() {
             {/* Courses Section */}
             <div className="flex-1 space-y-4 overflow-hidden">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                     <Input
                         placeholder="ค้นหาคอร์ส..."
                         value={searchProduct}
                         onChange={(e) => setSearchProduct(e.target.value)}
                         className="pl-10"
+                        aria-label="ค้นหาคอร์ส"
                     />
                 </div>
 
@@ -263,8 +264,17 @@ export default function POSPage() {
                             .map((course) => (
                                 <Card
                                     key={course.course_id}
-                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50"
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`เพิ่มคอร์ส ${course.course_name} ลงตะกร้า`}
+                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 focus:ring-2 focus:ring-accent/50 focus:outline-none"
                                     onClick={() => addCourse(course)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault()
+                                            addCourse(course)
+                                        }
+                                    }}
                                 >
                                     <CardContent className="p-4">
                                         <Badge variant="secondary" className="mb-2 bg-accent/20 text-accent">
@@ -331,6 +341,7 @@ export default function POSPage() {
                                     placeholder="ค้นหาลูกค้า (ชื่อ/เบอร์/HN)..."
                                     value={searchCustomer}
                                     onChange={(e) => setSearchCustomer(e.target.value)}
+                                    aria-label="ค้นหาลูกค้า"
                                 />
                                 {customers.length > 0 && (
                                     <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-auto">
@@ -382,8 +393,9 @@ export default function POSPage() {
                                                     size="icon"
                                                     className="h-8 w-8"
                                                     onClick={() => updateQuantity(item.id, item.qty - 1)}
+                                                    aria-label={`ลดจำนวน ${item.product?.product_name || item.course?.course_name}`}
                                                 >
-                                                    <Minus className="h-3 w-3" />
+                                                    <Minus className="h-3 w-3" aria-hidden="true" />
                                                 </Button>
                                                 <span className="w-8 text-center">{item.qty}</span>
                                                 <Button
@@ -391,16 +403,18 @@ export default function POSPage() {
                                                     size="icon"
                                                     className="h-8 w-8"
                                                     onClick={() => updateQuantity(item.id, item.qty + 1)}
+                                                    aria-label={`เพิ่มจำนวน ${item.product?.product_name || item.course?.course_name}`}
                                                 >
-                                                    <Plus className="h-3 w-3" />
+                                                    <Plus className="h-3 w-3" aria-hidden="true" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-8 w-8 text-red-500"
                                                     onClick={() => removeItem(item.id)}
+                                                    aria-label={`ลบ ${item.product?.product_name || item.course?.course_name} ออกจากตะกร้า`}
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                                                 </Button>
                                             </div>
                                         </div>
