@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const isValidPassword = bcrypt.compareSync(password, staff.password_hash)
+        const isValidPassword = await bcrypt.compare(password, staff.password_hash)
         if (!isValidPassword) {
             return NextResponse.json(
                 { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
