@@ -11,6 +11,7 @@ export const customerSchema = z.object({
     drug_allergy: z.string().optional(),
     underlying_disease: z.string().optional(),
     personal_consult: z.string().optional(),
+    personal_consult_id: z.number().optional().nullable(),
     member_level: z.string().default('General'),
 })
 

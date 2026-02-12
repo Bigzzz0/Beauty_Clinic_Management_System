@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { customerSchema } from '@/lib/validations/customer'
 
 export async function GET(request: NextRequest) {
     try {
@@ -131,6 +132,20 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
 
+        // Validate request body
+        const validation = customerSchema.safeParse(body)
+        if (!validation.success) {
+            return NextResponse.json(
+                {
+                    error: 'Validation failed',
+                    details: validation.error.format(),
+                },
+                { status: 400 }
+            )
+        }
+
+        const data = validation.data
+
         // Generate HN code
         const timestamp = Date.now().toString(36).toUpperCase()
         const random = Math.random().toString(36).substring(2, 5).toUpperCase()
@@ -139,19 +154,19 @@ export async function POST(request: NextRequest) {
         const customer = await prisma.customer.create({
             data: {
                 hn_code,
-                first_name: body.first_name,
-                last_name: body.last_name,
-                full_name: `${body.first_name} ${body.last_name}`,
-                phone_number: body.phone_number,
-                id_card_number: body.id_card_number || null,
-                nickname: body.nickname || null,
-                address: body.address || null,
-                birth_date: body.birth_date ? new Date(body.birth_date) : null,
-                drug_allergy: body.drug_allergy || null,
-                underlying_disease: body.underlying_disease || null,
-                personal_consult: body.personal_consult || null,
-                personal_consult_id: body.personal_consult_id || null,
-                member_level: body.member_level || 'General',
+                first_name: data.first_name,
+                last_name: data.last_name,
+                full_name: `${data.first_name} ${data.last_name}`,
+                phone_number: data.phone_number,
+                id_card_number: data.id_card_number || null,
+                nickname: data.nickname || null,
+                address: data.address || null,
+                birth_date: data.birth_date ? new Date(data.birth_date) : null,
+                drug_allergy: data.drug_allergy || null,
+                underlying_disease: data.underlying_disease || null,
+                personal_consult: data.personal_consult || null,
+                personal_consult_id: data.personal_consult_id || null,
+                member_level: data.member_level || 'General',
             },
         })
 
