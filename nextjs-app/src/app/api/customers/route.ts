@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
     try {
@@ -13,8 +14,8 @@ export async function GET(request: NextRequest) {
 
         const skip = (page - 1) * limit
 
-        // Build search conditions - supports HN, nickname, first/last name, phone
-        const searchConditions = search ? {
+        // Build search conditions
+        const searchFilter: Prisma.CustomerWhereInput = search ? {
             OR: [
                 { hn_code: { contains: search } },
                 { first_name: { contains: search } },
@@ -25,28 +26,71 @@ export async function GET(request: NextRequest) {
             ],
         } : {}
 
-        // Fetch customers with their debt info and personal consultant
-        const customers = await prisma.customer.findMany({
-            where: searchConditions,
-            include: {
+        // Combine search and debt filter
+        const where: Prisma.CustomerWhereInput = {
+            ...searchFilter,
+            ...(hasDebt ? {
                 transaction_header: {
-                    select: {
-                        remaining_balance: true,
-                        transaction_date: true,
+                    some: {
+                        remaining_balance: {
+                            gt: 0
+                        }
+                    }
+                }
+            } : {})
+        }
+
+        // Build orderBy
+        let orderBy: Prisma.CustomerOrderByWithRelationInput = { created_at: sortOrder }
+
+        if (sortBy === 'name') {
+            orderBy = { full_name: sortOrder }
+        } else if (sortBy === 'last_visit') {
+            orderBy = {
+                transaction_header: {
+                    _max: {
+                        transaction_date: sortOrder
+                    }
+                }
+            }
+        } else if (sortBy === 'debt') {
+            orderBy = {
+                transaction_header: {
+                    _sum: {
+                        remaining_balance: sortOrder
+                    }
+                }
+            }
+        } else {
+            orderBy = { created_at: sortOrder }
+        }
+
+        // Fetch customers with pagination, filtering and sorting in DB
+        const [customers, total] = await Promise.all([
+            prisma.customer.findMany({
+                where,
+                orderBy,
+                skip,
+                take: limit,
+                include: {
+                    transaction_header: {
+                        select: {
+                            remaining_balance: true,
+                            transaction_date: true,
+                        },
+                        orderBy: { transaction_date: 'desc' },
                     },
-                    orderBy: { transaction_date: 'desc' },
-                },
-                personal_consultant: {
-                    select: {
-                        staff_id: true,
-                        full_name: true,
-                        position: true,
+                    personal_consultant: {
+                        select: {
+                            staff_id: true,
+                            full_name: true,
+                            position: true,
+                        },
                     },
                 },
-            },
-            skip,
-            take: limit,
-        })
+            }),
+            prisma.customer.count({ where })
+        ])
 
         // Add calculated fields
         const customersWithStats = customers.map((c) => {
@@ -76,41 +120,8 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        // Filter by debt if requested
-        let filtered = customersWithStats
-        if (hasDebt) {
-            filtered = customersWithStats.filter((c) => c.total_debt > 0)
-        }
-
-        // Sort
-        filtered.sort((a, b) => {
-            let valA: string | number | Date | null = null
-            let valB: string | number | Date | null = null
-
-            if (sortBy === 'name') {
-                valA = a.full_name || ''
-                valB = b.full_name || ''
-            } else if (sortBy === 'last_visit') {
-                valA = a.last_visit ? new Date(a.last_visit).getTime() : 0
-                valB = b.last_visit ? new Date(b.last_visit).getTime() : 0
-            } else if (sortBy === 'debt') {
-                valA = a.total_debt
-                valB = b.total_debt
-            } else {
-                valA = a.created_at ? new Date(a.created_at).getTime() : 0
-                valB = b.created_at ? new Date(b.created_at).getTime() : 0
-            }
-
-            if (sortOrder === 'asc') {
-                return valA > valB ? 1 : -1
-            }
-            return valA < valB ? 1 : -1
-        })
-
-        const total = await prisma.customer.count({ where: searchConditions })
-
         return NextResponse.json({
-            data: filtered,
+            data: customersWithStats,
             meta: {
                 total,
                 page,
