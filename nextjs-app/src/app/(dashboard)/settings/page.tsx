@@ -49,41 +49,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-
-interface Product {
-    product_id: number
-    product_code: string
-    product_name: string
-    category: string
-    main_unit: string
-    sub_unit: string
-    pack_size: number
-    is_liquid: boolean
-    cost_price: number
-    standard_price: number
-    staff_price: number
-    is_active: boolean
-}
-
-interface Course {
-    course_id: number
-    course_code: string
-    course_name: string
-    description: string | null
-    standard_price: number
-    staff_price: number
-    session_count: number
-    is_active: boolean
-    course_item: Array<{ id: number; item_name: string; qty_limit: number }>
-}
-
-interface Staff {
-    staff_id: number
-    full_name: string
-    position: string
-    username: string
-    is_active: boolean
-}
+import { Product, Course, Staff, StaffPosition, ProductCategory } from '@/types'
 
 const CATEGORIES = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
 const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
@@ -525,7 +491,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <Label>หมวดหมู่ *</Label>
-                            <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
+                            <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v as ProductCategory })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกหมวด" /></SelectTrigger>
                                 <SelectContent>
                                     {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -637,7 +603,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <Label>ตำแหน่ง *</Label>
-                            <Select value={editingStaff?.position || ''} onValueChange={(v) => setEditingStaff({ ...editingStaff, position: v })}>
+                            <Select value={editingStaff?.position || ''} onValueChange={(v) => setEditingStaff({ ...editingStaff, position: v as StaffPosition })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกตำแหน่ง" /></SelectTrigger>
                                 <SelectContent>
                                     {POSITIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}

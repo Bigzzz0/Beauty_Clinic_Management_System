@@ -34,7 +34,7 @@ export type ProductCategory = 'Botox' | 'Filler' | 'Treatment' | 'Medicine' | 'E
 
 export interface Product {
     product_id: number
-    product_code?: string
+    product_code: string | null
     product_name: string
     category: ProductCategory
     main_unit: string
@@ -60,13 +60,14 @@ export interface Inventory {
 // Course types
 export interface Course {
     course_id: number
-    course_code?: string
+    course_code: string | null
     course_name: string
-    description?: string
+    description: string | null
     standard_price: number
-    staff_price?: number
+    staff_price: number
+    session_count: number
     is_active: boolean
-    items?: CourseItem[]
+    course_item?: CourseItem[]
 }
 
 export interface CourseItem {
