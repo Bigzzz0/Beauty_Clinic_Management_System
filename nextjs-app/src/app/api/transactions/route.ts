@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
             })
 
             // 2. Auto-create customer_course for each course purchased
+            const customerCoursesToCreate = []
             for (const item of items as Array<{ course_id?: number; qty: number }>) {
                 if (item.course_id) {
                     const course = courses.find(c => c.course_id === item.course_id)
@@ -145,19 +146,23 @@ export async function POST(request: NextRequest) {
 
                     // Create customer_course for each quantity purchased
                     for (let i = 0; i < item.qty; i++) {
-                        await tx.customer_course.create({
-                            data: {
-                                customer_id,
-                                course_id: item.course_id,
-                                transaction_id: newTransaction.transaction_id,
-                                total_sessions: sessionCount,
-                                remaining_sessions: sessionCount,
-                                purchase_date: new Date(),
-                                status: 'ACTIVE',
-                            },
+                        customerCoursesToCreate.push({
+                            customer_id,
+                            course_id: item.course_id,
+                            transaction_id: newTransaction.transaction_id,
+                            total_sessions: sessionCount,
+                            remaining_sessions: sessionCount,
+                            purchase_date: new Date(),
+                            status: 'ACTIVE' as const,
                         })
                     }
                 }
+            }
+
+            if (customerCoursesToCreate.length > 0) {
+                await tx.customer_course.createMany({
+                    data: customerCoursesToCreate,
+                })
             }
 
             return newTransaction
