@@ -26,15 +26,49 @@ export async function GET(request: NextRequest) {
             ]
         }
 
-        const products = await prisma.product.findMany({
-            where,
-            include: {
-                inventory: true,
-            },
-            orderBy: { product_name: 'asc' },
-        })
+        // Pagination
+        const page = parseInt(searchParams.get('page') || '0')
+        const limit = parseInt(searchParams.get('limit') || '0')
 
-        return NextResponse.json(products)
+        let products
+        let totalCount
+
+        if (page > 0 && limit > 0) {
+            const [data, count] = await Promise.all([
+                prisma.product.findMany({
+                    where,
+                    include: {
+                        inventory: true,
+                    },
+                    orderBy: { product_name: 'asc' },
+                    skip: (page - 1) * limit,
+                    take: limit,
+                }),
+                prisma.product.count({ where }),
+            ])
+            products = data
+            totalCount = count
+        } else {
+            products = await prisma.product.findMany({
+                where,
+                include: {
+                    inventory: true,
+                },
+                orderBy: { product_name: 'asc' },
+            })
+            totalCount = products.length
+        }
+
+        const response = NextResponse.json(products)
+
+        response.headers.set('X-Total-Count', totalCount.toString())
+        if (page > 0 && limit > 0) {
+            response.headers.set('X-Total-Pages', Math.ceil(totalCount / limit).toString())
+            response.headers.set('X-Current-Page', page.toString())
+            response.headers.set('X-Per-Page', limit.toString())
+        }
+
+        return response
     } catch (error) {
         console.error('Error fetching products:', error)
         return NextResponse.json(
