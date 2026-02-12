@@ -135,6 +135,7 @@ export function Sidebar() {
                     size="icon"
                     onClick={toggleSidebar}
                     className="text-slate-400 hover:bg-slate-700 hover:text-white"
+                    aria-label={isSidebarOpen ? "ย่อเมนู" : "ขยายเมนู"}
                 >
                     <ChevronLeft
                         className={cn('h-5 w-5 transition-transform', !isSidebarOpen && 'rotate-180')}
@@ -151,6 +152,8 @@ export function Sidebar() {
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                aria-label={item.title}
+                                title={!isSidebarOpen ? item.title : undefined}
                                 className={cn(
                                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                     isActive(item.href)
@@ -179,6 +182,8 @@ export function Sidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    aria-label={item.title}
+                                    title={!isSidebarOpen ? item.title : undefined}
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
@@ -201,6 +206,8 @@ export function Sidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    aria-label={item.title}
+                                    title={!isSidebarOpen ? item.title : undefined}
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
@@ -219,6 +226,8 @@ export function Sidebar() {
                     <Separator className="my-3 bg-slate-700" />
                     <Link
                         href="/settings"
+                        aria-label="ตั้งค่า"
+                        title={!isSidebarOpen ? "ตั้งค่า" : undefined}
                         className={cn(
                             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                             isActive('/settings')
@@ -246,6 +255,8 @@ export function Sidebar() {
                         variant="ghost"
                         size="icon"
                         onClick={logout}
+                        aria-label="ออกจากระบบ"
+                        title="ออกจากระบบ"
                         className={cn('text-slate-400 hover:bg-slate-700 hover:text-white', !isSidebarOpen && 'hidden')}
                     >
                         <LogOut className="h-4 w-4" />
