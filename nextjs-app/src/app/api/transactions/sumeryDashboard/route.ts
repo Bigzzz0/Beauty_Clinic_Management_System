@@ -10,40 +10,50 @@ async function getDashboardStats() {
     const monthStart = startOfMonth(now)
     const lastMonthStart = startOfMonth(subMonths(now, 1))
 
-    // 1. นับจำนวนลูกค้าทั้งหมด
-    const totalCustomers = await prisma.customer.count()
+    // ⚡ Bolt: Execute independent queries concurrently.
+    // This reduces the response time from sum(queries) to max(queries).
+    const [
+        totalCustomers,
+        salesToday,
+        totalProducts,
+        salesThisMonth,
+        salesLastMonth
+    ] = await Promise.all([
+        // 1. นับจำนวนลูกค้าทั้งหมด
+        prisma.customer.count(),
 
-    // 2. ยอดรวมการขายของวันนี้ (เฉพาะที่จ่ายเงินแล้ว)
-    const salesToday = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: todayStart, lte: todayEnd },
-            payment_status: 'PAID'
-        }
-    })
+        // 2. ยอดรวมการขายของวันนี้ (เฉพาะที่จ่ายเงินแล้ว)
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: todayStart, lte: todayEnd },
+                payment_status: 'PAID'
+            }
+        }),
 
-    // 3. นับจำนวนสินค้าในคลังที่ยังเปิดใช้งานอยู่
-    const totalProducts = await prisma.product.count({
-        where: { is_active: true }
-    })
+        // 3. นับจำนวนสินค้าในคลังที่ยังเปิดใช้งานอยู่
+        prisma.product.count({
+            where: { is_active: true }
+        }),
 
-    // 4. ยอดรวมการขายเดือนนี้
-    const salesThisMonth = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: monthStart },
-            payment_status: 'PAID'
-        }
-    })
+        // 4. ยอดรวมการขายเดือนนี้
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: monthStart },
+                payment_status: 'PAID'
+            }
+        }),
 
-    // 5. ยอดรวมการขายเดือนที่แล้ว (เพื่อหา % Change)
-    const salesLastMonth = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: lastMonthStart, lt: monthStart },
-            payment_status: 'PAID'
-        }
-    })
+        // 5. ยอดรวมการขายเดือนที่แล้ว (เพื่อหา % Change)
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: lastMonthStart, lt: monthStart },
+                payment_status: 'PAID'
+            }
+        })
+    ])
 
     // คำนวณค่าตัวเลข
     const currentMonthValue = Number(salesThisMonth._sum?.net_amount ?? 0)
@@ -88,7 +98,7 @@ async function getDashboardStats() {
 }
 
 // Main API Handler
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     try {
         const dashboardStats = await getDashboardStats()
         return NextResponse.json(dashboardStats)
