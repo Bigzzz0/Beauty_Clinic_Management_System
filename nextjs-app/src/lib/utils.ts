@@ -35,3 +35,14 @@ export function generateHNCode(): string {
   const random = Math.random().toString(36).substring(2, 5).toUpperCase()
   return `HN${timestamp}${random}`
 }
+
+export function getMemberBadgeColor(level: string | null): string {
+  switch (level?.toLowerCase()) {
+    case 'platinum':
+      return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300'
+    case 'gold':
+      return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300'
+    default:
+      return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400'
+  }
+}

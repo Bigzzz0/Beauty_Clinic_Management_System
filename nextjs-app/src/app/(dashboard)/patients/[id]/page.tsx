@@ -20,7 +20,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
-import { formatDate, formatDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime, getMemberBadgeColor } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -95,14 +95,6 @@ interface GalleryImage {
     taken_date: string
     notes: string | null
     service_usage?: { service_name: string }
-}
-
-const getMemberBadgeColor = (level: string | null) => {
-    switch (level?.toLowerCase()) {
-        case 'platinum': return 'bg-purple-100 text-purple-800 border-purple-200'
-        case 'gold': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-        default: return 'bg-slate-100 text-slate-700 border-slate-200'
-    }
 }
 
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {

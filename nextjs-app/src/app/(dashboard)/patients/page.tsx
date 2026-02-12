@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
+import { getMemberBadgeColor } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -50,17 +51,6 @@ interface Customer {
     underlying_disease: string | null
     total_debt: number
     last_visit: string | null
-}
-
-const getMemberBadgeColor = (level: string | null) => {
-    switch (level?.toLowerCase()) {
-        case 'platinum':
-            return 'bg-accent/20 text-accent border-accent/30'
-        case 'gold':
-            return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300'
-        default:
-            return 'bg-muted text-muted-foreground border-border'
-    }
 }
 
 export default function PatientsPage() {
