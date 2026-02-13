@@ -59,30 +59,51 @@ export async function GET(request: NextRequest) {
         })
 
         // 3. Get Sales Data (Transactions)
-        // We fetch transactions with customer.personal_consult_id to aggregate by consultant
-        const transactions = await prisma.transaction_header.findMany({
+        // ⚡ Bolt: Optimized to use groupBy on customer_id first (O(N) -> O(K))
+        // This reduces data transfer and memory usage by aggregating at database level
+        const customerSalesStats = await prisma.transaction_header.groupBy({
+            by: ['customer_id'],
             where: {
                 transaction_date: { gte: startDate, lte: endDate },
                 payment_status: { not: 'VOIDED' },
                 ...(staffIdInt ? { customer: { personal_consult_id: staffIdInt } } : {})
             },
-            select: {
-                net_amount: true,
-                customer: {
-                    select: { personal_consult_id: true }
-                }
+            _sum: {
+                net_amount: true
+            },
+            _count: {
+                transaction_id: true
             }
+        })
+
+        // Get consultant mapping for involved customers
+        const customerIds = customerSalesStats.map(s => s.customer_id)
+
+        // Fetch only needed fields for customers involved
+        const customers = await prisma.customer.findMany({
+            where: {
+                customer_id: { in: customerIds }
+            },
+            select: {
+                customer_id: true,
+                personal_consult_id: true
+            }
+        })
+
+        const customerConsultantMap = new Map<number, number | null>()
+        customers.forEach(c => {
+            customerConsultantMap.set(c.customer_id, c.personal_consult_id)
         })
 
         // Aggregate sales by consultant
         const salesStats = new Map<number, { sales: number; count: number }>()
 
-        transactions.forEach(t => {
-            const consultantId = t.customer?.personal_consult_id
+        customerSalesStats.forEach(stat => {
+            const consultantId = customerConsultantMap.get(stat.customer_id)
             if (consultantId) {
                 const current = salesStats.get(consultantId) || { sales: 0, count: 0 }
-                current.sales += Number(t.net_amount)
-                current.count += 1
+                current.sales += Number(stat._sum.net_amount || 0)
+                current.count += stat._count.transaction_id
                 salesStats.set(consultantId, current)
             }
         })
