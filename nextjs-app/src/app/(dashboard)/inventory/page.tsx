@@ -313,6 +313,7 @@ export default function InventoryPage() {
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="ค้นหาสินค้า..."
+                                aria-label="ค้นหาสินค้า"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="pl-10"
@@ -343,14 +344,16 @@ export default function InventoryPage() {
                                         <TableRow className="bg-muted/50">
                                             <TableHead className="w-16">สถานะ</TableHead>
                                             <TableHead>รหัส</TableHead>
-                                            <TableHead
-                                                className="cursor-pointer hover:text-primary transition-colors"
-                                                onClick={() => handleSort('product_name')}
-                                            >
-                                                <div className="flex items-center gap-1">
+                                            <TableHead>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleSort('product_name')}
+                                                    className="-ml-3 h-8 text-xs font-semibold hover:text-primary"
+                                                >
                                                     สินค้า
                                                     <ArrowUpDown className="h-3 w-3" />
-                                                </div>
+                                                </Button>
                                             </TableHead>
                                             <TableHead>หมวด</TableHead>
                                             <TableHead className="text-right">สต๊อกคงเหลือ</TableHead>
