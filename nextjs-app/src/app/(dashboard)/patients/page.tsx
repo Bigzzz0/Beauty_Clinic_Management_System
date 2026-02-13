@@ -137,6 +137,7 @@ export default function PatientsPage() {
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                             <Input
                                 placeholder="ค้นหา HN, ชื่อเล่น, ชื่อ-นามสกุล, เบอร์โทร..."
+                                aria-label="ค้นหาคนไข้"
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value)
@@ -171,25 +172,34 @@ export default function PatientsPage() {
                             <TableHeader>
                                 <TableRow className="bg-slate-50">
                                     <TableHead className="w-16"></TableHead>
-                                    <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
-                                        <div className="flex items-center gap-1">
+                                    <TableHead>
+                                        <button
+                                            onClick={() => handleSort('name')}
+                                            className="flex items-center gap-1 hover:text-foreground focus:outline-none focus:underline"
+                                        >
                                             ชื่อ-นามสกุล
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </div>
+                                        </button>
                                     </TableHead>
                                     <TableHead>เบอร์โทร</TableHead>
                                     <TableHead>ที่ปรึกษา</TableHead>
-                                    <TableHead onClick={() => handleSort('last_visit')} className="cursor-pointer">
-                                        <div className="flex items-center gap-1">
+                                    <TableHead>
+                                        <button
+                                            onClick={() => handleSort('last_visit')}
+                                            className="flex items-center gap-1 hover:text-foreground focus:outline-none focus:underline"
+                                        >
                                             มาล่าสุด
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </div>
+                                        </button>
                                     </TableHead>
-                                    <TableHead onClick={() => handleSort('debt')} className="cursor-pointer text-right">
-                                        <div className="flex items-center justify-end gap-1">
+                                    <TableHead className="text-right">
+                                        <button
+                                            onClick={() => handleSort('debt')}
+                                            className="flex w-full items-center justify-end gap-1 hover:text-foreground focus:outline-none focus:underline"
+                                        >
                                             ยอดค้าง
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </div>
+                                        </button>
                                     </TableHead>
                                     <TableHead className="w-20"></TableHead>
                                 </TableRow>
@@ -273,7 +283,7 @@ export default function PatientsPage() {
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm">•••</Button>
+                                                        <Button variant="ghost" size="sm" aria-label="ตัวเลือกเพิ่มเติม">•••</Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem asChild>
