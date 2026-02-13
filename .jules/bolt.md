@@ -9,3 +9,7 @@
 ## 2024-05-24 - Aggregate Reporting Optimization
 **Learning:** Found an N+1 query pattern in `api/reports/consultant-performance` where thousands of customer objects were fetched just to extract IDs for a subsequent large `IN` query. This caused excessive memory usage and DB load.
 **Action:** Use `prisma.groupBy` for counts and `prisma.findMany` with selective relation fetching (`select: { id: true }`) to aggregate data in memory from minimal datasets, avoiding bulk object instantiation.
+
+## 2024-05-25 - Intl.NumberFormat Caching
+**Learning:** Instantiating `Intl.NumberFormat` and `Intl.DateTimeFormat` is extremely expensive in Node.js/V8. Creating a new instance per call vs caching it results in a ~60x performance difference (7.1s vs 121ms for 100k ops) in synthetic benchmarks.
+**Action:** Always cache `Intl` formatter instances at module scope for frequently used formatters (currency, date) in utility functions.

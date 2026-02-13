@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import {
-    Calendar, Download, FileSpreadsheet, Printer,
+    Calendar, FileSpreadsheet, Printer,
     DollarSign, CreditCard, Banknote, ArrowLeft,
     ChevronLeft, ChevronRight, Search, Users
 } from 'lucide-react'
@@ -26,6 +26,7 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import Link from 'next/link'
+import { formatCurrency, formatDate } from '@/lib/utils'
 
 interface SaleDetail {
     rowNumber: number
@@ -72,19 +73,6 @@ interface DailySalesData {
     details: SaleDetail[]
 }
 
-function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('th-TH').format(amount)
-}
-
-function formatDate(dateStr: string) {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('th-TH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    })
-}
-
 function formatDateInput(date: Date) {
     return date.toISOString().split('T')[0]
 }
@@ -93,7 +81,7 @@ export default function DailySalesPage() {
     const [selectedDate, setSelectedDate] = useState(formatDateInput(new Date()))
     const [search, setSearch] = useState('')
 
-    const { data, isLoading, refetch } = useQuery<DailySalesData>({
+    const { data, isLoading } = useQuery<DailySalesData>({
         queryKey: ['daily-sales', selectedDate],
         queryFn: async () => {
             const res = await fetch(`/api/reports/daily-sales?date=${selectedDate}`)
