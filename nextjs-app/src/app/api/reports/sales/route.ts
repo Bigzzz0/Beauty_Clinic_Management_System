@@ -9,33 +9,33 @@ export async function GET(request: NextRequest) {
         const endDate = searchParams.get('endDate') || new Date().toISOString().split('T')[0]
         const groupBy = searchParams.get('groupBy') || 'daily' // daily or monthly
 
-        // Get all transactions in date range
-        const transactions = await prisma.transaction_header.findMany({
-            where: {
-                transaction_date: {
-                    gte: new Date(startDate),
-                    lte: new Date(endDate + 'T23:59:59'),
+        // ⚡ Bolt: Fetch transactions and payment breakdown in parallel
+        const [transactions, paymentsByMethod] = await Promise.all([
+            prisma.transaction_header.findMany({
+                where: {
+                    transaction_date: {
+                        gte: new Date(startDate),
+                        lte: new Date(endDate + 'T23:59:59'),
+                    },
+                    payment_status: { not: 'VOIDED' },
                 },
-                payment_status: { not: 'VOIDED' },
-            },
-            include: {
-                payment_log: true,
-            },
-        })
-
-        // Get payments grouped by method
-        const paymentsByMethod = await prisma.payment_log.groupBy({
-            by: ['payment_method'],
-            where: {
-                payment_date: {
-                    gte: new Date(startDate),
-                    lte: new Date(endDate + 'T23:59:59'),
+                include: {
+                    payment_log: true,
                 },
-            },
-            _sum: {
-                amount_paid: true,
-            },
-        })
+            }),
+            prisma.payment_log.groupBy({
+                by: ['payment_method'],
+                where: {
+                    payment_date: {
+                        gte: new Date(startDate),
+                        lte: new Date(endDate + 'T23:59:59'),
+                    },
+                },
+                _sum: {
+                    amount_paid: true,
+                },
+            })
+        ])
 
         // Calculate totals
         const totalSales = transactions.reduce((sum, t) => sum + Number(t.net_amount), 0)
