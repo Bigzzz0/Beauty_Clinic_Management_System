@@ -23,11 +23,7 @@ export async function GET(request: NextRequest) {
                     transaction_date: true,
                     net_amount: true,
                     remaining_balance: true,
-                    payment_log: {
-                        select: {
-                            amount_paid: true,
-                        },
-                    },
+                    // ⚡ Bolt: Removed payment_log select - use net_amount - remaining_balance instead
                 },
             }),
             prisma.payment_log.groupBy({
@@ -46,8 +42,9 @@ export async function GET(request: NextRequest) {
 
         // Calculate totals
         const totalSales = transactions.reduce((sum, t) => sum + Number(t.net_amount), 0)
+        // ⚡ Bolt: Use pre-calculated balance instead of fetching payment_log for every transaction
         const totalPaid = transactions.reduce((sum, t) =>
-            sum + t.payment_log.reduce((ps, p) => ps + Number(p.amount_paid), 0), 0
+            sum + (Number(t.net_amount) - Number(t.remaining_balance)), 0
         )
         const totalOutstanding = transactions.reduce((sum, t) => sum + Number(t.remaining_balance), 0)
         const transactionCount = transactions.length
@@ -65,7 +62,8 @@ export async function GET(request: NextRequest) {
             }
 
             dailyData[dateKey].sales += Number(t.net_amount)
-            dailyData[dateKey].paid += t.payment_log.reduce((s, p) => s + Number(p.amount_paid), 0)
+            // ⚡ Bolt: Use pre-calculated balance
+            dailyData[dateKey].paid += (Number(t.net_amount) - Number(t.remaining_balance))
             dailyData[dateKey].count += 1
         })
 
