@@ -369,7 +369,11 @@ export default function POSPage() {
                     {/* Cart Items */}
                     <div className="flex-1 space-y-3 overflow-auto">
                         {items.length === 0 ? (
-                            <p className="py-8 text-center text-slate-400">ไม่มีสินค้าในตะกร้า</p>
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                                <ShoppingCart className="mb-3 h-12 w-12 opacity-20" aria-hidden="true" />
+                                <p className="font-medium text-slate-500">ไม่มีสินค้าในตะกร้า</p>
+                                <p className="text-sm text-slate-400 mt-1">เพิ่มสินค้าหรือคอร์สเพื่อดำเนินการต่อ</p>
+                            </div>
                         ) : (
                             items.map((item) => (
                                 <Collapsible
@@ -474,10 +478,11 @@ export default function POSPage() {
                                     {/* Split Payment Inputs */}
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50">
-                                            <Banknote className="h-5 w-5 text-green-600" />
+                                            <Banknote className="h-5 w-5 text-green-600" aria-hidden="true" />
                                             <div className="flex-1">
-                                                <Label className="text-xs">เงินสด</Label>
+                                                <Label htmlFor="cash-amount" className="text-xs">เงินสด</Label>
                                                 <Input
+                                                    id="cash-amount"
                                                     type="number"
                                                     value={cashAmount}
                                                     onChange={(e) => setCashAmount(e.target.value)}
@@ -488,10 +493,11 @@ export default function POSPage() {
                                         </div>
 
                                         <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
-                                            <QrCode className="h-5 w-5 text-blue-600" />
+                                            <QrCode className="h-5 w-5 text-blue-600" aria-hidden="true" />
                                             <div className="flex-1">
-                                                <Label className="text-xs">โอนเงิน</Label>
+                                                <Label htmlFor="transfer-amount" className="text-xs">โอนเงิน</Label>
                                                 <Input
+                                                    id="transfer-amount"
                                                     type="number"
                                                     value={transferAmount}
                                                     onChange={(e) => setTransferAmount(e.target.value)}
@@ -502,10 +508,11 @@ export default function POSPage() {
                                         </div>
 
                                         <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50">
-                                            <CreditCard className="h-5 w-5 text-purple-600" />
+                                            <CreditCard className="h-5 w-5 text-purple-600" aria-hidden="true" />
                                             <div className="flex-1">
-                                                <Label className="text-xs">บัตรเครดิต</Label>
+                                                <Label htmlFor="credit-amount" className="text-xs">บัตรเครดิต</Label>
                                                 <Input
+                                                    id="credit-amount"
                                                     type="number"
                                                     value={creditAmount}
                                                     onChange={(e) => setCreditAmount(e.target.value)}
@@ -518,15 +525,16 @@ export default function POSPage() {
                                         {/* Deposit Payment - Only show if customer has balance */}
                                         {customerDepositBalance > 0 && (
                                             <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                                                <Wallet className="h-5 w-5 text-emerald-600" />
+                                                <Wallet className="h-5 w-5 text-emerald-600" aria-hidden="true" />
                                                 <div className="flex-1">
                                                     <div className="flex justify-between items-center">
-                                                        <Label className="text-xs">ใช้เงินมัดจำ</Label>
+                                                        <Label htmlFor="deposit-amount" className="text-xs">ใช้เงินมัดจำ</Label>
                                                         <span className="text-xs text-emerald-600 font-medium">
                                                             ยอดคงเหลือ: ฿{customerDepositBalance.toLocaleString()}
                                                         </span>
                                                     </div>
                                                     <Input
+                                                        id="deposit-amount"
                                                         type="number"
                                                         value={depositAmount}
                                                         onChange={(e) => {
