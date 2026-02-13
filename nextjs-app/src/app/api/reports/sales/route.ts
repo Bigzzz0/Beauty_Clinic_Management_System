@@ -19,8 +19,15 @@ export async function GET(request: NextRequest) {
                     },
                     payment_status: { not: 'VOIDED' },
                 },
-                include: {
-                    payment_log: true,
+                select: {
+                    transaction_date: true,
+                    net_amount: true,
+                    remaining_balance: true,
+                    payment_log: {
+                        select: {
+                            amount_paid: true,
+                        },
+                    },
                 },
             }),
             prisma.payment_log.groupBy({
