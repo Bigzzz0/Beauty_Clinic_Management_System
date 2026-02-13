@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { Menu, Bell, Search } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { useAuthStore } from '@/stores/auth-store'
@@ -19,6 +20,18 @@ import Link from 'next/link'
 export function Header() {
     const { toggleSidebar, isMobile } = useUIStore()
     const { user, logout } = useAuthStore()
+    const searchInputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault()
+                searchInputRef.current?.focus()
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [])
 
     return (
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-card px-4 lg:px-6">
@@ -31,10 +44,14 @@ export function Header() {
                 <div className="relative hidden md:block">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                        ref={searchInputRef}
                         placeholder="ค้นหาลูกค้า, สินค้า..."
-                        className="w-64 pl-9"
+                        className="w-64 pl-9 pr-12"
                         aria-label="ค้นหา"
                     />
+                    <kbd className="pointer-events-none absolute right-3 top-1/2 h-5 -translate-y-1/2 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 flex">
+                        <span className="text-xs">⌘</span>K
+                    </kbd>
                 </div>
             </div>
 
@@ -79,4 +96,3 @@ export function Header() {
         </header>
     )
 }
-

@@ -25,6 +25,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const menuItems = [
     {
@@ -243,25 +252,57 @@ export function Sidebar() {
 
             {/* User Section */}
             <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700 p-3">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-medium">
-                        {user?.full_name?.charAt(0) || 'U'}
+                {!isSidebarOpen ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                className="h-12 w-full justify-center p-0 hover:bg-slate-800"
+                            >
+                                <Avatar className="h-10 w-10 border-2 border-slate-700">
+                                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                                        {user?.full_name?.charAt(0) || 'U'}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="right" align="end" className="w-56 ml-2">
+                            <DropdownMenuLabel>
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user?.full_name || 'User'}</p>
+                                    <p className="text-xs leading-none text-muted-foreground">{user?.position || 'Staff'}</p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer">
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>ออกจากระบบ</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : (
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-slate-700">
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                                {user?.full_name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                            <p className="text-sm font-medium truncate">{user?.full_name || 'User'}</p>
+                            <p className="text-xs text-slate-400 truncate">{user?.position || 'Staff'}</p>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={logout}
+                            aria-label="ออกจากระบบ"
+                            title="ออกจากระบบ"
+                            className="text-slate-400 hover:bg-slate-700 hover:text-white shrink-0"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </Button>
                     </div>
-                    <div className={cn('flex-1', !isSidebarOpen && 'hidden')}>
-                        <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
-                        <p className="text-xs text-slate-400">{user?.position || 'Staff'}</p>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={logout}
-                        aria-label="ออกจากระบบ"
-                        title="ออกจากระบบ"
-                        className={cn('text-slate-400 hover:bg-slate-700 hover:text-white', !isSidebarOpen && 'hidden')}
-                    >
-                        <LogOut className="h-4 w-4" />
-                    </Button>
-                </div>
+                )}
             </div>
         </aside>
     )

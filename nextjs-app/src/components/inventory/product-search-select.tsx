@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Search, Package, ChevronDown } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -61,6 +61,7 @@ export function ProductSearchSelect({
     const [open, setOpen] = useState(false)
     const [search, setSearch] = useState('')
     const [category, setCategory] = useState('all')
+    const [highlightedIndex, setHighlightedIndex] = useState(0)
 
     const selectedProduct = products.find(p => p.product_id === value)
 
@@ -75,6 +76,49 @@ export function ProductSearchSelect({
             return matchesSearch && matchesCategory
         })
     }, [products, search, category])
+
+    // Reset highlight when filters change or popover opens
+    useEffect(() => {
+        setHighlightedIndex(0)
+    }, [search, category, open])
+
+    const scrollToItem = (index: number) => {
+        const element = document.getElementById(`product-item-${index}`)
+        if (element) {
+            element.scrollIntoView({ block: 'nearest' })
+        }
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (filteredProducts.length === 0) return
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault()
+                setHighlightedIndex((prev) => {
+                    const next = (prev + 1) % filteredProducts.length
+                    scrollToItem(next)
+                    return next
+                })
+                break
+            case 'ArrowUp':
+                e.preventDefault()
+                setHighlightedIndex((prev) => {
+                    const next = (prev - 1 + filteredProducts.length) % filteredProducts.length
+                    scrollToItem(next)
+                    return next
+                })
+                break
+            case 'Enter':
+                e.preventDefault()
+                handleSelect(filteredProducts[highlightedIndex].product_id)
+                break
+            case 'Escape':
+                e.preventDefault()
+                setOpen(false)
+                break
+        }
+    }
 
     const handleSelect = (productId: number) => {
         onSelect(productId)
@@ -108,7 +152,7 @@ export function ProductSearchSelect({
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0" align="start">
+            <PopoverContent className="w-[400px] p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <div className="p-3 border-b space-y-3">
                     {/* Search Input */}
                     <div className="relative">
@@ -117,6 +161,7 @@ export function ProductSearchSelect({
                             placeholder="พิมพ์ค้นหาชื่อหรือรหัสสินค้า..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="pl-9"
                             autoFocus
                         />
@@ -150,13 +195,15 @@ export function ProductSearchSelect({
                         </div>
                     ) : (
                         <div className="py-1">
-                            {filteredProducts.map((product) => (
+                            {filteredProducts.map((product, index) => (
                                 <button
                                     key={product.product_id}
+                                    id={`product-item-${index}`}
                                     onClick={() => handleSelect(product.product_id)}
                                     className={cn(
                                         'w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center gap-3 transition-colors',
-                                        value === product.product_id && 'bg-purple-50'
+                                        value === product.product_id && 'bg-purple-50',
+                                        highlightedIndex === index && 'bg-slate-100'
                                     )}
                                 >
                                     <Badge className={cn('text-xs shrink-0', getCategoryColor(product.category))}>
