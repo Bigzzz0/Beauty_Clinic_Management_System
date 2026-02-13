@@ -263,7 +263,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <Button variant="ghost" size="icon" aria-label="ย้อนกลับ" onClick={() => router.back()}>
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-2xl font-bold">OPD Card</h1>
@@ -312,7 +312,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                         <Save className="h-4 w-4 mr-2" />
                                         บันทึก
                                     </Button>
-                                    <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                                    <Button variant="ghost" size="icon" aria-label="ยกเลิกการแก้ไข" onClick={() => setIsEditing(false)}>
                                         <X className="h-4 w-4" />
                                     </Button>
                                 </>
@@ -668,6 +668,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                                 variant="destructive"
                                                                 size="icon"
                                                                 className="h-8 w-8 rounded-full"
+                                                                aria-label="ลบรูปภาพ"
                                                                 onClick={() => setDeleteId(img.gallery_id)}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
