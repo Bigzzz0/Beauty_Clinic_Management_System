@@ -265,6 +265,7 @@ export default function TransactionsPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() => setSelectedTx(tx)}
+                                                        aria-label="ดูรายละเอียด"
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
@@ -272,6 +273,7 @@ export default function TransactionsPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() => handlePrint(tx)}
+                                                        aria-label="พิมพ์ใบเสร็จ"
                                                     >
                                                         <Printer className="h-4 w-4" />
                                                     </Button>
@@ -281,6 +283,7 @@ export default function TransactionsPage() {
                                                             size="icon"
                                                             className="text-red-500"
                                                             onClick={() => setVoidTxId(tx.transaction_id)}
+                                                            aria-label="ยกเลิกบิล"
                                                         >
                                                             <Ban className="h-4 w-4" />
                                                         </Button>

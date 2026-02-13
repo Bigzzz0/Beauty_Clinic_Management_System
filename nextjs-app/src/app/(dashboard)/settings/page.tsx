@@ -370,10 +370,10 @@ export default function SettingsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(p); setProductDialog(true) }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(p); setProductDialog(true) }} aria-label="แก้ไข">
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProductId(p.product_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProductId(p.product_id)} aria-label="ลบ">
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -426,10 +426,10 @@ export default function SettingsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingCourse(c); setCourseDialog(true) }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingCourse(c); setCourseDialog(true) }} aria-label="แก้ไข">
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCourseId(c.course_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCourseId(c.course_id)} aria-label="ลบ">
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -480,10 +480,10 @@ export default function SettingsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingStaff(s); setStaffDialog(true) }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingStaff(s); setStaffDialog(true) }} aria-label="แก้ไข">
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteStaffId(s.staff_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteStaffId(s.staff_id)} aria-label="ลบ">
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -643,8 +643,16 @@ export default function SettingsPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={editingStaff?.password || ''}
                                     onChange={(e) => setEditingStaff({ ...editingStaff, password: e.target.value })}
+                                    className="pr-10"
                                 />
-                                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0" onClick={() => setShowPassword(!showPassword)}>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 top-0"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                                >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                             </div>
