@@ -5,3 +5,7 @@
 ## 2024-05-24 - Parallelize Independent Prisma Queries
 **Learning:** Found sequential Prisma queries in `api/reports/sales` that were independent of each other (fetching transactions and payment aggregates). This waterfall pattern added unnecessary latency.
 **Action:** Use `Promise.all` to execute independent database queries concurrently, reducing total request time to the duration of the slowest query.
+
+## 2024-05-24 - Aggregate Reporting Optimization
+**Learning:** Found an N+1 query pattern in `api/reports/consultant-performance` where thousands of customer objects were fetched just to extract IDs for a subsequent large `IN` query. This caused excessive memory usage and DB load.
+**Action:** Use `prisma.groupBy` for counts and `prisma.findMany` with selective relation fetching (`select: { id: true }`) to aggregate data in memory from minimal datasets, avoiding bulk object instantiation.
