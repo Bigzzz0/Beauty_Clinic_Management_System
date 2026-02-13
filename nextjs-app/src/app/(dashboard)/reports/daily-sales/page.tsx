@@ -154,7 +154,7 @@ export default function DailySalesPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Link href="/reports">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" aria-label="ย้อนกลับ">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
@@ -169,7 +169,7 @@ export default function DailySalesPage() {
 
                 {/* Date Navigation */}
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={handlePrevDay}>
+                    <Button variant="outline" size="icon" onClick={handlePrevDay} aria-label="วันก่อนหน้า">
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Input
@@ -177,8 +177,9 @@ export default function DailySalesPage() {
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="w-40"
+                        aria-label="เลือกวันที่"
                     />
-                    <Button variant="outline" size="icon" onClick={handleNextDay}>
+                    <Button variant="outline" size="icon" onClick={handleNextDay} aria-label="วันถัดไป">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
