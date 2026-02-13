@@ -73,13 +73,6 @@ export async function GET(request: NextRequest) {
                 skip,
                 take: limit,
                 include: {
-                    transaction_header: {
-                        select: {
-                            remaining_balance: true,
-                            transaction_date: true,
-                        },
-                        orderBy: { transaction_date: 'desc' },
-                    },
                     personal_consultant: {
                         select: {
                             staff_id: true,
@@ -92,13 +85,27 @@ export async function GET(request: NextRequest) {
             prisma.customer.count({ where })
         ])
 
+        // ⚡ Bolt: Optimize by fetching aggregated stats separately instead of fetching all transactions
+        const customerIds = customers.map(c => c.customer_id)
+
+        const transactionStats = customerIds.length > 0 ? await prisma.transaction_header.groupBy({
+            by: ['customer_id'],
+            where: {
+                customer_id: { in: customerIds }
+            },
+            _sum: {
+                remaining_balance: true
+            },
+            _max: {
+                transaction_date: true
+            }
+        }) : []
+
+        const statsMap = new Map(transactionStats.map(s => [s.customer_id, s]))
+
         // Add calculated fields
         const customersWithStats = customers.map((c) => {
-            const totalDebt = c.transaction_header.reduce(
-                (sum, t) => sum + Number(t.remaining_balance || 0),
-                0
-            )
-            const lastVisit = c.transaction_header[0]?.transaction_date || null
+            const stats = statsMap.get(c.customer_id)
 
             return {
                 customer_id: c.customer_id,
@@ -115,8 +122,8 @@ export async function GET(request: NextRequest) {
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,
                 created_at: c.created_at,
-                total_debt: totalDebt,
-                last_visit: lastVisit,
+                total_debt: Number(stats?._sum.remaining_balance || 0),
+                last_visit: stats?._max.transaction_date || null,
             }
         })
 
