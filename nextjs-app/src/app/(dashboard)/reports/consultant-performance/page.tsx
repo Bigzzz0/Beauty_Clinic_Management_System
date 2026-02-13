@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
     Users, TrendingUp, DollarSign, UserPlus,
-    Calendar, ArrowUpRight, ChevronLeft, ChevronRight,
+    ChevronLeft, ChevronRight,
     ArrowLeft, Award
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -26,6 +26,7 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 interface ConsultantPerformance {
     staff_id: number
@@ -47,10 +48,6 @@ interface ConsultantReportData {
         total_sales: number
         total_transactions: number
     }
-}
-
-function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('th-TH').format(amount)
 }
 
 function formatMonth(monthStr: string) {
