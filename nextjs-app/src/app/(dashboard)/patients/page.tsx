@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
     Users, Search, ArrowUpDown, Plus,
     UserCircle, Phone, Edit, History, ShoppingCart,
-    AlertTriangle
+    AlertTriangle, MoreHorizontal
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
@@ -173,33 +173,39 @@ export default function PatientsPage() {
                                 <TableRow className="bg-slate-50">
                                     <TableHead className="w-16"></TableHead>
                                     <TableHead>
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => handleSort('name')}
-                                            className="flex items-center gap-1 hover:text-foreground focus:outline-none focus:underline"
+                                            className="-ml-3 h-8 text-xs font-semibold hover:text-primary gap-1"
                                         >
                                             ชื่อ-นามสกุล
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </button>
+                                        </Button>
                                     </TableHead>
                                     <TableHead>เบอร์โทร</TableHead>
                                     <TableHead>ที่ปรึกษา</TableHead>
                                     <TableHead>
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => handleSort('last_visit')}
-                                            className="flex items-center gap-1 hover:text-foreground focus:outline-none focus:underline"
+                                            className="-ml-3 h-8 text-xs font-semibold hover:text-primary gap-1"
                                         >
                                             มาล่าสุด
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </button>
+                                        </Button>
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => handleSort('debt')}
-                                            className="flex w-full items-center justify-end gap-1 hover:text-foreground focus:outline-none focus:underline"
+                                            className="w-full justify-end h-8 text-xs font-semibold hover:text-primary gap-1"
                                         >
                                             ยอดค้าง
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </button>
+                                        </Button>
                                     </TableHead>
                                     <TableHead className="w-20"></TableHead>
                                 </TableRow>
@@ -283,7 +289,9 @@ export default function PatientsPage() {
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm" aria-label="ตัวเลือกเพิ่มเติม">•••</Button>
+                                                        <Button variant="ghost" size="icon" aria-label="ตัวเลือกเพิ่มเติม">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem asChild>
