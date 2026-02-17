@@ -180,12 +180,7 @@ export default function ReportsPage() {
                             ยอดขายรายวัน
                         </Button>
                     </Link>
-                    <Link href="/reports/consultant-performance">
-                        <Button variant="success">
-                            <Users className="h-4 w-4 mr-2" />
-                            ผลงาน Consultant
-                        </Button>
-                    </Link>
+
                 </div>
             </div>
 

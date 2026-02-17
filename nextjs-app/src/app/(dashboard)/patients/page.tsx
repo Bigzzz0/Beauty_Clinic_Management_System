@@ -45,7 +45,7 @@ interface Customer {
     nickname: string | null
     phone_number: string
     member_level: string | null
-    personal_consult: string | null
+
     drug_allergy: string | null
     underlying_disease: string | null
     total_debt: number
@@ -178,7 +178,7 @@ export default function PatientsPage() {
                                         </div>
                                     </TableHead>
                                     <TableHead>เบอร์โทร</TableHead>
-                                    <TableHead>ที่ปรึกษา</TableHead>
+
                                     <TableHead onClick={() => handleSort('last_visit')} className="cursor-pointer">
                                         <div className="flex items-center gap-1">
                                             มาล่าสุด
@@ -251,11 +251,7 @@ export default function PatientsPage() {
                                                     {customer.phone_number}
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
-                                                <span className="text-sm text-slate-600">
-                                                    {customer.personal_consult || '-'}
-                                                </span>
-                                            </TableCell>
+
                                             <TableCell>
                                                 <span className="text-sm text-slate-600">
                                                     {formatDate(customer.last_visit)}

@@ -10,7 +10,6 @@ export const customerSchema = z.object({
     birth_date: z.string().optional(),
     drug_allergy: z.string().optional(),
     underlying_disease: z.string().optional(),
-    personal_consult: z.string().optional(),
     member_level: z.string().default('General'),
 })
 

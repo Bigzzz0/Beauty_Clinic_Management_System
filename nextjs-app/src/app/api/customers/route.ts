@@ -36,13 +36,6 @@ export async function GET(request: NextRequest) {
                     },
                     orderBy: { transaction_date: 'desc' },
                 },
-                personal_consultant: {
-                    select: {
-                        staff_id: true,
-                        full_name: true,
-                        position: true,
-                    },
-                },
             },
             skip,
             take: limit,
@@ -65,9 +58,6 @@ export async function GET(request: NextRequest) {
                 nickname: c.nickname,
                 phone_number: c.phone_number,
                 member_level: c.member_level,
-                personal_consult: c.personal_consult,
-                personal_consult_id: c.personal_consult_id,
-                personal_consultant: c.personal_consultant,
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,
                 created_at: c.created_at,
@@ -149,8 +139,6 @@ export async function POST(request: NextRequest) {
                 birth_date: body.birth_date ? new Date(body.birth_date) : null,
                 drug_allergy: body.drug_allergy || null,
                 underlying_disease: body.underlying_disease || null,
-                personal_consult: body.personal_consult || null,
-                personal_consult_id: body.personal_consult_id || null,
                 member_level: body.member_level || 'General',
             },
         })

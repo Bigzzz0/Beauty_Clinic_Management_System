@@ -89,7 +89,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
                 birth_date: body.birth_date ? new Date(body.birth_date) : undefined,
                 drug_allergy: body.drug_allergy,
                 underlying_disease: body.underlying_disease,
-                personal_consult: body.personal_consult,
                 member_level: body.member_level,
             },
         })

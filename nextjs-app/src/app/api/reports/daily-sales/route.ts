@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
                         customer_id: true,
                         hn_code: true,
                         full_name: true,
-                        personal_consult: true,
                     },
                 },
                 transaction_item: {
@@ -101,7 +100,6 @@ export async function GET(request: NextRequest) {
                 credit: creditPayment,
                 cash: cashPayment,
                 totalAmount: Number(t.net_amount),
-                personalConsult: t.customer?.personal_consult || '',
                 paymentChannel: t.channel || 'WALK_IN',
                 note: '',
                 // Commission breakdown (placeholders - will be linked to commission_rate table)

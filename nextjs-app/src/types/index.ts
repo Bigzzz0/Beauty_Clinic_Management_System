@@ -24,7 +24,6 @@ export interface Customer {
     birth_date?: string
     drug_allergy?: string
     underlying_disease?: string
-    personal_consult?: string
     member_level: string
     created_at: string
 }
