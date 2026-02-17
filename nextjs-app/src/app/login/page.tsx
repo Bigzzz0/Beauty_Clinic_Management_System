@@ -80,6 +80,7 @@ export default function LoginPage() {
                             <Input
                                 id="username"
                                 placeholder="กรอกชื่อผู้ใช้"
+                                autoComplete="username"
                                 className="border-slate-600 bg-slate-800/50 text-white placeholder:text-slate-400"
                                 {...register('username')}
                             />
@@ -97,6 +98,7 @@ export default function LoginPage() {
                                     id="password"
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="กรอกรหัสผ่าน"
+                                    autoComplete="current-password"
                                     className="border-slate-600 bg-slate-800/50 pr-10 text-white placeholder:text-slate-400"
                                     {...register('password')}
                                 />
@@ -104,6 +106,7 @@ export default function LoginPage() {
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -115,20 +118,13 @@ export default function LoginPage() {
 
                         <Button
                             type="submit"
-                            disabled={isLoading}
+                            isLoading={isLoading}
                             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700"
                         >
-                            {isLoading ? (
-                                <span className="flex items-center gap-2">
-                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                    กำลังเข้าสู่ระบบ...
-                                </span>
-                            ) : (
-                                <span className="flex items-center gap-2">
-                                    <LogIn className="h-4 w-4" />
-                                    เข้าสู่ระบบ
-                                </span>
-                            )}
+                            <div className="flex items-center gap-2">
+                                <LogIn className="h-4 w-4" />
+                                เข้าสู่ระบบ
+                            </div>
                         </Button>
                     </form>
 

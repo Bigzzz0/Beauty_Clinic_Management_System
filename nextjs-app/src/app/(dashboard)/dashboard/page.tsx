@@ -1,6 +1,9 @@
 'use client'
 
 import { useAuthStore } from '@/stores/auth-store'
+import Link from 'next/link'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
     Users,
     ShoppingCart,
@@ -10,6 +13,7 @@ import {
     DollarSign,
     AlertTriangle,
     ArrowUpRight,
+    CheckCircle2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useQuery } from '@tanstack/react-query'
@@ -65,8 +69,23 @@ export default function DashboardPage() {
             return response.json()
         }
     })
-    
-    if (isLoading) return <div className="p-8 text-center text-muted-foreground">กำลังโหลดข้อมูลแดชบอร์ด...</div>
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-[120px] w-full rounded-xl" />
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {[...Array(4)].map((_, i) => (
+                        <Skeleton key={i} className="h-[140px] rounded-xl" />
+                    ))}
+                </div>
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <Skeleton className="h-[300px] rounded-xl" />
+                    <Skeleton className="h-[300px] rounded-xl" />
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">
@@ -114,66 +133,86 @@ export default function DashboardPage() {
             {/* Main Content Grid */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Upcoming Appointments */}
-                <Card>
+                <Card className="flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                             <Calendar className="h-5 w-5 text-primary" />
                             นัดหมายวันนี้
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {upcomingAppointments.map((apt: any, i: number) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-medium text-white">
-                                            {apt.customer.charAt(3)}
+                    <CardContent className="flex-1 p-0">
+                        <ScrollArea className="h-[300px] px-6 pb-6">
+                            <div className="space-y-4">
+                                {upcomingAppointments.map((apt: any, i: number) => (
+                                    <div
+                                        key={i}
+                                        className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-medium text-white">
+                                                {apt.customer.charAt(3)}
+                                            </div>
+                                            <div>
+                                                <p className="font-medium">{apt.customer}</p>
+                                                <p className="text-sm text-muted-foreground">{apt.service}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-medium">{apt.customer}</p>
-                                            <p className="text-sm text-muted-foreground">{apt.service}</p>
+                                        <div className="text-right">
+                                            <p className="font-medium text-primary">{apt.time}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="font-medium text-primary">{apt.time}</p>
+                                ))}
+                                {upcomingAppointments.length === 0 && (
+                                    <div className="flex h-full flex-col items-center justify-center space-y-2 py-8 text-center text-muted-foreground">
+                                        <Calendar className="h-8 w-8 opacity-50" />
+                                        <p>ไม่มีนัดหมายวันนี้</p>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                )}
+                            </div>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
 
                 {/* Low Stock Alert */}
-                <Card>
+                <Card className="flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                             <AlertTriangle className="h-5 w-5 text-amber-500" />
                             สินค้าใกล้หมด
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {lowStockItems.map((item: any, i: number) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/20 p-3"
-                                >
-                                    <div>
-                                        <p className="font-medium">{item.name}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            ขั้นต่ำ: {item.minQty} ชิ้น
-                                        </p>
+                    <CardContent className="flex-1 p-0">
+                        <ScrollArea className="h-[300px] px-6 pb-6">
+                            <div className="space-y-4">
+                                {lowStockItems.length > 0 ? (
+                                    lowStockItems.map((item: any, i: number) => (
+                                        <div
+                                            key={i}
+                                            className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/20 p-3"
+                                        >
+                                            <div>
+                                                <p className="font-medium">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    ขั้นต่ำ: {item.minQty} ชิ้น
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-lg font-bold text-amber-600">{item.qty}</p>
+                                                <p className="text-xs text-muted-foreground">คงเหลือ</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center space-y-2 py-8 text-center text-emerald-600">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                                            <CheckCircle2 className="h-6 w-6" />
+                                        </div>
+                                        <p className="font-medium">สต็อกสินค้าปกติ</p>
+                                        <p className="text-xs text-muted-foreground">ไม่มีสินค้าที่ต่ำกว่าเกณฑ์</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-lg font-bold text-amber-600">{item.qty}</p>
-                                        <p className="text-xs text-muted-foreground">คงเหลือ</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                )}
+                            </div>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
 
@@ -187,34 +226,34 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-4 md:grid-cols-4">
-                            <a
+                            <Link
                                 href="/pos"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             >
                                 <ShoppingCart className="h-8 w-8" />
                                 <span className="mt-2 font-medium">ขายสินค้า</span>
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                                 href="/patients"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             >
                                 <Users className="h-8 w-8" />
                                 <span className="mt-2 font-medium">ลูกค้า</span>
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                                 href="/inventory"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             >
                                 <Package className="h-8 w-8" />
                                 <span className="mt-2 font-medium">คลังสินค้า</span>
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                                 href="/reports"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             >
                                 <TrendingUp className="h-8 w-8" />
                                 <span className="mt-2 font-medium">รายงาน</span>
-                            </a>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>
