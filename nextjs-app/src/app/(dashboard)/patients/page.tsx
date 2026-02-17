@@ -8,6 +8,7 @@ import {
     UserCircle, Phone, Edit, History, ShoppingCart,
     AlertTriangle
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
@@ -143,6 +144,7 @@ export default function PatientsPage() {
                                     setPage(1)
                                 }}
                                 className="pl-10"
+                                aria-label="Search patients"
                             />
                         </div>
                         <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1) }}>
@@ -171,25 +173,40 @@ export default function PatientsPage() {
                             <TableHeader>
                                 <TableRow className="bg-slate-50">
                                     <TableHead className="w-16"></TableHead>
-                                    <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
-                                        <div className="flex items-center gap-1">
+                                    <TableHead>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('name')}
+                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors"
+                                            aria-sort={sortBy === 'name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+                                        >
                                             ชื่อ-นามสกุล
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </div>
+                                        </button>
                                     </TableHead>
                                     <TableHead>เบอร์โทร</TableHead>
 
-                                    <TableHead onClick={() => handleSort('last_visit')} className="cursor-pointer">
-                                        <div className="flex items-center gap-1">
+                                    <TableHead>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('last_visit')}
+                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors"
+                                            aria-sort={sortBy === 'last_visit' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+                                        >
                                             มาล่าสุด
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </div>
+                                        </button>
                                     </TableHead>
-                                    <TableHead onClick={() => handleSort('debt')} className="cursor-pointer text-right">
-                                        <div className="flex items-center justify-end gap-1">
+                                    <TableHead className="text-right">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSort('debt')}
+                                            className="flex items-center justify-end gap-1 font-semibold hover:text-primary transition-colors w-full"
+                                            aria-sort={sortBy === 'debt' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+                                        >
                                             ยอดค้าง
                                             <ArrowUpDown className="h-3 w-3" />
-                                        </div>
+                                        </button>
                                     </TableHead>
                                     <TableHead className="w-20"></TableHead>
                                 </TableRow>
@@ -205,16 +222,24 @@ export default function PatientsPage() {
                                     ))
                                 ) : customers.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                                            ไม่พบข้อมูลคนไข้
+                                        <TableCell colSpan={7} className="h-64 text-center">
+                                            <EmptyState
+                                                icon={Users}
+                                                title="ไม่พบข้อมูลคนไข้"
+                                                description={search ? `ไม่พบคนไข้ที่ตรงกับ "${search}"` : "ยังไม่มีข้อมูลคนไข้ในระบบ เริ่มต้นด้วยการเพิ่มคนไข้ใหม่"}
+                                                action={
+                                                    <Button variant="outline" onClick={() => router.push('/patients/new')}>
+                                                        เพิ่มคนไข้ใหม่
+                                                    </Button>
+                                                }
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     customers.map((customer) => (
                                         <TableRow
                                             key={customer.customer_id}
-                                            className="cursor-pointer hover:bg-primary/5"
-                                            onClick={() => router.push(`/patients/${customer.customer_id}`)}
+                                            className="hover:bg-muted/50"
                                         >
                                             <TableCell>
                                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
@@ -224,9 +249,12 @@ export default function PatientsPage() {
                                             <TableCell>
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-medium">
+                                                        <Link
+                                                            href={`/patients/${customer.customer_id}`}
+                                                            className="font-medium hover:underline hover:text-primary transition-colors"
+                                                        >
                                                             {customer.full_name || `${customer.first_name} ${customer.last_name}`}
-                                                        </span>
+                                                        </Link>
                                                         <Badge className={getMemberBadgeColor(customer.member_level)}>
                                                             {customer.member_level || 'General'}
                                                         </Badge>

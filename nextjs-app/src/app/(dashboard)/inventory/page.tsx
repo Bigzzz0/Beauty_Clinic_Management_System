@@ -294,7 +294,11 @@ export default function InventoryPage() {
                     {/* Quick Actions */}
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {quickActions.map((action) => (
-                            <Link key={action.href} href={action.href}>
+                            <Link
+                                key={action.href}
+                                href={action.href}
+                                className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            >
                                 <Card className="hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
                                     <CardContent className="flex items-center gap-3 p-4">
                                         <div className={`p-2 rounded-lg bg-gradient-to-br ${action.color} text-white`}>
@@ -316,6 +320,7 @@ export default function InventoryPage() {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="pl-10"
+                                aria-label="Search inventory"
                             />
                         </div>
                         <Select value={category} onValueChange={setCategory}>
@@ -343,14 +348,16 @@ export default function InventoryPage() {
                                         <TableRow className="bg-muted/50">
                                             <TableHead className="w-16">สถานะ</TableHead>
                                             <TableHead>รหัส</TableHead>
-                                            <TableHead
-                                                className="cursor-pointer hover:text-primary transition-colors"
-                                                onClick={() => handleSort('product_name')}
-                                            >
-                                                <div className="flex items-center gap-1">
+                                            <TableHead>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSort('product_name')}
+                                                    className="flex items-center gap-1 font-semibold hover:text-primary transition-colors"
+                                                    aria-sort={sortBy === 'product_name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+                                                >
                                                     สินค้า
                                                     <ArrowUpDown className="h-3 w-3" />
-                                                </div>
+                                                </button>
                                             </TableHead>
                                             <TableHead>หมวด</TableHead>
                                             <TableHead className="text-right">สต๊อกคงเหลือ</TableHead>

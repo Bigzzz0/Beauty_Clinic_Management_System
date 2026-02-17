@@ -1,6 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useHotkeys } from '@/hooks/use-hotkeys'
+
+// ... (in component)
+// ... (in component)
+
+
+
+// ... (render)
+// Product Search Input needs ref
+// <Input ref={searchInputRef} ... />
+
+// Product Cards
+// <Card 
+//     role="button"
+//     tabIndex={0}
+//     onKeyDown={(e) => {
+//         if (e.key === 'Enter' || e.key === ' ') {
+//             e.preventDefault()
+//             addCourse(course)
+//         }
+//     }}
+// ...
+
+// Quantity Controls
+// <Button aria-label="Decrease quantity" ... />
+// <Button aria-label="Increase quantity" ... />
+// <Button aria-label="Remove item" ... />
 import {
     Search, ShoppingCart, Trash2, Plus, Minus,
     CreditCard, Banknote, QrCode, AlertTriangle,
@@ -43,6 +70,7 @@ interface Staff {
 export default function POSPage() {
     const token = useAuthStore((s) => s.token)
 
+    const searchInputRef = useRef<HTMLInputElement>(null)
     const [searchProduct, setSearchProduct] = useState('')
     const [searchCustomer, setSearchCustomer] = useState('')
     const [showPaymentDialog, setShowPaymentDialog] = useState(false)
@@ -103,6 +131,13 @@ export default function POSPage() {
         getSubtotal,
         getTotal,
     } = useCartStore()
+
+    useHotkeys('F2', () => searchInputRef.current?.focus())
+    useHotkeys('F9', () => {
+        if (items.length > 0 && customerId) {
+            setShowPaymentDialog(true)
+        }
+    })
 
     // Calculate total payment from split amounts
     const getTotalPayment = () => {
@@ -247,10 +282,12 @@ export default function POSPage() {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                        ref={searchInputRef}
                         placeholder="ค้นหาคอร์ส..."
                         value={searchProduct}
                         onChange={(e) => setSearchProduct(e.target.value)}
                         className="pl-10"
+                        aria-label="Search products"
                     />
                 </div>
 
@@ -263,8 +300,16 @@ export default function POSPage() {
                             .map((course) => (
                                 <Card
                                     key={course.course_id}
-                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50"
+                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 selection:bg-transparent"
                                     onClick={() => addCourse(course)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault()
+                                            addCourse(course)
+                                        }
+                                    }}
                                 >
                                     <CardContent className="p-4">
                                         <Badge variant="secondary" className="mb-2 bg-accent/20 text-accent">
@@ -331,13 +376,15 @@ export default function POSPage() {
                                     placeholder="ค้นหาลูกค้า (ชื่อ/เบอร์/HN)..."
                                     value={searchCustomer}
                                     onChange={(e) => setSearchCustomer(e.target.value)}
+                                    aria-label="Search customers"
                                 />
                                 {customers.length > 0 && (
                                     <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-auto">
                                         {customers.map((customer) => (
-                                            <div
+                                            <button
+                                                type="button"
                                                 key={customer.customer_id}
-                                                className="cursor-pointer p-3 hover:bg-muted"
+                                                className="w-full text-left p-3 hover:bg-muted transition-colors border-b last:border-0 focus:bg-muted focus:outline-none"
                                                 onClick={() => handleSelectCustomer(customer)}
                                             >
                                                 <p className="font-medium">
@@ -347,7 +394,7 @@ export default function POSPage() {
                                                 {(customer.drug_allergy || customer.underlying_disease) && (
                                                     <Badge className="mt-1 bg-red-100 text-red-700 text-xs">⚠️ มีข้อควรระวัง</Badge>
                                                 )}
-                                            </div>
+                                            </button>
                                         ))}
                                     </div>
                                 )}
@@ -382,6 +429,7 @@ export default function POSPage() {
                                                     size="icon"
                                                     className="h-8 w-8"
                                                     onClick={() => updateQuantity(item.id, item.qty - 1)}
+                                                    aria-label="Decrease quantity"
                                                 >
                                                     <Minus className="h-3 w-3" />
                                                 </Button>
@@ -391,6 +439,7 @@ export default function POSPage() {
                                                     size="icon"
                                                     className="h-8 w-8"
                                                     onClick={() => updateQuantity(item.id, item.qty + 1)}
+                                                    aria-label="Increase quantity"
                                                 >
                                                     <Plus className="h-3 w-3" />
                                                 </Button>
@@ -399,6 +448,7 @@ export default function POSPage() {
                                                     size="icon"
                                                     className="h-8 w-8 text-red-500"
                                                     onClick={() => removeItem(item.id)}
+                                                    aria-label="Remove item"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
