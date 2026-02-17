@@ -3,14 +3,14 @@
 -- Run after: database_schema.sql
 -- ========================================================
 
-USE beauty_clinic_db;
+-- USE beauty_clinic_db; (DB specified via CLI)
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- --------------------------------------------------------
 -- 1. Staff (10 คน) - password: 123
 -- --------------------------------------------------------
-TRUNCATE TABLE Staff;
-INSERT INTO Staff (staff_id, full_name, position, username, password_hash, is_active) VALUES
+TRUNCATE TABLE staff;
+INSERT INTO staff (staff_id, full_name, position, username, password_hash, is_active) VALUES
 (1, 'นพ. เลโอ (หมอ LEO)', 'Doctor', 'dr_leo', '$2b$10$iBwDt/dG1n774zDBkuat1.Ki36OfcjmOTWpNtabo4N29WEEeY8Ixq', 1),
 (2, 'พญ. สมหญิง (หมอญ)', 'Doctor', 'dr_ying', '$2b$10$iBwDt/dG1n774zDBkuat1.Ki36OfcjmOTWpNtabo4N29WEEeY8Ixq', 1),
 (3, 'กิ๊ฟท์ (ผู้ช่วย)', 'Therapist', 'gift_therapist', '$2b$10$iBwDt/dG1n774zDBkuat1.Ki36OfcjmOTWpNtabo4N29WEEeY8Ixq', 1),
@@ -26,8 +26,8 @@ INSERT INTO Staff (staff_id, full_name, position, username, password_hash, is_ac
 -- --------------------------------------------------------
 -- 2. Customer (15 คน)
 -- --------------------------------------------------------
-TRUNCATE TABLE Customer;
-INSERT INTO Customer (customer_id, hn_code, first_name, last_name, nickname, phone_number, member_level, personal_consult, drug_allergy, underlying_disease, address) VALUES
+TRUNCATE TABLE customer;
+INSERT INTO customer (customer_id, hn_code, first_name, last_name, nickname, phone_number, member_level, personal_consult, drug_allergy, underlying_disease, address) VALUES
 (1, '00001', 'ภูธเนศ', 'สภา', 'ภู', '092-5125145', 'Platinum', 'TEAM JIIN', NULL, NULL, '123 ถ.ศรีจันทร์ ขอนแก่น'),
 (2, '00002', 'มัลลิกา', 'หาญพละ', 'มล', '093-4810506', 'Platinum Gold', 'TEAM JIIN', 'Penicillin, Sulfa', 'ความดันโลหิตสูง', '52 ม.2 มหาสารคาม'),
 (3, '00003', 'สิทธิชัย', 'วันแก้ว', 'สิทธิ์', '085-7544739', 'Gold', 'TEAM บี', NULL, NULL, '88 หมู่ 5 มหาสารคาม'),
@@ -47,8 +47,8 @@ INSERT INTO Customer (customer_id, hn_code, first_name, last_name, nickname, pho
 -- --------------------------------------------------------
 -- 3. Product (15 รายการ)
 -- --------------------------------------------------------
-TRUNCATE TABLE Product;
-INSERT INTO Product (product_id, product_code, product_name, category, main_unit, sub_unit, pack_size, is_liquid, cost_price, standard_price, staff_price, is_active) VALUES
+TRUNCATE TABLE product;
+INSERT INTO product (product_id, product_code, product_name, category, main_unit, sub_unit, pack_size, is_liquid, cost_price, standard_price, staff_price, is_active) VALUES
 (1, 'BOT-001', 'Botox Aestox (100u)', 'Botox', 'ขวด', 'Unit', 100, 1, 2500.00, 5999.00, 3000.00, 1),
 (2, 'BOT-002', 'Botox Nabota (100u)', 'Botox', 'ขวด', 'Unit', 100, 1, 3000.00, 6900.00, 3500.00, 1),
 (3, 'BOT-003', 'Botox Botulax (100u)', 'Botox', 'ขวด', 'Unit', 100, 1, 2200.00, 5499.00, 2800.00, 1),
@@ -68,8 +68,8 @@ INSERT INTO Product (product_id, product_code, product_name, category, main_unit
 -- --------------------------------------------------------
 -- 4. Course (12 คอร์ส)
 -- --------------------------------------------------------
-TRUNCATE TABLE Course;
-INSERT INTO Course (course_id, course_code, course_name, description, standard_price, is_active) VALUES
+TRUNCATE TABLE course;
+INSERT INTO course (course_id, course_code, course_name, description, standard_price, is_active) VALUES
 (1, 'C001', 'Botox Aestox ริ้วรอย', 'ไม่จำกัดยูนิต ทั่วหน้า', 3999.00, 1),
 (2, 'C002', 'Botox กราม Aestox', 'ลดกราม ปรับหน้าเรียว 50u', 3999.00, 1),
 (3, 'C003', 'Filler คาง 1cc', 'Neuramis Deep สร้างคางวีเชพ', 3900.00, 1),
@@ -86,8 +86,8 @@ INSERT INTO Course (course_id, course_code, course_name, description, standard_p
 -- --------------------------------------------------------
 -- 4.1 Course_Item 
 -- --------------------------------------------------------
-TRUNCATE TABLE Course_Item;
-INSERT INTO Course_Item (course_id, item_name, qty_limit) VALUES
+TRUNCATE TABLE course_item;
+INSERT INTO course_item (course_id, item_name, qty_limit) VALUES
 (1, 'Botox ริ้วรอย', 1),
 (2, 'Botox กราม', 1),
 (3, 'Filler คาง', 1),
@@ -104,8 +104,8 @@ INSERT INTO Course_Item (course_id, item_name, qty_limit) VALUES
 -- --------------------------------------------------------
 -- 5. Inventory (สต๊อกปัจจุบัน)
 -- --------------------------------------------------------
-TRUNCATE TABLE Inventory;
-INSERT INTO Inventory (product_id, full_qty, opened_qty) VALUES
+TRUNCATE TABLE inventory;
+INSERT INTO inventory (product_id, full_qty, opened_qty) VALUES
 (1, 8, 40),   -- Aestox 8 ขวด + 40 unit เปิดแล้ว
 (2, 5, 0),    -- Nabota
 (3, 3, 60),   -- Botulax
@@ -125,8 +125,8 @@ INSERT INTO Inventory (product_id, full_qty, opened_qty) VALUES
 -- --------------------------------------------------------
 -- 6. Stock_Movement (ประวัติเคลื่อนไหว 30 วันล่าสุด)
 -- --------------------------------------------------------
-TRUNCATE TABLE Stock_Movement;
-INSERT INTO Stock_Movement (product_id, staff_id, action_type, qty_main, qty_sub, lot_number, expiry_date, note, created_at) VALUES
+TRUNCATE TABLE stock_movement;
+INSERT INTO stock_movement (product_id, staff_id, action_type, qty_main, qty_sub, lot_number, expiry_date, note, created_at) VALUES
 -- รับเข้าสินค้า (IN)
 (1, 7, 'IN', 10, 0, 'LOT-BOT-2412', '2026-12-01', 'รับจากตัวแทน', DATE_SUB(NOW(), INTERVAL 25 DAY)),
 (2, 7, 'IN', 5, 0, 'LOT-NAB-2412', '2026-12-15', 'รับจากตัวแทน', DATE_SUB(NOW(), INTERVAL 25 DAY)),
@@ -158,8 +158,8 @@ INSERT INTO Stock_Movement (product_id, staff_id, action_type, qty_main, qty_sub
 -- --------------------------------------------------------
 -- 7. Transaction_Header (15 บิลขาย)
 -- --------------------------------------------------------
-TRUNCATE TABLE Transaction_Header;
-INSERT INTO Transaction_Header (transaction_id, customer_id, staff_id, transaction_date, total_amount, discount, net_amount, remaining_balance, payment_status, channel) VALUES
+TRUNCATE TABLE transaction_header;
+INSERT INTO transaction_header (transaction_id, customer_id, staff_id, transaction_date, total_amount, discount, net_amount, remaining_balance, payment_status, channel) VALUES
 (1, 1, 8, DATE_SUB(NOW(), INTERVAL 15 DAY), 3999.00, 0, 3999.00, 0, 'PAID', 'WALK_IN'),
 (2, 2, 8, DATE_SUB(NOW(), INTERVAL 14 DAY), 4500.00, 500.00, 4000.00, 0, 'PAID', 'WALK_IN'),
 (3, 4, 9, DATE_SUB(NOW(), INTERVAL 12 DAY), 3900.00, 0, 3900.00, 0, 'PAID', 'WALK_IN'),
@@ -179,8 +179,8 @@ INSERT INTO Transaction_Header (transaction_id, customer_id, staff_id, transacti
 -- --------------------------------------------------------
 -- 8. Transaction_Item
 -- --------------------------------------------------------
-TRUNCATE TABLE Transaction_Item;
-INSERT INTO Transaction_Item (transaction_id, product_id, course_id, qty, unit_price, subtotal) VALUES
+TRUNCATE TABLE transaction_item;
+INSERT INTO transaction_item (transaction_id, product_id, course_id, qty, unit_price, subtotal) VALUES
 (1, NULL, 1, 1, 3999.00, 3999.00),
 (2, NULL, 2, 1, 4000.00, 4000.00),
 (3, NULL, 3, 1, 3900.00, 3900.00),
@@ -200,8 +200,8 @@ INSERT INTO Transaction_Item (transaction_id, product_id, course_id, qty, unit_p
 -- --------------------------------------------------------
 -- 9. Payment_Log
 -- --------------------------------------------------------
-TRUNCATE TABLE Payment_Log;
-INSERT INTO Payment_Log (transaction_id, staff_id, amount_paid, payment_method, payment_date) VALUES
+TRUNCATE TABLE payment_log;
+INSERT INTO payment_log (transaction_id, staff_id, amount_paid, payment_method, payment_date) VALUES
 (1, 10, 3999.00, 'TRANSFER', DATE_SUB(NOW(), INTERVAL 15 DAY)),
 (2, 10, 2000.00, 'CASH', DATE_SUB(NOW(), INTERVAL 14 DAY)),
 (2, 10, 2000.00, 'TRANSFER', DATE_SUB(NOW(), INTERVAL 14 DAY)),
@@ -220,8 +220,8 @@ INSERT INTO Payment_Log (transaction_id, staff_id, amount_paid, payment_method, 
 -- --------------------------------------------------------
 -- 10. Customer_Course (กระเป๋าคอร์ส)
 -- --------------------------------------------------------
-TRUNCATE TABLE Customer_Course;
-INSERT INTO Customer_Course (customer_id, course_id, transaction_id, total_sessions, remaining_sessions, expiry_date, status) VALUES
+TRUNCATE TABLE customer_course;
+INSERT INTO customer_course (customer_id, course_id, transaction_id, total_sessions, remaining_sessions, expiry_date, status) VALUES
 (1, 1, 1, 1, 0, DATE_ADD(NOW(), INTERVAL 1 YEAR), 'USED_UP'),
 (2, 2, 2, 1, 0, DATE_ADD(NOW(), INTERVAL 1 YEAR), 'USED_UP'),
 (4, 3, 3, 1, 0, DATE_ADD(NOW(), INTERVAL 1 YEAR), 'USED_UP'),
@@ -249,8 +249,8 @@ INSERT INTO Customer_Course (customer_id, course_id, transaction_id, total_sessi
 -- --------------------------------------------------------
 -- 12. Patient_Gallery (รูปภาพก่อน/หลัง)
 -- --------------------------------------------------------
-TRUNCATE TABLE Patient_Gallery;
-INSERT INTO Patient_Gallery (customer_id, usage_id, image_type, image_path, taken_date, notes) VALUES
+TRUNCATE TABLE patient_gallery;
+INSERT INTO patient_gallery (customer_id, usage_id, image_type, image_path, taken_date, notes) VALUES
 (1, NULL, 'Before', '/uploads/gallery/1/before_botox.jpg', DATE_SUB(CURDATE(), INTERVAL 15 DAY), 'ก่อนฉีด Botox'),
 (1, NULL, 'After', '/uploads/gallery/1/after_botox.jpg', CURDATE(), 'หลังฉีด Botox 2 สัปดาห์'),
 (2, NULL, 'Before', '/uploads/gallery/2/before_jaw.jpg', DATE_SUB(CURDATE(), INTERVAL 14 DAY), 'ก่อนลดกราม'),

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
         const actionType = searchParams.get('actionType')
 
         const where: Record<string, unknown> = {
-            movement_date: {
+            created_at: {
                 gte: new Date(startDate),
                 lte: new Date(endDate + 'T23:59:59'),
             },
@@ -35,24 +35,20 @@ export async function GET(request: NextRequest) {
                         product_name: true,
                     },
                 },
-                staff: {
-                    select: {
-                        full_name: true,
-                    },
-                },
             },
-            orderBy: { movement_date: 'desc' },
+            orderBy: { created_at: 'desc' },
             take: 500,
         })
 
         // Summary by action type
-        const summaryByType: Record<string, { count: number; qty: number }> = {}
+        const summaryByType: Record<string, { count: number; qty_main: number; qty_sub: number }> = {}
         movements.forEach((m) => {
             if (!summaryByType[m.action_type]) {
-                summaryByType[m.action_type] = { count: 0, qty: 0 }
+                summaryByType[m.action_type] = { count: 0, qty_main: 0, qty_sub: 0 }
             }
             summaryByType[m.action_type].count += 1
-            summaryByType[m.action_type].qty += Number(m.qty)
+            summaryByType[m.action_type].qty_main += m.qty_main
+            summaryByType[m.action_type].qty_sub += m.qty_sub
         })
 
         return NextResponse.json({
@@ -63,15 +59,15 @@ export async function GET(request: NextRequest) {
             })),
             movements: movements.map((m) => ({
                 movement_id: m.movement_id,
-                date: m.movement_date,
+                date: m.created_at,
                 product_code: m.product?.product_code,
                 product_name: m.product?.product_name,
                 action_type: m.action_type,
-                qty: Number(m.qty),
+                qty_main: m.qty_main,
+                qty_sub: m.qty_sub,
                 lot_number: m.lot_number,
-                photo_url: m.photo_url,
+                evidence_image: m.evidence_image,
                 note: m.note,
-                staff: m.staff?.full_name,
             })),
         })
     } catch (error) {

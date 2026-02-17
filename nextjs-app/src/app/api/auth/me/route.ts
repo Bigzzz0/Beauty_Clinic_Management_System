@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
             return NextResponse.json({
                 ...userWithoutPassword,
-                created_at: userWithoutPassword.created_at.toISOString(),
+                created_at: userWithoutPassword.created_at?.toISOString() ?? null,
             })
         } catch {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 })

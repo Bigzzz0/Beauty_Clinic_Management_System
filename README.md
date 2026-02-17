@@ -62,9 +62,75 @@ Beauty_Clinic_Management_System/
 │   │   │   └── ui/          # shadcn/ui components
 │   │   ├── lib/             # Utilities & Prisma client
 │   │   └── stores/          # Zustand stores
+│   ├── Dockerfile           # Multi-stage Docker build
+│   ├── entrypoint.sh        # Container startup script
 │   └── package.json
+├── docker-compose.yml       # Docker Compose config
+├── mock_data.sql            # Sample data for seeding
+├── .env                     # Environment variables
 └── README.md
 ```
+
+## 🐳 Quick Start with Docker
+
+วิธีที่ง่ายที่สุดในการรันโปรเจค — ใช้ Docker!
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) ติดตั้งและเปิดอยู่
+
+### 1. Clone & Configure
+
+```bash
+git clone https://github.com/Bigzzz0/Beauty_Clinic_Management_System.git
+cd Beauty_Clinic_Management_System
+
+# สร้างไฟล์ .env (หรือแก้ไขค่าตามต้องการ)
+cp .env.example .env
+```
+
+แก้ไข `.env`:
+
+```env
+MYSQL_ROOT_PASSWORD=your_password
+MYSQL_DATABASE=beauty_clinic_db
+JWT_SECRET=your-secret-key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 2. Build & Run
+
+```bash
+# Build และ Start ทุก service
+docker compose up -d --build
+
+# ดู logs (รอจนเห็น "✓ Ready")
+docker compose logs -f app
+```
+
+### 3. เปิดใช้งาน
+
+เปิดเบราว์เซอร์ไปที่ **http://localhost:3000** 🎉
+
+> ระบบจะสร้างตาราง + seed ข้อมูลตัวอย่างอัตโนมัติเมื่อ start ครั้งแรก
+
+### Docker Commands ที่ใช้บ่อย
+
+| Command | Description |
+|---------|-------------|
+| `docker compose up -d` | Start ทุก container (background) |
+| `docker compose down` | Stop ทุก container |
+| `docker compose down -v` | Stop + ลบ database volume (reset ข้อมูล) |
+| `docker compose logs -f app` | ดู logs ของ app |
+| `docker compose logs -f db` | ดู logs ของ database |
+| `docker compose up -d --build` | Rebuild และ start ใหม่ |
+
+### Ports
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **App** | `3000` | Next.js web application |
+| **MySQL** | `3307` | Database (mapped to 3307 เพื่อไม่ชนกับ MySQL ในเครื่อง) |
 
 ## 🚀 Getting Started
 
