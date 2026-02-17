@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         const skip = (page - 1) * limit
 
         // Build search conditions
-        const searchFilter: Prisma.CustomerWhereInput = search ? {
+        const searchFilter: Prisma.customerWhereInput = search ? {
             OR: [
                 { hn_code: { contains: search } },
                 { first_name: { contains: search } },
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         } : {}
 
         // Combine search and debt filter
-        const where: Prisma.CustomerWhereInput = {
+        const where: Prisma.customerWhereInput = {
             ...searchFilter,
             ...(hasDebt ? {
                 transaction_header: {
@@ -41,26 +41,11 @@ export async function GET(request: NextRequest) {
         }
 
         // Build orderBy
-        let orderBy: Prisma.CustomerOrderByWithRelationInput = { created_at: sortOrder }
+        let orderBy: Prisma.customerOrderByWithRelationInput = { created_at: sortOrder }
 
         if (sortBy === 'name') {
             orderBy = { full_name: sortOrder }
-        } else if (sortBy === 'last_visit') {
-            orderBy = {
-                transaction_header: {
-                    _max: {
-                        transaction_date: sortOrder
-                    }
-                }
-            }
-        } else if (sortBy === 'debt') {
-            orderBy = {
-                transaction_header: {
-                    _sum: {
-                        remaining_balance: sortOrder
-                    }
-                }
-            }
+
         } else {
             orderBy = { created_at: sortOrder }
         }
@@ -73,13 +58,7 @@ export async function GET(request: NextRequest) {
                 skip,
                 take: limit,
                 include: {
-                    personal_consultant: {
-                        select: {
-                            staff_id: true,
-                            full_name: true,
-                            position: true,
-                        },
-                    },
+
                 },
             }),
             prisma.customer.count({ where })
@@ -116,9 +95,7 @@ export async function GET(request: NextRequest) {
                 nickname: c.nickname,
                 phone_number: c.phone_number,
                 member_level: c.member_level,
-                personal_consult: c.personal_consult,
-                personal_consult_id: c.personal_consult_id,
-                personal_consultant: c.personal_consultant,
+
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,
                 created_at: c.created_at,
@@ -167,8 +144,7 @@ export async function POST(request: NextRequest) {
                 birth_date: body.birth_date ? new Date(body.birth_date) : null,
                 drug_allergy: body.drug_allergy || null,
                 underlying_disease: body.underlying_disease || null,
-                personal_consult: body.personal_consult || null,
-                personal_consult_id: body.personal_consult_id || null,
+
                 member_level: body.member_level || 'General',
             },
         })

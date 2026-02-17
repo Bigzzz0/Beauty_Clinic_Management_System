@@ -45,7 +45,7 @@ interface Customer {
     nickname: string | null
     phone_number: string
     member_level: string | null
-    personal_consult: string | null
+
     drug_allergy: string | null
     underlying_disease: string | null
     total_debt: number
@@ -184,7 +184,7 @@ export default function PatientsPage() {
                                         </Button>
                                     </TableHead>
                                     <TableHead>เบอร์โทร</TableHead>
-                                    <TableHead>ที่ปรึกษา</TableHead>
+
                                     <TableHead>
                                         <Button
                                             variant="ghost"
@@ -267,11 +267,7 @@ export default function PatientsPage() {
                                                     {customer.phone_number}
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
-                                                <span className="text-sm text-slate-600">
-                                                    {customer.personal_consult || '-'}
-                                                </span>
-                                            </TableCell>
+
                                             <TableCell>
                                                 <span className="text-sm text-slate-600">
                                                     {formatDate(customer.last_visit)}

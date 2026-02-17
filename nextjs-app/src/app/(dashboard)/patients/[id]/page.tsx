@@ -55,7 +55,7 @@ interface PatientDetail {
     birth_date: string | null
     drug_allergy: string | null
     underlying_disease: string | null
-    personal_consult: string | null
+
     member_level: string | null
     total_debt: number
     age: number | null
@@ -228,7 +228,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 birth_date: patient.birth_date?.split('T')[0],
                 drug_allergy: patient.drug_allergy,
                 underlying_disease: patient.underlying_disease,
-                personal_consult: patient.personal_consult,
+
                 member_level: patient.member_level,
             })
             setIsEditing(true)
@@ -451,13 +451,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                             onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                                         />
                                     </div>
-                                    <div>
-                                        <Label>ทีมที่ปรึกษา</Label>
-                                        <Input
-                                            value={editForm.personal_consult || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, personal_consult: e.target.value })}
-                                        />
-                                    </div>
+
                                     <div>
                                         <Label className="text-red-600">แพ้ยา</Label>
                                         <Textarea
@@ -494,13 +488,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <Users2 className="h-5 w-5 text-slate-400" />
-                                        <div>
-                                            <p className="text-xs text-slate-500">ทีมที่ปรึกษา</p>
-                                            <p className="font-medium">{patient.personal_consult || '-'}</p>
-                                        </div>
-                                    </div>
+
                                     <div className="flex items-start gap-3 md:col-span-2">
                                         <MapPin className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
                                         <div>

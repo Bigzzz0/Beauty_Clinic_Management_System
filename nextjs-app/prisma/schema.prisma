@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 // ตารางหมวดหมู่ (Dynamic categories management)
@@ -60,9 +61,6 @@ model customer {
   birth_date           DateTime?            @db.Date
   drug_allergy         String?              @db.Text
   underlying_disease   String?              @db.Text
-  personal_consult     String?              @db.VarChar(100) // Legacy field
-  personal_consult_id  Int?                 // New relation to staff
-  personal_consultant  staff?               @relation("PersonalConsultant", fields: [personal_consult_id], references: [staff_id], onDelete: SetNull, onUpdate: NoAction)
   member_level         String?              @default("General") @db.VarChar(50)
   created_at           DateTime?            @default(now()) @db.Timestamp(0)
   customer_course      customer_course[]
@@ -70,7 +68,6 @@ model customer {
   customer_deposit     customer_deposit[]   // Deposit history
   service_usage        service_usage[]      // Service usage history
 
-  @@index([personal_consult_id], map: "personal_consult_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -209,7 +206,7 @@ model staff {
   is_active           Boolean?       @default(true)
   created_at          DateTime?      @default(now()) @db.Timestamp(0)
   fee_log             fee_log[]
-  consulted_customers customer[]     @relation("PersonalConsultant")
+
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
