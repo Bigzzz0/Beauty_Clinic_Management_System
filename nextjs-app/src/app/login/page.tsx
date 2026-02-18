@@ -85,6 +85,8 @@ export default function LoginPage() {
                                 aria-invalid={!!errors.username}
                                 aria-describedby={errors.username ? "username-error" : undefined}
                                 required
+                                inputMode="email"
+                                autoCapitalize="none"
                                 {...register('username')}
                             />
                             {errors.username && (

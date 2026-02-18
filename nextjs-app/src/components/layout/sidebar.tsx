@@ -135,6 +135,7 @@ export function Sidebar() {
                     size="icon"
                     onClick={toggleSidebar}
                     className="text-slate-400 hover:bg-slate-700 hover:text-white"
+                    aria-label="Toggle sidebar"
                 >
                     <ChevronLeft
                         className={cn('h-5 w-5 transition-transform', !isSidebarOpen && 'rotate-180')}
@@ -152,6 +153,7 @@ export function Sidebar() {
                                 key={item.href}
                                 href={item.href}
                                 title={!isSidebarOpen ? item.title : undefined}
+                                aria-current={isActive(item.href) ? 'page' : undefined}
                                 className={cn(
                                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                     isActive(item.href)
@@ -181,6 +183,7 @@ export function Sidebar() {
                                     key={item.href}
                                     href={item.href}
                                     title={!isSidebarOpen ? item.title : undefined}
+                                    aria-current={isActive(item.href) ? 'page' : undefined}
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
@@ -204,6 +207,7 @@ export function Sidebar() {
                                     key={item.href}
                                     href={item.href}
                                     title={!isSidebarOpen ? item.title : undefined}
+                                    aria-current={isActive(item.href) ? 'page' : undefined}
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
@@ -223,6 +227,7 @@ export function Sidebar() {
                     <Link
                         href="/settings"
                         title={!isSidebarOpen ? "ตั้งค่า" : undefined}
+                        aria-current={isActive('/settings') ? 'page' : undefined}
                         className={cn(
                             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                             isActive('/settings')
@@ -251,6 +256,7 @@ export function Sidebar() {
                         size="icon"
                         onClick={logout}
                         className={cn('text-slate-400 hover:bg-slate-700 hover:text-white', !isSidebarOpen && 'hidden')}
+                        aria-label="Logout"
                     >
                         <LogOut className="h-4 w-4" />
                     </Button>

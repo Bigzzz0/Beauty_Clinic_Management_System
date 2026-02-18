@@ -155,6 +155,7 @@ export default function PatientsPage() {
                                         setPage(1)
                                     }}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    aria-label="ล้างคำค้นหา"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -309,7 +310,7 @@ export default function PatientsPage() {
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm" aria-label="ตัวเลือกเพิ่มเติม">•••</Button>
+                                                        <Button variant="ghost" size="sm" aria-label={`ตัวเลือกสำหรับ ${customer.full_name || customer.first_name}`}>•••</Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem asChild>
@@ -342,7 +343,7 @@ export default function PatientsPage() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-4">
+                        <nav className="flex items-center justify-between mt-4" aria-label="Pagination">
                             <p className="text-sm text-slate-500">
                                 หน้า {page} จาก {totalPages}
                             </p>
@@ -352,6 +353,7 @@ export default function PatientsPage() {
                                     size="sm"
                                     disabled={page <= 1}
                                     onClick={() => setPage(page - 1)}
+                                    aria-label="หน้าก่อนหน้า"
                                 >
                                     ก่อนหน้า
                                 </Button>
@@ -360,11 +362,12 @@ export default function PatientsPage() {
                                     size="sm"
                                     disabled={page >= totalPages}
                                     onClick={() => setPage(page + 1)}
+                                    aria-label="หน้าถัดไป"
                                 >
                                     ถัดไป
                                 </Button>
                             </div>
-                        </div>
+                        </nav>
                     )}
                 </CardContent>
             </Card>

@@ -7,6 +7,8 @@ import { useUIStore } from '@/stores/ui-store'
 import { cn } from '@/lib/utils'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
+import { Button } from '@/components/ui/button'
 
 interface DashboardLayoutProps {
     children: React.ReactNode
@@ -56,6 +58,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
     return (
         <div className="min-h-screen bg-slate-50">
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+                Skip to main content
+            </a>
             <Sidebar />
             <div
                 className={cn(
@@ -64,7 +72,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
             >
                 <Header />
-                <main id="main-content" tabIndex={-1} className="p-4 lg:p-6 outline-none">{children}</main>
+                <main id="main-content" tabIndex={-1} className="p-4 lg:p-6 outline-none">
+                    <Breadcrumbs />
+                    {children}
+                </main>
             </div>
         </div>
     )

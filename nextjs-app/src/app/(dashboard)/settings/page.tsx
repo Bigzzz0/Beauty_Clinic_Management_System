@@ -345,6 +345,7 @@ export default function SettingsPage() {
                                         value={productSearch}
                                         onChange={(e) => setProductSearch(e.target.value)}
                                         className="pl-10 w-64"
+                                        aria-label="Search products"
                                     />
                                 </div>
                                 <Button onClick={() => { setEditingProduct({}); setProductDialog(true) }}>
@@ -384,10 +385,10 @@ export default function SettingsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(p); setProductDialog(true) }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingProduct(p); setProductDialog(true) }} aria-label={`Edit ${p.product_name}`}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProductId(p.product_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteProductId(p.product_id)} aria-label={`Delete ${p.product_name}`}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -440,10 +441,10 @@ export default function SettingsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingCourse(c); setCourseDialog(true) }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingCourse(c); setCourseDialog(true) }} aria-label={`Edit ${c.course_name}`}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCourseId(c.course_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteCourseId(c.course_id)} aria-label={`Delete ${c.course_name}`}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -494,10 +495,10 @@ export default function SettingsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingStaff(s); setStaffDialog(true) }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setEditingStaff(s); setStaffDialog(true) }} aria-label={`Edit ${s.full_name}`}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteStaffId(s.staff_id)}>
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteStaffId(s.staff_id)} aria-label={`Delete ${s.full_name}`}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -545,7 +546,7 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>จำนวนต่อหน่วย *</Label>
-                                <Input type="number" value={editingProduct?.pack_size || 1} onChange={(e) => setEditingProduct({ ...editingProduct, pack_size: parseInt(e.target.value) })} />
+                                <Input type="number" inputMode="decimal" value={editingProduct?.pack_size || 1} onChange={(e) => setEditingProduct({ ...editingProduct, pack_size: parseInt(e.target.value) })} />
                             </div>
                             <div className="flex items-center gap-2 pt-6">
                                 <Switch checked={editingProduct?.is_liquid || false} onCheckedChange={(v) => setEditingProduct({ ...editingProduct, is_liquid: v })} />
@@ -555,15 +556,15 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-3 gap-4">
                             <div>
                                 <Label>ราคาทุน</Label>
-                                <Input type="number" value={editingProduct?.cost_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, cost_price: parseFloat(e.target.value) })} />
+                                <Input type="number" inputMode="decimal" value={editingProduct?.cost_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, cost_price: parseFloat(e.target.value) })} />
                             </div>
                             <div>
                                 <Label>ราคาขาย *</Label>
-                                <Input type="number" value={editingProduct?.standard_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, standard_price: parseFloat(e.target.value) })} />
+                                <Input type="number" inputMode="decimal" value={editingProduct?.standard_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, standard_price: parseFloat(e.target.value) })} />
                             </div>
                             <div>
                                 <Label>ราคาพนักงาน</Label>
-                                <Input type="number" value={editingProduct?.staff_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, staff_price: parseFloat(e.target.value) })} />
+                                <Input type="number" inputMode="decimal" value={editingProduct?.staff_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, staff_price: parseFloat(e.target.value) })} />
                             </div>
                         </div>
                         {editingProduct?.product_id && (
@@ -598,11 +599,11 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>ราคาขาย *</Label>
-                                <Input type="number" value={editingCourse?.standard_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, standard_price: parseFloat(e.target.value) })} />
+                                <Input type="number" inputMode="decimal" value={editingCourse?.standard_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, standard_price: parseFloat(e.target.value) })} />
                             </div>
                             <div>
                                 <Label>ราคาพนักงาน</Label>
-                                <Input type="number" value={editingCourse?.staff_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, staff_price: parseFloat(e.target.value) })} />
+                                <Input type="number" inputMode="decimal" value={editingCourse?.staff_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, staff_price: parseFloat(e.target.value) })} />
                             </div>
                         </div>
                         <div>
@@ -658,7 +659,15 @@ export default function SettingsPage() {
                                     value={editingStaff?.password || ''}
                                     onChange={(e) => setEditingStaff({ ...editingStaff, password: e.target.value })}
                                 />
-                                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0" onClick={() => setShowPassword(!showPassword)}>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 top-0"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    title={showPassword ? "Hide password" : "Show password"}
+                                >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                             </div>

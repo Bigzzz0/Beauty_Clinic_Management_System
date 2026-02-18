@@ -122,7 +122,7 @@ export default function DashboardPage() {
                                 <div
                                     className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white shadow-lg`}
                                 >
-                                    <stat.icon className="h-6 w-6" />
+                                    <stat.icon className="h-6 w-6" aria-hidden="true" />
                                 </div>
                             </div>
                         </CardContent>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                 <Card className="flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-primary" />
+                            <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
                             นัดหมายวันนี้
                         </CardTitle>
                     </CardHeader>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
                 <Card className="flex flex-col">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                            <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
                             สินค้าใกล้หมด
                         </CardTitle>
                     </CardHeader>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
                 <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-emerald-500" />
+                            <DollarSign className="h-5 w-5 text-emerald-500" aria-hidden="true" />
                             การดำเนินการด่วน
                         </CardTitle>
                     </CardHeader>
@@ -229,29 +229,33 @@ export default function DashboardPage() {
                             <Link
                                 href="/pos"
                                 className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                aria-label="ไปที่หน้าขายสินค้า (POS)"
                             >
-                                <ShoppingCart className="h-8 w-8" />
+                                <ShoppingCart className="h-8 w-8" aria-hidden="true" />
                                 <span className="mt-2 font-medium">ขายสินค้า</span>
                             </Link>
                             <Link
                                 href="/patients"
                                 className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                aria-label="ไปที่หน้าจัดการลูกค้า"
                             >
-                                <Users className="h-8 w-8" />
+                                <Users className="h-8 w-8" aria-hidden="true" />
                                 <span className="mt-2 font-medium">ลูกค้า</span>
                             </Link>
                             <Link
                                 href="/inventory"
                                 className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                aria-label="ไปที่หน้าคลังสินค้า"
                             >
-                                <Package className="h-8 w-8" />
+                                <Package className="h-8 w-8" aria-hidden="true" />
                                 <span className="mt-2 font-medium">คลังสินค้า</span>
                             </Link>
                             <Link
                                 href="/reports"
                                 className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                aria-label="ไปที่หน้ารายงาน"
                             >
-                                <TrendingUp className="h-8 w-8" />
+                                <TrendingUp className="h-8 w-8" aria-hidden="true" />
                                 <span className="mt-2 font-medium">รายงาน</span>
                             </Link>
                         </div>
