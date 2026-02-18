@@ -134,6 +134,7 @@ export function ProductSearchSelect({
                                         ? 'bg-purple-100 text-purple-700 border-purple-300'
                                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                                 )}
+                                aria-pressed={category === cat.value}
                             >
                                 {cat.label}
                             </button>

@@ -309,7 +309,7 @@ export default function PatientsPage() {
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm">•••</Button>
+                                                        <Button variant="ghost" size="sm" aria-label="ตัวเลือกเพิ่มเติม">•••</Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuItem asChild>

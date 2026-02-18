@@ -321,6 +321,7 @@ export default function InventoryPage() {
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="pl-10"
                                 aria-label="Search inventory"
+                                autoFocus
                             />
                         </div>
                         <Select value={category} onValueChange={setCategory}>
@@ -584,7 +585,7 @@ export default function InventoryPage() {
                         <CardContent className="p-4">
                             <div className="flex items-center gap-4">
                                 <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                                    <SelectTrigger className="w-48">
+                                    <SelectTrigger className="w-48" aria-label="เลือกเดือน">
                                         <SelectValue placeholder="เลือกเดือน" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -596,7 +597,7 @@ export default function InventoryPage() {
                                     </SelectContent>
                                 </Select>
                                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                                    <SelectTrigger className="w-32">
+                                    <SelectTrigger className="w-32" aria-label="เลือกปี">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>

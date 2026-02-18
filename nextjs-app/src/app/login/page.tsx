@@ -84,6 +84,7 @@ export default function LoginPage() {
                                 className="border-slate-600 bg-slate-800/50 text-white placeholder:text-slate-400"
                                 aria-invalid={!!errors.username}
                                 aria-describedby={errors.username ? "username-error" : undefined}
+                                required
                                 {...register('username')}
                             />
                             {errors.username && (
@@ -104,6 +105,7 @@ export default function LoginPage() {
                                     className="border-slate-600 bg-slate-800/50 pr-10 text-white placeholder:text-slate-400"
                                     aria-invalid={!!errors.password}
                                     aria-describedby={errors.password ? "password-error" : undefined}
+                                    required
                                     {...register('password')}
                                 />
                                 <button
@@ -111,6 +113,7 @@ export default function LoginPage() {
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
+                                    title={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>

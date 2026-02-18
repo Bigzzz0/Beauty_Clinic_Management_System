@@ -48,7 +48,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
     Select,
@@ -530,6 +530,9 @@ export default function POSPage() {
                             <DialogContent className="max-w-md">
                                 <DialogHeader>
                                     <DialogTitle>ชำระเงิน</DialogTitle>
+                                    <DialogDescription>
+                                        ระบุยอดเงินตามช่องทางที่ลูกค้าชำระ (สามารถแยกชำระได้หลายช่องทาง)
+                                    </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                     {/* Customer Alert in Payment */}
@@ -550,6 +553,7 @@ export default function POSPage() {
                                                 <Label className="text-xs">เงินสด</Label>
                                                 <Input
                                                     type="number"
+                                                    inputMode="decimal"
                                                     value={cashAmount}
                                                     onChange={(e) => setCashAmount(e.target.value)}
                                                     placeholder="0"
@@ -564,6 +568,7 @@ export default function POSPage() {
                                                 <Label className="text-xs">โอนเงิน</Label>
                                                 <Input
                                                     type="number"
+                                                    inputMode="decimal"
                                                     value={transferAmount}
                                                     onChange={(e) => setTransferAmount(e.target.value)}
                                                     placeholder="0"
@@ -578,6 +583,7 @@ export default function POSPage() {
                                                 <Label className="text-xs">บัตรเครดิต</Label>
                                                 <Input
                                                     type="number"
+                                                    inputMode="decimal"
                                                     value={creditAmount}
                                                     onChange={(e) => setCreditAmount(e.target.value)}
                                                     placeholder="0"
@@ -597,21 +603,30 @@ export default function POSPage() {
                                                             ยอดคงเหลือ: ฿{customerDepositBalance.toLocaleString()}
                                                         </span>
                                                     </div>
-                                                    <Input
-                                                        type="number"
-                                                        value={depositAmount}
-                                                        onChange={(e) => {
-                                                            const val = parseFloat(e.target.value) || 0
-                                                            if (val <= customerDepositBalance) {
-                                                                setDepositAmount(e.target.value)
-                                                            } else {
-                                                                setDepositAmount(customerDepositBalance.toString())
-                                                            }
-                                                        }}
-                                                        placeholder="0"
-                                                        max={customerDepositBalance}
-                                                        className="h-9"
-                                                    />
+                                                    <div className="relative">
+                                                        <Input
+                                                            type="number"
+                                                            inputMode="decimal"
+                                                            value={depositAmount}
+                                                            onChange={(e) => {
+                                                                const val = parseFloat(e.target.value) || 0
+                                                                if (val <= customerDepositBalance) {
+                                                                    setDepositAmount(e.target.value)
+                                                                } else {
+                                                                    setDepositAmount(customerDepositBalance.toString())
+                                                                }
+                                                            }}
+                                                            placeholder="0"
+                                                            max={customerDepositBalance}
+                                                            className="h-9 pr-14"
+                                                        />
+                                                        <button
+                                                            onClick={() => setDepositAmount(customerDepositBalance.toString())}
+                                                            className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                        >
+                                                            ทั้งหมด
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
