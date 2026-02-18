@@ -75,23 +75,25 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="username" className="text-slate-200">
-                                ชื่อผู้ใช้
+                                ชื่อผู้ใช้ <span className="text-red-400">*</span>
                             </Label>
                             <Input
                                 id="username"
                                 placeholder="กรอกชื่อผู้ใช้"
                                 autoComplete="username"
                                 className="border-slate-600 bg-slate-800/50 text-white placeholder:text-slate-400"
+                                aria-invalid={!!errors.username}
+                                aria-describedby={errors.username ? "username-error" : undefined}
                                 {...register('username')}
                             />
                             {errors.username && (
-                                <p className="text-sm text-red-400">{errors.username.message}</p>
+                                <p id="username-error" className="text-sm text-red-400" role="alert">{errors.username.message}</p>
                             )}
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="password" className="text-slate-200">
-                                รหัสผ่าน
+                                รหัสผ่าน <span className="text-red-400">*</span>
                             </Label>
                             <div className="relative">
                                 <Input
@@ -100,6 +102,8 @@ export default function LoginPage() {
                                     placeholder="กรอกรหัสผ่าน"
                                     autoComplete="current-password"
                                     className="border-slate-600 bg-slate-800/50 pr-10 text-white placeholder:text-slate-400"
+                                    aria-invalid={!!errors.password}
+                                    aria-describedby={errors.password ? "password-error" : undefined}
                                     {...register('password')}
                                 />
                                 <button
@@ -112,7 +116,7 @@ export default function LoginPage() {
                                 </button>
                             </div>
                             {errors.password && (
-                                <p className="text-sm text-red-400">{errors.password.message}</p>
+                                <p id="password-error" className="text-sm text-red-400" role="alert">{errors.password.message}</p>
                             )}
                         </div>
 

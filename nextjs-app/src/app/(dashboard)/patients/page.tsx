@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
     Users, Search, ArrowUpDown, Plus,
     UserCircle, Phone, Edit, History, ShoppingCart,
-    AlertTriangle
+    AlertTriangle, X
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useQuery } from '@tanstack/react-query'
@@ -124,10 +124,12 @@ export default function PatientsPage() {
                     </h1>
                     <p className="text-muted-foreground">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
                 </div>
-                <Button variant="gradient">
-                    <Plus className="h-4 w-4 mr-2" />
-                    เพิ่มคนไข้ใหม่
-                </Button>
+                <Link href="/patients/new">
+                    <Button variant="gradient">
+                        <Plus className="h-4 w-4 mr-2" />
+                        เพิ่มคนไข้ใหม่
+                    </Button>
+                </Link>
             </div>
 
             {/* Search & Filters */}
@@ -143,9 +145,20 @@ export default function PatientsPage() {
                                     setSearch(e.target.value)
                                     setPage(1)
                                 }}
-                                className="pl-10"
+                                className="pl-10 pr-8"
                                 aria-label="Search patients"
                             />
+                            {search && (
+                                <button
+                                    onClick={() => {
+                                        setSearch('')
+                                        setPage(1)
+                                    }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
                         <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(1) }}>
                             <SelectTrigger className="w-full md:w-48">
@@ -239,7 +252,6 @@ export default function PatientsPage() {
                                     customers.map((customer) => (
                                         <TableRow
                                             key={customer.customer_id}
-                                            className="hover:bg-muted/50"
                                         >
                                             <TableCell>
                                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">

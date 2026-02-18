@@ -151,6 +151,7 @@ export function Sidebar() {
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                title={!isSidebarOpen ? item.title : undefined}
                                 className={cn(
                                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                     isActive(item.href)
@@ -179,6 +180,7 @@ export function Sidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    title={!isSidebarOpen ? item.title : undefined}
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
@@ -201,6 +203,7 @@ export function Sidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    title={!isSidebarOpen ? item.title : undefined}
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
@@ -219,6 +222,7 @@ export function Sidebar() {
                     <Separator className="my-3 bg-slate-700" />
                     <Link
                         href="/settings"
+                        title={!isSidebarOpen ? "ตั้งค่า" : undefined}
                         className={cn(
                             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                             isActive('/settings')

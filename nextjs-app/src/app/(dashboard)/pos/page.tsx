@@ -31,8 +31,10 @@ import { useHotkeys } from '@/hooks/use-hotkeys'
 import {
     Search, ShoppingCart, Trash2, Plus, Minus,
     CreditCard, Banknote, QrCode, AlertTriangle,
-    User, Stethoscope, HandHelping, ChevronDown, Wallet, Printer
+    User, Stethoscope, HandHelping, ChevronDown, Wallet, Printer,
+    X, Keyboard
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
 import { useProducts, useCourses } from '@/hooks/use-products'
@@ -279,16 +281,35 @@ export default function POSPage() {
         <div className="flex h-[calc(100vh-8rem)] gap-6">
             {/* Courses Section */}
             <div className="flex-1 space-y-4 overflow-hidden">
+                <div className="flex items-center justify-between">
+                    <h2 className="font-semibold">รายการสินค้า</h2>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded border">
+                        <div className="flex items-center gap-1"><Keyboard className="h-3 w-3" /> <span className="font-mono bg-background px-1 rounded shadow-sm">F2</span> ค้นหา</div>
+                        <div className="flex items-center gap-1"><span className="font-mono bg-background px-1 rounded shadow-sm">F9</span> ชำระเงิน</div>
+                    </div>
+                </div>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         ref={searchInputRef}
+                        autoFocus
                         placeholder="ค้นหาคอร์ส..."
                         value={searchProduct}
                         onChange={(e) => setSearchProduct(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 pr-8"
                         aria-label="Search products"
                     />
+                    {searchProduct && (
+                        <button
+                            onClick={() => {
+                                setSearchProduct('')
+                                searchInputRef.current?.focus()
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
                 </div>
 
                 <div className="h-[calc(100%-4rem)] overflow-auto">
@@ -376,8 +397,17 @@ export default function POSPage() {
                                     placeholder="ค้นหาลูกค้า (ชื่อ/เบอร์/HN)..."
                                     value={searchCustomer}
                                     onChange={(e) => setSearchCustomer(e.target.value)}
+                                    className="pr-8"
                                     aria-label="Search customers"
                                 />
+                                {searchCustomer && (
+                                    <button
+                                        onClick={() => setSearchCustomer('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                )}
                                 {customers.length > 0 && (
                                     <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-auto">
                                         {customers.map((customer) => (
@@ -405,7 +435,12 @@ export default function POSPage() {
                     {/* Cart Items */}
                     <div className="flex-1 space-y-3 overflow-auto">
                         {items.length === 0 ? (
-                            <p className="py-8 text-center text-slate-400">ไม่มีสินค้าในตะกร้า</p>
+                            <EmptyState
+                                icon={ShoppingCart}
+                                title="ตะกร้าว่างเปล่า"
+                                description="เลือกสินค้าหรือคอร์สจากรายการด้านซ้าย"
+                                className="h-full border-0 min-h-[200px]"
+                            />
                         ) : (
                             items.map((item) => (
                                 <Collapsible
@@ -446,7 +481,7 @@ export default function POSPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-8 w-8 text-red-500"
+                                                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-100"
                                                     onClick={() => removeItem(item.id)}
                                                     aria-label="Remove item"
                                                 >
