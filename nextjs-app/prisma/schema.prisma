@@ -67,6 +67,10 @@ model customer {
   transaction_header   transaction_header[]
   customer_deposit     customer_deposit[]   // Deposit history
   service_usage        service_usage[]      // Service usage history
+
+  @@index([first_name, last_name, phone_number, hn_code])
+  @@index([phone_number])
+  @@index([hn_code])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -173,6 +177,8 @@ model product {
   inventory_usage  inventory_usage[]
   stock_movement   stock_movement[]
   transaction_item transaction_item[]
+  
+  @@index([category])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -194,6 +200,7 @@ model service_usage {
 
   @@index([customer_id], map: "customer_id")
   @@index([customer_course_id], map: "customer_course_id")
+  @@index([service_date])
 }
 
 model staff {
@@ -225,6 +232,7 @@ model stock_movement {
   product                product                    @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_movement_ibfk_1")
 
   @@index([product_id], map: "product_id")
+  @@index([created_at])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -244,6 +252,7 @@ model transaction_header {
   transaction_item  transaction_item[]
 
   @@index([customer_id], map: "customer_id")
+  @@index([transaction_date])
 }
 
 model transaction_item {
@@ -347,6 +356,8 @@ model commission_rate {
   is_active     Boolean         @default(true)
   created_at    DateTime        @default(now()) @db.Timestamp(0)
   updated_at    DateTime?       @updatedAt
+
+  @@index([category])
 }
 
 // ระบบมัดจำลูกค้า (Customer deposit system)

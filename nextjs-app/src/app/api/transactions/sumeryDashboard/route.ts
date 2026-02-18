@@ -11,53 +11,67 @@ async function getDashboardStats() {
     const lastMonthStart = startOfMonth(subMonths(now, 1))
     const yesterdayStart = startOfDay(subDays(now, 1))
 
-    // 1. นับจำนวนลูกค้าทั้งหมด
-    const totalCustomers = await prisma.customer.count()
+    // Use Promise.all to fetch data in parallel
+    const [
+        totalCustomers,
+        customerChangeFromLastMonth,
+        salesToday,
+        salesYesterday,
+        totalProducts,
+        salesThisMonth,
+        salesLastMonth
+    ] = await Promise.all([
+        // 1. Count total customers
+        prisma.customer.count(),
 
-    const customerChangeFromLastMonth = await prisma.customer.count({
-        where: {
-            created_at: { gte: lastMonthStart }
-        }
-    })
+        // 2. Count customers from last month
+        prisma.customer.count({
+            where: {
+                created_at: { gte: lastMonthStart }
+            }
+        }),
 
-    // 2. ยอดรวมการขายของวันนี้ (เฉพาะที่จ่ายเงินแล้ว)
-    const salesToday = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: todayStart, lte: todayEnd },
-            payment_status: 'PAID'
-        }
-    })
-    const salesYesterday = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: yesterdayStart, lte: todayStart },
-            payment_status: 'PAID'
-        }
-    })
+        // 3. Sales Today
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: todayStart, lte: todayEnd },
+                payment_status: 'PAID'
+            }
+        }),
 
-    // 3. นับจำนวนสินค้าในคลังที่ยังเปิดใช้งานอยู่
-    const totalProducts = await prisma.inventory.aggregate({
-        _sum: { full_qty: true },
-    })
+        // 4. Sales Yesterday
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: yesterdayStart, lte: todayStart },
+                payment_status: 'PAID'
+            }
+        }),
 
-    // 4. ยอดรวมการขายเดือนนี้
-    const salesThisMonth = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: monthStart },
-            payment_status: 'PAID'
-        }
-    })
+        // 5. Total Products
+        prisma.inventory.aggregate({
+            _sum: { full_qty: true },
+        }),
 
-    // 5. ยอดรวมการขายเดือนที่แล้ว (เพื่อหา % Change)
-    const salesLastMonth = await prisma.transaction_header.aggregate({
-        _sum: { net_amount: true },
-        where: {
-            transaction_date: { gte: lastMonthStart, lt: monthStart },
-            payment_status: 'PAID'
-        }
-    })
+        // 6. Sales This Month
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: monthStart },
+                payment_status: 'PAID'
+            }
+        }),
+
+        // 7. Sales Last Month
+        prisma.transaction_header.aggregate({
+            _sum: { net_amount: true },
+            where: {
+                transaction_date: { gte: lastMonthStart, lt: monthStart },
+                payment_status: 'PAID'
+            }
+        })
+    ])
 
     let CustomerChange = 0
     if (customerChangeFromLastMonth > 0) {
@@ -102,8 +116,8 @@ async function getDashboardStats() {
         },
         {
             title: 'ยอดขายเดือนนี้',
-            value: currentMonthValue >= 1000000 
-                ? `฿${(currentMonthValue / 1000000).toFixed(1)}M` 
+            value: currentMonthValue >= 1000000
+                ? `฿${(currentMonthValue / 1000000).toFixed(1)}M`
                 : `฿${currentMonthValue.toLocaleString()}`,
             change: `${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(0)}%`,
             icon: 'TrendingUp',

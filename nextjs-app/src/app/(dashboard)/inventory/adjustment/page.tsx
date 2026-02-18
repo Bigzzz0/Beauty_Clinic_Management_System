@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ClipboardEdit, Upload, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
@@ -213,10 +214,12 @@ export default function AdjustmentPage() {
                                 />
                             </label>
                             {imagePreview && (
-                                <img
+                                <Image
                                     src={imagePreview}
                                     alt="Preview"
-                                    className="h-20 w-20 object-cover rounded-lg border"
+                                    width={80}
+                                    height={80}
+                                    className="object-cover rounded-lg border"
                                 />
                             )}
                         </div>

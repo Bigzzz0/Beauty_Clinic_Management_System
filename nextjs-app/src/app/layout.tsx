@@ -6,12 +6,14 @@ import { Providers } from './providers'
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 })
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ['thai'],
   variable: '--font-noto-thai',
   weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {

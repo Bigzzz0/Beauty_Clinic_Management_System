@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, use } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
     User, ArrowLeft, Edit, Save, X, AlertTriangle,
@@ -636,11 +637,13 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                             </p>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                 {(images as GalleryImage[]).map((img) => (
-                                                    <div key={img.gallery_id} className="relative group">
-                                                        <img
+                                                    <div key={img.gallery_id} className="relative group aspect-square">
+                                                        <Image
                                                             src={img.image_path}
                                                             alt={img.image_type}
-                                                            className="w-full aspect-square object-cover rounded-lg"
+                                                            fill
+                                                            className="object-cover rounded-lg"
+                                                            sizes="(max-width: 768px) 50vw, 25vw"
                                                         />
                                                         <Badge
                                                             className={`absolute top-2 left-2 ${img.image_type === 'Before'

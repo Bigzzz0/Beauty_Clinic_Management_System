@@ -25,29 +25,47 @@ export async function GET(request: NextRequest) {
             ],
         } : {}
 
-        // Fetch customers with their debt info and personal consultant
+        // Fetch customers without heavy transaction data
         const customers = await prisma.customer.findMany({
             where: searchConditions,
-            include: {
-                transaction_header: {
-                    select: {
-                        remaining_balance: true,
-                        transaction_date: true,
-                    },
-                    orderBy: { transaction_date: 'desc' },
-                },
-            },
             skip,
             take: limit,
+            select: {
+                customer_id: true,
+                hn_code: true,
+                first_name: true,
+                last_name: true,
+                full_name: true,
+                nickname: true,
+                phone_number: true,
+                member_level: true,
+                drug_allergy: true,
+                underlying_disease: true,
+                created_at: true,
+            }
         })
+
+        // Fetch aggregated stats for these customers only
+        const customerIds = customers.map(c => c.customer_id)
+
+        const stats = customerIds.length > 0 ? await prisma.transaction_header.groupBy({
+            by: ['customer_id'],
+            where: { customer_id: { in: customerIds } },
+            _sum: { remaining_balance: true },
+            _max: { transaction_date: true },
+        }) : []
+
+        const statsMap = new Map(stats.map(s => [
+            s.customer_id,
+            {
+                debt: Number(s._sum.remaining_balance || 0),
+                lastVisit: s._max.transaction_date
+            }
+        ]))
 
         // Add calculated fields
         const customersWithStats = customers.map((c) => {
-            const totalDebt = c.transaction_header.reduce(
-                (sum, t) => sum + Number(t.remaining_balance || 0),
-                0
-            )
-            const lastVisit = c.transaction_header[0]?.transaction_date || null
+            const stat = statsMap.get(c.customer_id) || { debt: 0, lastVisit: null }
 
             return {
                 customer_id: c.customer_id,
@@ -61,8 +79,8 @@ export async function GET(request: NextRequest) {
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,
                 created_at: c.created_at,
-                total_debt: totalDebt,
-                last_visit: lastVisit,
+                total_debt: stat.debt,
+                last_visit: stat.lastVisit,
             }
         })
 

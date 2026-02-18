@@ -58,10 +58,11 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import {
-    Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import ProductCard from '@/components/pos/product-card'
+import CartItem from '@/components/pos/cart-item'
 
 interface Staff {
     staff_id: number
@@ -319,29 +320,12 @@ export default function POSPage() {
                                 course.course_name.toLowerCase().includes(searchProduct.toLowerCase())
                             )
                             .map((course) => (
-                                <Card
+                                <ProductCard
                                     key={course.course_id}
-                                    className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 selection:bg-transparent"
-                                    onClick={() => addCourse(course)}
-                                    role="button"
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault()
-                                            addCourse(course)
-                                        }
-                                    }}
-                                >
-                                    <CardContent className="p-4">
-                                        <Badge variant="secondary" className="mb-2 bg-accent/20 text-accent">
-                                            คอร์ส
-                                        </Badge>
-                                        <h4 className="font-medium">{course.course_name}</h4>
-                                        <p className="mt-1 text-lg font-bold text-accent">
-                                            {formatCurrency(course.standard_price)}
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                                    item={course}
+                                    onAdd={addCourse}
+                                    type="course"
+                                />
                             ))}
                     </div>
                 </div>
@@ -443,54 +427,14 @@ export default function POSPage() {
                             />
                         ) : (
                             items.map((item) => (
-                                <Collapsible
+                                <CartItem
                                     key={item.id}
-                                    open={expandedItem === item.id}
-                                    onOpenChange={(open) => setExpandedItem(open ? item.id : null)}
-                                >
-                                    <div className="rounded-lg bg-muted p-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex-1">
-                                                <p className="font-medium">
-                                                    {item.product?.product_name || item.course?.course_name}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {formatCurrency(item.unit_price)}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() => updateQuantity(item.id, item.qty - 1)}
-                                                    aria-label="Decrease quantity"
-                                                >
-                                                    <Minus className="h-3 w-3" />
-                                                </Button>
-                                                <span className="w-8 text-center">{item.qty}</span>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() => updateQuantity(item.id, item.qty + 1)}
-                                                    aria-label="Increase quantity"
-                                                >
-                                                    <Plus className="h-3 w-3" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-100"
-                                                    onClick={() => removeItem(item.id)}
-                                                    aria-label="Remove item"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Collapsible>
+                                    item={item}
+                                    expanded={expandedItem === item.id}
+                                    onToggleExpand={(open) => setExpandedItem(open ? item.id : null)}
+                                    onUpdateQuantity={updateQuantity}
+                                    onRemove={removeItem}
+                                />
                             ))
                         )}
                     </div>
