@@ -21,6 +21,7 @@ import {
     ClipboardList,
     Receipt,
     CreditCard,
+    CalendarDays
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -37,6 +38,12 @@ const menuItems = [
         title: 'ลูกค้า/คนไข้',
         icon: Users,
         href: '/patients',
+        roles: ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier'],
+    },
+    {
+        title: 'ตารางนัดหมาย',
+        icon: CalendarDays,
+        href: '/appointments',
         roles: ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier'],
     },
     {
