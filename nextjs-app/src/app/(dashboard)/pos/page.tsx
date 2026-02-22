@@ -643,7 +643,7 @@ export default function POSPage() {
                             ไม่ต้อง
                         </Button>
                         <Button
-                            variant="success"
+                            className="bg-green-600 hover:bg-green-700 text-white"
                             onClick={() => {
                                 setShowReceiptPrompt(false)
                                 if (lastTransactionId) {

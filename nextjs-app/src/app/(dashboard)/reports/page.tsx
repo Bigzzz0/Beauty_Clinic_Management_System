@@ -44,7 +44,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex gap-2">
                     <Link href="/reports/daily-sales">
-                        <Button variant="gradient">
+                        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 border-0 shadow-sm">
                             <Calendar className="h-4 w-4 mr-2" />
                             ยอดขายรายวัน
                         </Button>

@@ -11,6 +11,39 @@ const updateSchema = z.object({
     notes: z.string().nullable().optional()
 })
 
+export async function GET(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id: paramId } = await params
+        const id = parseInt(paramId)
+        if (isNaN(id)) {
+            return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
+        }
+
+        // @ts-ignore
+        const appointment = await prisma.appointment.findUnique({
+            where: { id },
+            include: {
+                customer: true
+            }
+        })
+
+        if (!appointment) {
+            return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
+        }
+
+        return NextResponse.json(appointment)
+    } catch (error: any) {
+        console.error('Fetch appointment error:', error)
+        return NextResponse.json(
+            { error: 'Failed to fetch appointment' },
+            { status: 500 }
+        )
+    }
+}
+
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string }> }

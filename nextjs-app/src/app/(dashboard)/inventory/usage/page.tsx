@@ -285,7 +285,7 @@ export default function UsageRecordPage() {
 
                                             <div className="flex justify-end">
                                                 <Button
-                                                    variant="gradient"
+                                                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
                                                     onClick={() => handleSubmit(service.usage_id)}
                                                     disabled={usageMutation.isPending}
                                                 >

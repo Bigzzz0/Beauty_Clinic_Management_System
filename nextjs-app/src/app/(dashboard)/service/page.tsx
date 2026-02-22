@@ -606,7 +606,7 @@ export default function ServicePage() {
                             <Button
                                 onClick={handleSubmitService}
                                 disabled={createUsage.isPending}
-                                variant="success"
+                                className="bg-green-600 hover:bg-green-700 text-white"
                             >
                                 <Check className="h-4 w-4 mr-2" />
                                 {createUsage.isPending ? 'กำลังบันทึก...' : 'บันทึกการรับบริการ'}

@@ -232,3 +232,25 @@ export interface CartItem {
     unit_price: number
     subtotal: number
 }
+
+// Appointment types
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
+
+export interface Appointment {
+    id: number
+    customer_id: number
+    customer_course_id?: number | null
+    appointment_date: string | Date
+    duration_minutes: number
+    doctor_id?: number | null
+    therapist_id?: number | null
+    notes?: string | null
+    status: AppointmentStatus
+    created_at?: string | Date
+    updated_at?: string | Date
+
+    // Relations
+    customer?: Customer
+    doctor?: Staff | null
+    therapist?: Staff | null
+}

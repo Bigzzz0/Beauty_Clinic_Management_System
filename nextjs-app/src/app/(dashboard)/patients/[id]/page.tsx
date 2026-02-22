@@ -309,7 +309,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             ) : (
                                 <>
-                                    <Button variant="secondary" onClick={handleSave} isLoading={updateMutation.isPending}>
+                                    <Button variant="secondary" onClick={handleSave} disabled={updateMutation.isPending}>
                                         <Save className="h-4 w-4 mr-2" />
                                         บันทึก
                                     </Button>
@@ -613,8 +613,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                         <Button
                                             className="w-full"
                                             onClick={() => uploadMutation.mutate(uploadData)}
-                                            disabled={!uploadData.image_data}
-                                            isLoading={uploadMutation.isPending}
+                                            disabled={!uploadData.image_data || uploadMutation.isPending}
                                         >
                                             อัพโหลด
                                         </Button>

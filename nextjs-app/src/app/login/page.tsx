@@ -127,7 +127,7 @@ export default function LoginPage() {
 
                         <Button
                             type="submit"
-                            isLoading={isLoading}
+                            disabled={isLoading}
                             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700"
                         >
                             <div className="flex items-center gap-2">

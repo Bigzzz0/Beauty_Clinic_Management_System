@@ -244,7 +244,7 @@ export default function StockInPage() {
                             ยกเลิก
                         </Button>
                         <Button
-                            variant="success"
+                            className="bg-green-600 hover:bg-green-700 text-white"
                             onClick={handleSubmit}
                             disabled={stockInMutation.isPending}
                         >

@@ -125,7 +125,7 @@ export default function PatientsPage() {
                     <p className="text-muted-foreground">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
                 </div>
                 <Link href="/patients/new">
-                    <Button variant="gradient">
+                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 border-0 shadow-sm">
                         <Plus className="h-4 w-4 mr-2" />
                         เพิ่มคนไข้ใหม่
                     </Button>

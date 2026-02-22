@@ -213,7 +213,7 @@ export default function DebtorPage() {
                                             <TableCell>
                                                 <Button
                                                     size="sm"
-                                                    variant="success"
+                                                    className="bg-green-600 hover:bg-green-700 text-white"
                                                     onClick={() => setSelectedDebtor(debtor)}
                                                 >
                                                     <DollarSign className="h-4 w-4 mr-1" />
@@ -316,8 +316,7 @@ export default function DebtorPage() {
 
                             {/* Submit */}
                             <Button
-                                className="w-full"
-                                variant="success"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white"
                                 disabled={!selectedTransaction || !payAmount || payMutation.isPending}
                                 onClick={handlePay}
                             >
