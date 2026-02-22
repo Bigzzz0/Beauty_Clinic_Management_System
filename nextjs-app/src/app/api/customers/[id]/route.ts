@@ -80,9 +80,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
             data: {
                 first_name: body.first_name,
                 last_name: body.last_name,
-                full_name: body.first_name && body.last_name
-                    ? `${body.first_name} ${body.last_name}`
-                    : undefined,
                 nickname: body.nickname,
                 phone_number: body.phone_number,
                 address: body.address,
@@ -94,10 +91,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
         })
 
         return NextResponse.json(customer)
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating customer:', error)
         return NextResponse.json(
-            { error: 'Failed to update customer' },
+            { error: error?.message || 'Failed to update customer' },
             { status: 500 }
         )
     }

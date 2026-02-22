@@ -3,10 +3,15 @@
 import { useState } from 'react'
 import {
     FileText, Search, Eye, Printer, Ban, ChevronLeft, ChevronRight,
-    CheckCircle, Clock, XCircle
+    CheckCircle, Clock, XCircle, User, Phone
 } from 'lucide-react'
 import Link from 'next/link'
 import { EmptyState } from '@/components/ui/empty-state'
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
@@ -248,10 +253,35 @@ export default function TransactionsPage() {
                                                 <span className="text-sm">{formatDateTime(tx.transaction_date)}</span>
                                             </TableCell>
                                             <TableCell>
-                                                <div>
-                                                    <p className="font-medium">{tx.customer.first_name} {tx.customer.last_name}</p>
-                                                    <p className="text-xs text-muted-foreground">{tx.customer.hn_code}</p>
-                                                </div>
+                                                <HoverCard openDelay={200}>
+                                                    <HoverCardTrigger asChild>
+                                                        <div className="cursor-pointer hover:bg-slate-50 p-1 -ml-1 rounded transition-colors inline-block w-full">
+                                                            <p className="font-medium text-primary decoration-primary/30 hover:underline underline-offset-4">{tx.customer.first_name} {tx.customer.last_name}</p>
+                                                            <p className="text-xs text-muted-foreground">{tx.customer.hn_code}</p>
+                                                        </div>
+                                                    </HoverCardTrigger>
+                                                    <HoverCardContent className="w-80 p-4" align="start">
+                                                        <div className="flex justify-between space-x-4">
+                                                            <div className="space-y-1">
+                                                                <h4 className="text-sm font-semibold flex items-center gap-1">
+                                                                    <User className="w-4 h-4 text-primary" />
+                                                                    {tx.customer.first_name} {tx.customer.last_name}
+                                                                </h4>
+                                                                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                                                    <span>HN:</span> <span className="font-mono">{tx.customer.hn_code}</span>
+                                                                </p>
+                                                                {tx.customer.phone_number && (
+                                                                    <div className="flex items-center pt-2">
+                                                                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                                            <Phone className="w-3 h-3" />
+                                                                            {tx.customer.phone_number}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </HoverCardContent>
+                                                </HoverCard>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="font-medium">{formatCurrency(Number(tx.net_amount))}</span>

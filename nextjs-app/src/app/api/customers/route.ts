@@ -149,7 +149,6 @@ export async function POST(request: NextRequest) {
                 hn_code,
                 first_name: body.first_name,
                 last_name: body.last_name,
-                full_name: `${body.first_name} ${body.last_name}`,
                 phone_number: body.phone_number,
                 id_card_number: body.id_card_number || null,
                 nickname: body.nickname || null,
@@ -162,10 +161,10 @@ export async function POST(request: NextRequest) {
         })
 
         return NextResponse.json(customer, { status: 201 })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating customer:', error)
         return NextResponse.json(
-            { error: 'Failed to create customer' },
+            { error: error?.message || 'Failed to create customer' },
             { status: 500 }
         )
     }

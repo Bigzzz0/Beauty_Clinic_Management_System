@@ -203,10 +203,11 @@ export default function TransferPage() {
                                 </div>
 
                                 <div className="md:col-span-4">
+                                    <Label>จำนวน</Label>
                                     <Input
                                         type="number"
                                         min={1}
-                                        value={row.qty_main}
+                                        value={row.qty_main || ''}
                                         onChange={(e) => updateRow(row.id, 'qty_main', parseInt(e.target.value) || 0)}
                                         placeholder="จำนวน"
                                     />

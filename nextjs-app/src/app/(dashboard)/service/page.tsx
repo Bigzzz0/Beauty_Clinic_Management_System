@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
     ClipboardCheck, Search, User, Package, Plus, Check,
-    Calendar, Clock, UserCog, Stethoscope
+    Calendar, Clock, UserCog, Stethoscope, ArrowLeft
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -308,12 +308,17 @@ export default function ServicePage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <ClipboardCheck className="h-6 w-6 text-primary" />
-                    บันทึกการรับบริการ
-                </h1>
-                <p className="text-muted-foreground">บันทึกเมื่อลูกค้ามาใช้คอร์สที่ซื้อไว้</p>
+            <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                    <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                        <ClipboardCheck className="h-6 w-6 text-primary" />
+                        บันทึกการรับบริการ
+                    </h1>
+                    <p className="text-muted-foreground">บันทึกเมื่อลูกค้ามาใช้คอร์สที่ซื้อไว้</p>
+                </div>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">

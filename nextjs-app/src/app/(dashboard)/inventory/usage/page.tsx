@@ -254,12 +254,13 @@ export default function UsageRecordPage() {
                                                         </div>
 
                                                         <div className="md:col-span-4">
+                                                            <Label>จำนวนที่ใช้</Label>
                                                             <Input
                                                                 type="number"
                                                                 min={0}
-                                                                value={row.qty_used}
+                                                                value={row.qty_used || ''}
                                                                 onChange={(e) => updateRow(service.usage_id, row.id, 'qty_used', parseInt(e.target.value) || 0)}
-                                                                placeholder={`จำนวน (${product?.sub_unit || 'หน่วย'})`}
+                                                                placeholder={`หน่วย (${product?.sub_unit || 'หน่วย'})`}
                                                             />
                                                         </div>
 

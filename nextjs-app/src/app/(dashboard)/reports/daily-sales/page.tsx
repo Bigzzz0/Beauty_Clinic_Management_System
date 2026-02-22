@@ -126,16 +126,16 @@ export default function DailySalesPage() {
         const rows = data.details.map(d => [
             d.rowNumber,
             d.hnCode,
-            d.customerName,
-            `"${d.items}"`,
+            `"${(d.customerName || '').replace(/"/g, '""')}"`,
+            `"${(d.items || '').replace(/"/g, '""')}"`,
             d.deposit,
             d.transfer,
             d.credit,
             d.cash,
             d.totalAmount,
-            d.personalConsult,
+            `"${(d.personalConsult || '').replace(/"/g, '""')}"`,
             d.paymentChannel,
-            d.note
+            `"${(d.note || '').replace(/"/g, '""')}"`
         ])
 
         const csvContent = [

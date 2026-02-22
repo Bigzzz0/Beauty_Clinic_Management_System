@@ -136,7 +136,7 @@ export default function StockInPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <PackagePlus className="h-6 w-6 text-success" />
+                        <PackagePlus className="h-6 w-6 text-emerald-600" />
                         รับสินค้าเข้า
                     </h1>
                     <p className="text-muted-foreground">บันทึกสินค้าเข้าคลัง (ระบบบันทึกวันเวลาอัตโนมัติ)</p>
@@ -169,7 +169,7 @@ export default function StockInPage() {
                                     <Input
                                         type="number"
                                         min={1}
-                                        value={row.qty_main}
+                                        value={row.qty_main || ''}
                                         onChange={(e) => updateRow(row.id, 'qty_main', parseInt(e.target.value) || 0)}
                                     />
                                     {product && (
