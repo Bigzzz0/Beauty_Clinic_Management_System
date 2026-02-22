@@ -1,10 +1,11 @@
 'use client'
 
-import { Menu, Bell, Search } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { GlobalSearch } from './global-search'
+import { NotificationMenu } from './notifications'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -39,23 +40,11 @@ export function Header() {
                         <Menu className="h-5 w-5" />
                     </Button>
                 )}
-                <div className="relative hidden md:block">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="ค้นหาลูกค้า, สินค้า..."
-                        className="w-64 pl-9"
-                        aria-label="Global search"
-                    />
-                </div>
+                <GlobalSearch />
             </div>
 
             <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="relative" aria-label="Notifications, 3 unread">
-                    <Bell className="h-5 w-5 text-muted-foreground" />
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-white">
-                        3
-                    </span>
-                </Button>
+                <NotificationMenu />
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -76,9 +65,6 @@ export function Header() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                             <Link href="/settings">ตั้งค่า</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href="/settings/password">เปลี่ยนรหัสผ่าน</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <AlertDialog>

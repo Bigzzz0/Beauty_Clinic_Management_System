@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
     Search, Filter, Plus, Package, ArrowUpDown, MoreHorizontal,
@@ -129,6 +129,13 @@ export default function InventoryPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
     const token = useAuthStore((s) => s.token)
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const searchQuery = params.get('search')
+        if (searchQuery) setSearch(searchQuery)
+    }, [])
+
 
     // Fetch inventory data
     const { data: inventory = [], isLoading } = useQuery<InventoryItem[]>({
