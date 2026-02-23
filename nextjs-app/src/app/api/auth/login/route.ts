@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         const token = jwt.sign(
             { staff_id: staff.staff_id, position: staff.position },
             process.env.JWT_SECRET || 'fallback-secret-key',
-            { expiresIn: '7d' }
+            { expiresIn: '30d' }
         )
 
         const { password_hash: _, ...userWithoutPassword } = staff

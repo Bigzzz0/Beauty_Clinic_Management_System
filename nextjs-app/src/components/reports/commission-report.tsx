@@ -45,9 +45,39 @@ export default function CommissionReportTab() {
             const res = await fetch(`/api/reports/commission?month=${commissionMonth}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
             })
+            if (!res.ok) throw new Error(res.statusText)
             return res.json()
         },
     })
+
+    const handleExport = () => {
+        if (!commissionData) return;
+
+        const headers = ['พนักงาน', 'ตำแหน่ง', 'DF', 'Hand Fee', 'รวม'];
+        const rows = (commissionData.staffSummary || []).map(s => [
+            `"${s.full_name}"`,
+            `"${s.position}"`,
+            s.df_total,
+            s.hand_fee_total,
+            s.total
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `commission_report_${commissionMonth}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="space-y-4">
@@ -58,7 +88,7 @@ export default function CommissionReportTab() {
                             <Label>เดือน</Label>
                             <Input type="month" value={commissionMonth} onChange={(e) => setCommissionMonth(e.target.value)} />
                         </div>
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={handleExport} disabled={!commissionData || commissionData.staffSummary.length === 0}>
                             <Download className="h-4 w-4 mr-2" />
                             Export for Payroll
                         </Button>

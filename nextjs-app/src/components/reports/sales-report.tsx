@@ -44,9 +44,38 @@ export default function SalesReportTab() {
             const res = await fetch(`/api/reports/sales?startDate=${salesStart}&endDate=${salesEnd}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
             })
+            if (!res.ok) throw new Error(res.statusText)
             return res.json()
         },
     })
+
+    const handleExport = () => {
+        if (!salesData) return;
+
+        const headers = ['วันที่', 'ยอดขาย', 'รับชำระ', 'จำนวนบิล'];
+        const rows = (salesData.dailyBreakdown || []).map(d => [
+            formatDate(d.date),
+            d.sales,
+            d.paid,
+            d.count
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `sales_report_${salesStart}_to_${salesEnd}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="space-y-4">
@@ -61,7 +90,7 @@ export default function SalesReportTab() {
                             <Label>วันสิ้นสุด</Label>
                             <Input type="date" value={salesEnd} onChange={(e) => setSalesEnd(e.target.value)} />
                         </div>
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={handleExport} disabled={!salesData || salesData.dailyBreakdown.length === 0}>
                             <Download className="h-4 w-4 mr-2" />
                             Export
                         </Button>
