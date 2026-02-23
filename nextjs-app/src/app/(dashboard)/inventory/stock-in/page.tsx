@@ -27,7 +27,7 @@ interface Product {
 interface StockInRow {
     id: string
     product_id: number | null
-    qty_main: number
+    qty_main: number | ''
 }
 
 export default function StockInPage() {
@@ -108,7 +108,7 @@ export default function StockInPage() {
     }
 
     const handleSubmit = () => {
-        const validRows = rows.filter(row => row.product_id && row.qty_main > 0)
+        const validRows = rows.filter(row => row.product_id && Number(row.qty_main) > 0)
         if (validRows.length === 0) {
             toast.error('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ')
             return
@@ -117,7 +117,7 @@ export default function StockInPage() {
         stockInMutation.mutate({
             items: validRows.map(row => ({
                 product_id: row.product_id!,
-                qty_main: row.qty_main,
+                qty_main: Number(row.qty_main),
             })),
             evidence_image: evidenceImage || undefined,
             note: note || undefined,
@@ -169,12 +169,15 @@ export default function StockInPage() {
                                     <Input
                                         type="number"
                                         min={1}
-                                        value={row.qty_main || ''}
-                                        onChange={(e) => updateRow(row.id, 'qty_main', parseInt(e.target.value) || 0)}
+                                        value={row.qty_main}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            updateRow(row.id, 'qty_main', val === '' ? '' : parseInt(val, 10));
+                                        }}
                                     />
                                     {product && (
                                         <p className="text-xs text-slate-500 mt-1">
-                                            = {row.qty_main * product.pack_size} {product.sub_unit}
+                                            = {(Number(row.qty_main) || 0) * product.pack_size} {product.sub_unit}
                                         </p>
                                     )}
                                 </div>

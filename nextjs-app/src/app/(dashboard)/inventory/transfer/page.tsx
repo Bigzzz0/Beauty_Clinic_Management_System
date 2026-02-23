@@ -33,7 +33,7 @@ interface Product {
 interface TransferRow {
     id: string
     product_id: number | null
-    qty_main: number
+    qty_main: number | ''
 }
 
 const branches = [
@@ -127,7 +127,7 @@ export default function TransferPage() {
             return
         }
 
-        const validRows = rows.filter(row => row.product_id && row.qty_main > 0)
+        const validRows = rows.filter(row => row.product_id && Number(row.qty_main) > 0)
         if (validRows.length === 0) {
             toast.error('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ')
             return
@@ -136,7 +136,7 @@ export default function TransferPage() {
         transferMutation.mutate({
             items: validRows.map(row => ({
                 product_id: row.product_id!,
-                qty_main: row.qty_main,
+                qty_main: Number(row.qty_main),
             })),
             destination,
             evidence_image: evidenceImage,
@@ -207,8 +207,11 @@ export default function TransferPage() {
                                     <Input
                                         type="number"
                                         min={1}
-                                        value={row.qty_main || ''}
-                                        onChange={(e) => updateRow(row.id, 'qty_main', parseInt(e.target.value) || 0)}
+                                        value={row.qty_main}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            updateRow(row.id, 'qty_main', val === '' ? '' : parseInt(val, 10));
+                                        }}
                                         placeholder="จำนวน"
                                     />
                                 </div>

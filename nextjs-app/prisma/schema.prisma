@@ -226,7 +226,7 @@ model stock_movement {
   qty_sub                Int                        @default(0)
   lot_number             String?                    @db.VarChar(50)
   expiry_date            DateTime?                  @db.Date
-  evidence_image         String?                    @db.Text
+  evidence_image         String?                    @db.LongText
   note                   String?                    @db.Text
   related_transaction_id Int?
   related_usage_id       Int?

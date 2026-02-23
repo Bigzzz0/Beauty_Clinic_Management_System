@@ -14,6 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useQuery } from '@tanstack/react-query'
 
 interface AppNotification {
     id: string;
@@ -30,35 +31,28 @@ export function NotificationMenu() {
     const router = useRouter()
     const [notifications, setNotifications] = useState<AppNotification[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
-    const [isLoading, setIsLoading] = useState(true)
+
+    const { data: rawData, isLoading } = useQuery({
+        queryKey: ['notifications_dropdown'],
+        queryFn: async () => {
+            const res = await fetch('/api/notifications')
+            if (!res.ok) throw new Error('Failed to fetch notifications')
+            return res.json()
+        },
+        refetchInterval: 30000, // Refresh every 30 seconds
+    })
 
     useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const res = await fetch('/api/notifications')
-                if (res.ok) {
-                    const data = await res.json()
-
-                    // Fetch marked-as-read IDs from local storage
-                    const readIds: string[] = JSON.parse(localStorage.getItem('readNotifications') || '[]')
-
-                    const formattedData = data.notifications.map((n: any) => ({
-                        ...n,
-                        read: readIds.includes(n.id)
-                    }))
-
-                    setNotifications(formattedData)
-                    setUnreadCount(formattedData.filter((n: AppNotification) => !n.read).length)
-                }
-            } catch (error) {
-                console.error("Failed to load notifications", error)
-            } finally {
-                setIsLoading(false)
-            }
+        if (rawData?.notifications) {
+            const readIds: string[] = JSON.parse(localStorage.getItem('readNotifications') || '[]')
+            const formattedData = rawData.notifications.map((n: any) => ({
+                ...n,
+                read: readIds.includes(n.id)
+            }))
+            setNotifications(formattedData)
+            setUnreadCount(formattedData.filter((n: AppNotification) => !n.read).length)
         }
-
-        fetchNotifications()
-    }, [])
+    }, [rawData])
 
     const handleMarkAllAsRead = () => {
         const allIds = notifications.map(n => n.id)
@@ -142,8 +136,8 @@ export function NotificationMenu() {
                 </ScrollArea>
                 <DropdownMenuSeparator />
                 <div className="p-2 text-center flex flex-col items-center">
-                    <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground">
-                        ดูหน้าต่างสินค้า
+                    <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => router.push('/inventory')}>
+                        ดูหน้าต่างรายการคลังสินค้า
                     </Button>
                 </div>
             </DropdownMenuContent>

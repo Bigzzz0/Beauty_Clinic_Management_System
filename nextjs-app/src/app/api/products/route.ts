@@ -50,8 +50,17 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
 
         // Generate product code
+        const prefixMap: Record<string, string> = {
+            'Medicine': 'MED',
+            'Botox': 'BTX',
+            'Filler': 'FIL',
+            'Treatment': 'TRT',
+            'Equipment': 'EQP',
+            'Skin': 'SKN'
+        }
+        const prefix = prefixMap[body.category] || 'PRD'
         const timestamp = Date.now().toString(36).toUpperCase()
-        const product_code = `P${timestamp}`
+        const product_code = `${prefix}${timestamp}`
 
         const product = await prisma.product.create({
             data: {

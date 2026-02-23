@@ -90,6 +90,8 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
         },
         items: details.map(d => ({
             name: d.product?.product_name || d.course?.course_name || 'สินค้า',
+            qty: d.qty,
+            unitPrice: Number(d.unit_price || 0),
             price: Number(d.subtotal || 0),
             remaining: 0,
             paid: Number(d.subtotal || 0),

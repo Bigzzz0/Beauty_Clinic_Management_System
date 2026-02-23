@@ -87,6 +87,7 @@ interface Staff {
 
 const CATEGORIES = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
 const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
+const UNITS = ['ชิ้น', 'ขวด', 'กล่อง', 'หลอด', 'กระปุก', 'แพ็ค', 'cc', 'unit', 'กรัม', 'มิลลิลิตร', 'เม็ด', 'แคปซูล', 'ซอง', 'เซ็ต', 'ครั้ง']
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
@@ -126,7 +127,6 @@ export default function SettingsPage() {
         queryKey: ['products-admin', productSearch],
         queryFn: async () => {
             const params = new URLSearchParams()
-            params.set('includeInactive', 'true')
             if (productSearch) params.set('search', productSearch)
             const res = await fetch(`/api/products?${params}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -150,7 +150,7 @@ export default function SettingsPage() {
     const { data: staffList = [] } = useQuery<Staff[]>({
         queryKey: ['staff-admin'],
         queryFn: async () => {
-            const res = await fetch('/api/staff?includeInactive=true', {
+            const res = await fetch('/api/staff', {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
             })
             return res.json()
@@ -536,11 +536,21 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>หน่วยใหญ่ *</Label>
-                                <Input placeholder="ขวด, กล่อง" value={editingProduct?.main_unit || ''} onChange={(e) => setEditingProduct({ ...editingProduct, main_unit: e.target.value })} />
+                                <Select value={editingProduct?.main_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
+                                    <SelectTrigger><SelectValue placeholder="เลือกหน่วยใหญ่" /></SelectTrigger>
+                                    <SelectContent>
+                                        {UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div>
                                 <Label>หน่วยย่อย *</Label>
-                                <Input placeholder="cc, unit" value={editingProduct?.sub_unit || ''} onChange={(e) => setEditingProduct({ ...editingProduct, sub_unit: e.target.value })} />
+                                <Select value={editingProduct?.sub_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, sub_unit: v })}>
+                                    <SelectTrigger><SelectValue placeholder="เลือกหน่วยย่อย" /></SelectTrigger>
+                                    <SelectContent>
+                                        {UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">

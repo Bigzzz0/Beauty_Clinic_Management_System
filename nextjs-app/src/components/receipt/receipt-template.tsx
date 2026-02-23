@@ -5,6 +5,8 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 
 interface ReceiptItem {
     name: string
+    qty: number
+    unitPrice: number
     price: number
     remaining: number
     paid: number
@@ -264,7 +266,10 @@ export function ReceiptTemplate({ data, showCopy = true }: ReceiptTemplateProps)
                                     {i + 1}
                                 </td>
                                 <td style={{ padding: '16px', fontWeight: '500', color: '#333' }}>
-                                    {item.name}
+                                    <div>{item.name}</div>
+                                    <div style={{ fontSize: '12px', color: '#888', marginTop: '4px', fontWeight: '400' }}>
+                                        {item.qty} x {formatCurrency(item.unitPrice).replace('฿', '')}
+                                    </div>
                                 </td>
                                 <td style={{ padding: '16px', textAlign: 'right', color: '#555' }}>
                                     {formatCurrency(item.price).replace('฿', '')}
