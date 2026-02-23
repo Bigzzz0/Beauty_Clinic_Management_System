@@ -39,7 +39,9 @@ export function NotificationMenu() {
             if (!res.ok) throw new Error('Failed to fetch notifications')
             return res.json()
         },
-        refetchInterval: 30000, // Refresh every 30 seconds
+        refetchInterval: 10000, // Refresh every 10 seconds
+        refetchOnWindowFocus: true,
+        staleTime: 0,
     })
 
     useEffect(() => {
@@ -134,12 +136,6 @@ export function NotificationMenu() {
                         )}
                     </DropdownMenuGroup>
                 </ScrollArea>
-                <DropdownMenuSeparator />
-                <div className="p-2 text-center flex flex-col items-center">
-                    <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => router.push('/inventory')}>
-                        ดูหน้าต่างรายการคลังสินค้า
-                    </Button>
-                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     )

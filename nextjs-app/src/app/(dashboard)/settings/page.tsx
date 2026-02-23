@@ -128,6 +128,7 @@ export default function SettingsPage() {
         queryFn: async () => {
             const params = new URLSearchParams()
             if (productSearch) params.set('search', productSearch)
+            params.set('includeInactive', 'true')
             const res = await fetch(`/api/products?${params}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
             })
@@ -556,7 +557,7 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>จำนวนต่อหน่วย *</Label>
-                                <Input type="number" inputMode="decimal" value={editingProduct?.pack_size || 1} onChange={(e) => setEditingProduct({ ...editingProduct, pack_size: parseInt(e.target.value) })} />
+                                <Input type="number" min={1} inputMode="decimal" value={editingProduct?.pack_size ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, pack_size: e.target.value === '' ? ('' as any) : parseInt(e.target.value) })} />
                             </div>
                             <div className="flex items-center gap-2 pt-6">
                                 <Switch checked={editingProduct?.is_liquid || false} onCheckedChange={(v) => setEditingProduct({ ...editingProduct, is_liquid: v })} />
@@ -566,15 +567,15 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-3 gap-4">
                             <div>
                                 <Label>ราคาทุน</Label>
-                                <Input type="number" inputMode="decimal" value={editingProduct?.cost_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, cost_price: parseFloat(e.target.value) })} />
+                                <Input type="number" min={0} inputMode="decimal" value={editingProduct?.cost_price ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, cost_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />
                             </div>
                             <div>
                                 <Label>ราคาขาย *</Label>
-                                <Input type="number" inputMode="decimal" value={editingProduct?.standard_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, standard_price: parseFloat(e.target.value) })} />
+                                <Input type="number" min={0} inputMode="decimal" value={editingProduct?.standard_price ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, standard_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />
                             </div>
                             <div>
                                 <Label>ราคาพนักงาน</Label>
-                                <Input type="number" inputMode="decimal" value={editingProduct?.staff_price || 0} onChange={(e) => setEditingProduct({ ...editingProduct, staff_price: parseFloat(e.target.value) })} />
+                                <Input type="number" min={0} inputMode="decimal" value={editingProduct?.staff_price ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, staff_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />
                             </div>
                         </div>
                         {editingProduct?.product_id && (
@@ -609,16 +610,16 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>ราคาขาย *</Label>
-                                <Input type="number" inputMode="decimal" value={editingCourse?.standard_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, standard_price: parseFloat(e.target.value) })} />
+                                <Input type="number" min={0} inputMode="decimal" value={editingCourse?.standard_price ?? ''} onChange={(e) => setEditingCourse({ ...editingCourse, standard_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />
                             </div>
                             <div>
                                 <Label>ราคาพนักงาน</Label>
-                                <Input type="number" inputMode="decimal" value={editingCourse?.staff_price || 0} onChange={(e) => setEditingCourse({ ...editingCourse, staff_price: parseFloat(e.target.value) })} />
+                                <Input type="number" min={0} inputMode="decimal" value={editingCourse?.staff_price ?? ''} onChange={(e) => setEditingCourse({ ...editingCourse, staff_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />
                             </div>
                         </div>
                         <div>
                             <Label>จำนวนครั้ง (Sessions) *</Label>
-                            <Input type="number" min={1} value={editingCourse?.session_count || 1} onChange={(e) => setEditingCourse({ ...editingCourse, session_count: parseInt(e.target.value) || 1 })} />
+                            <Input type="number" min={1} value={editingCourse?.session_count ?? ''} onChange={(e) => setEditingCourse({ ...editingCourse, session_count: e.target.value === '' ? ('' as any) : parseInt(e.target.value) })} />
                             <p className="text-xs text-muted-foreground mt-1">จำนวนครั้งที่ลูกค้าสามารถมาใช้บริการได้</p>
                         </div>
                         {editingCourse?.course_id && (
@@ -644,7 +645,7 @@ export default function SettingsPage() {
                     <div className="space-y-4">
                         <div>
                             <Label>ชื่อ-นามสกุล *</Label>
-                            <Input value={editingStaff?.full_name || ''} onChange={(e) => setEditingStaff({ ...editingStaff, full_name: e.target.value })} />
+                            <Input maxLength={50} value={editingStaff?.full_name || ''} onChange={(e) => setEditingStaff({ ...editingStaff, full_name: e.target.value })} />
                         </div>
                         <div>
                             <Label>ตำแหน่ง *</Label>

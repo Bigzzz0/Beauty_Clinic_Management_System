@@ -9,6 +9,7 @@ import {
     AlertTriangle, X
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
@@ -70,6 +71,7 @@ export default function PatientsPage() {
 
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
+    const [tab, setTab] = useState('all')
     const [sortBy, setSortBy] = useState('created_at')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const limit = 15
@@ -81,6 +83,7 @@ export default function PatientsPage() {
             params.set('page', page.toString())
             params.set('limit', limit.toString())
             if (search) params.set('search', search)
+            if (tab === 'overdue') params.set('hasDebt', 'true')
             params.set('sortBy', sortBy)
             params.set('sortOrder', sortOrder)
 
@@ -131,6 +134,14 @@ export default function PatientsPage() {
                     </Button>
                 </Link>
             </div>
+
+            {/* Filter Tabs */}
+            <Tabs value={tab} onValueChange={(v) => { setTab(v); setPage(1); }} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+                    <TabsTrigger value="all">ลูกค้าทั้งหมด</TabsTrigger>
+                    <TabsTrigger value="overdue">ค้างชำระ (Overdue)</TabsTrigger>
+                </TabsList>
+            </Tabs>
 
             {/* Search & Filters */}
             <Card>
@@ -264,7 +275,8 @@ export default function PatientsPage() {
                                                     <div className="flex items-center gap-2">
                                                         <Link
                                                             href={`/patients/${customer.customer_id}`}
-                                                            className="font-medium hover:underline hover:text-primary transition-colors"
+                                                            className="font-medium hover:underline hover:text-primary transition-colors max-w-[200px] truncate block"
+                                                            title={customer.full_name || `${customer.first_name} ${customer.last_name}`}
                                                         >
                                                             {customer.full_name || `${customer.first_name} ${customer.last_name}`}
                                                         </Link>

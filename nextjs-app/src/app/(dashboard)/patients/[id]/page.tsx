@@ -396,6 +396,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                     <div>
                                         <Label>ชื่อ</Label>
                                         <Input
+                                            maxLength={50}
                                             value={editForm.first_name || ''}
                                             onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
                                         />
@@ -403,6 +404,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                     <div>
                                         <Label>นามสกุล</Label>
                                         <Input
+                                            maxLength={50}
                                             value={editForm.last_name || ''}
                                             onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
                                         />

@@ -192,7 +192,7 @@ export default function DebtorPage() {
                                         <TableRow key={debtor.customer_id}>
                                             <TableCell>
                                                 <div>
-                                                    <p className="font-medium">{debtor.full_name}</p>
+                                                    <p className="font-medium max-w-[200px] truncate" title={debtor.full_name}>{debtor.full_name}</p>
                                                     <p className="text-xs text-slate-500 font-mono">{debtor.hn_code}</p>
                                                 </div>
                                             </TableCell>
@@ -307,6 +307,7 @@ export default function DebtorPage() {
                                 <Label>จำนวนเงิน</Label>
                                 <Input
                                     type="number"
+                                    min={0}
                                     value={payAmount}
                                     onChange={(e) => setPayAmount(e.target.value)}
                                     placeholder="0"

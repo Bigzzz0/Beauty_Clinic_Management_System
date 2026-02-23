@@ -12,12 +12,17 @@ export async function GET(request: NextRequest) {
 
         const customers = await prisma.customer.findMany({
             where: {
-                OR: [
-                    { first_name: { contains: q } },
-                    { last_name: { contains: q } },
-                    { hn_code: { contains: q } },
-                    { phone_number: { contains: q } },
-                    { full_name: { contains: q } },
+                AND: [
+                    {
+                        OR: [
+                            { first_name: { contains: q } },
+                            { last_name: { contains: q } },
+                            { hn_code: { contains: q } },
+                            { phone_number: { contains: q } },
+                            { full_name: { contains: q } },
+                        ],
+                    },
+                    { first_name: { notIn: ['Admin', 'admin', 'System Admin'] } },
                 ],
             },
             take: 10,

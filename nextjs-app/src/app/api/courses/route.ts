@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
         // Generate course code
         const timestamp = Date.now().toString(36).toUpperCase()
-        const course_code = `C${timestamp}`
+        const course_code = `CRS${timestamp}`
 
         const course = await prisma.course.create({
             data: {

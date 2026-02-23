@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 
+const updateCustomerSchema = z.object({
+    first_name: z.string().min(1, 'ต้องระบุชื่อจริง').max(50, 'ชื่อจริงต้องไม่เกิน 50 ตัวอักษร').optional(),
+    last_name: z.string().min(1, 'ต้องระบุนามสกุล').max(50, 'นามสกุลต้องไม่เกิน 50 ตัวอักษร').optional(),
+    nickname: z.string().nullable().optional(),
+    phone_number: z.string().min(1, 'ต้องระบุเบอร์โทรศัพท์').optional(),
+    address: z.string().nullable().optional(),
+    birth_date: z.union([z.string(), z.date()]).nullable().optional(),
+    drug_allergy: z.string().nullable().optional(),
+    underlying_disease: z.string().nullable().optional(),
+    member_level: z.string().nullable().optional(),
+})
 interface Params {
     params: Promise<{ id: string }>
 }
@@ -74,6 +86,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
         const { id } = await params
         const customerId = parseInt(id)
         const body = await request.json()
+
+        const parseResult = updateCustomerSchema.safeParse(body)
+        if (!parseResult.success) {
+            return NextResponse.json(
+                { error: parseResult.error.issues[0].message },
+                { status: 400 }
+            )
+        }
 
         const customer = await prisma.customer.update({
             where: { customer_id: customerId },

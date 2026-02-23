@@ -91,6 +91,7 @@ export default function NewPatientPage() {
                                 <Input
                                     id="first_name"
                                     required
+                                    maxLength={50}
                                     value={formData.first_name}
                                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                                     placeholder="ระบุชื่อจริง"
@@ -103,6 +104,7 @@ export default function NewPatientPage() {
                                 <Input
                                     id="last_name"
                                     required
+                                    maxLength={50}
                                     value={formData.last_name}
                                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                                     placeholder="ระบุนามสกุล"

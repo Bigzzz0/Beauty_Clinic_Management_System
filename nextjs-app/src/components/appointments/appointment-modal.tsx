@@ -341,12 +341,10 @@ export function AppointmentModal({ open, onOpenChange, onSuccess, initialDate, a
                                     <SelectTrigger>
                                         <SelectValue placeholder="เวลา" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <ScrollArea className="h-48">
-                                            {timeSlots.map((t) => (
-                                                <SelectItem key={t} value={t}>{t}</SelectItem>
-                                            ))}
-                                        </ScrollArea>
+                                    <SelectContent className="max-h-48">
+                                        {timeSlots.map((t) => (
+                                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -156,7 +156,7 @@ export default function AdjustmentPage() {
                             <Input
                                 type="number"
                                 min={0}
-                                value={qtyMain}
+                                value={qtyMain || ''}
                                 onChange={(e) => {
                                     const val = e.target.value;
                                     setQtyMain(val === '' ? '' : parseInt(val, 10));
@@ -168,7 +168,7 @@ export default function AdjustmentPage() {
                             <Input
                                 type="number"
                                 min={0}
-                                value={qtySub}
+                                value={qtySub || ''}
                                 onChange={(e) => {
                                     const val = e.target.value;
                                     setQtySub(val === '' ? '' : parseInt(val, 10));

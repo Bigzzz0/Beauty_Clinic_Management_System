@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 
+const customerSchema = z.object({
+    first_name: z.string().min(1, 'ต้องระบุชื่อจริง').max(50, 'ชื่อจริงต้องไม่เกิน 50 ตัวอักษร'),
+    last_name: z.string().min(1, 'ต้องระบุนามสกุล').max(50, 'นามสกุลต้องไม่เกิน 50 ตัวอักษร'),
+    phone_number: z.string().min(1, 'ต้องระบุเบอร์โทรศัพท์'),
+    id_card_number: z.string().nullable().optional(),
+    nickname: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
+    birth_date: z.union([z.string(), z.date()]).nullable().optional(),
+    drug_allergy: z.string().nullable().optional(),
+    underlying_disease: z.string().nullable().optional(),
+    member_level: z.string().nullable().optional(),
+})
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
@@ -25,9 +38,20 @@ export async function GET(request: NextRequest) {
             ],
         } : {}
 
-        // Fetch customers without heavy transaction data
+        // Build base query
+        const whereCondition: any = { ...searchConditions }
+        if (hasDebt) {
+            const debtTx = await prisma.transaction_header.groupBy({
+                by: ['customer_id'],
+                where: { remaining_balance: { gt: 0 } },
+            })
+            const baseCustomerIdsWithDebt = debtTx.map(t => t.customer_id)
+            whereCondition.customer_id = { in: baseCustomerIdsWithDebt }
+        }
+
+        // Fetch paginated customers without heavy transaction data
         const customers = await prisma.customer.findMany({
-            where: searchConditions,
+            where: whereCondition,
             skip,
             take: limit,
             select: {
@@ -84,23 +108,22 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        // Filter by debt if requested
-        let filtered = customersWithStats
-        if (hasDebt) {
-            filtered = customersWithStats.filter((c) => c.total_debt > 0)
-        }
+        // Sorting will be handled correctly with JS logic
 
         // Sort
-        filtered.sort((a, b) => {
-            let valA: string | number | Date | null = null
-            let valB: string | number | Date | null = null
+        customersWithStats.sort((a, b) => {
+            let valA: any = null
+            let valB: any = null
 
             if (sortBy === 'name') {
-                valA = a.full_name || ''
-                valB = b.full_name || ''
+                valA = a.full_name || `${a.first_name} ${a.last_name}`
+                valB = b.full_name || `${b.first_name} ${b.last_name}`
             } else if (sortBy === 'last_visit') {
-                valA = a.last_visit ? new Date(a.last_visit).getTime() : 0
-                valB = b.last_visit ? new Date(b.last_visit).getTime() : 0
+                if (!a.last_visit && b.last_visit) return 1;
+                if (a.last_visit && !b.last_visit) return -1;
+                if (!a.last_visit && !b.last_visit) return 0;
+                valA = new Date(a.last_visit!).getTime()
+                valB = new Date(b.last_visit!).getTime()
             } else if (sortBy === 'debt') {
                 valA = a.total_debt
                 valB = b.total_debt
@@ -109,16 +132,15 @@ export async function GET(request: NextRequest) {
                 valB = b.created_at ? new Date(b.created_at).getTime() : 0
             }
 
-            if (sortOrder === 'asc') {
-                return valA > valB ? 1 : -1
-            }
-            return valA < valB ? 1 : -1
+            if (valA === valB) return 0;
+            if (sortOrder === 'asc') return valA > valB ? 1 : -1;
+            return valA < valB ? 1 : -1;
         })
 
-        const total = await prisma.customer.count({ where: searchConditions })
+        const total = await prisma.customer.count({ where: whereCondition })
 
         return NextResponse.json({
-            data: filtered,
+            data: customersWithStats,
             meta: {
                 total,
                 page,
@@ -138,6 +160,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
+
+        const parseResult = customerSchema.safeParse(body)
+        if (!parseResult.success) {
+            return NextResponse.json(
+                { error: parseResult.error.issues[0].message },
+                { status: 400 }
+            )
+        }
 
         // Generate HN code
         const timestamp = Date.now().toString(36).toUpperCase()

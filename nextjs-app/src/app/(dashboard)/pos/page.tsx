@@ -451,6 +451,7 @@ export default function POSPage() {
                                 <span className="text-muted-foreground">฿</span>
                                 <Input
                                     type="number"
+                                    min={0}
                                     value={discount}
                                     onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
                                     className="w-24 text-right"
@@ -497,6 +498,7 @@ export default function POSPage() {
                                                 <Label className="text-xs">เงินสด</Label>
                                                 <Input
                                                     type="number"
+                                                    min={0}
                                                     inputMode="decimal"
                                                     value={cashAmount}
                                                     onChange={(e) => setCashAmount(e.target.value)}
@@ -512,6 +514,7 @@ export default function POSPage() {
                                                 <Label className="text-xs">โอนเงิน</Label>
                                                 <Input
                                                     type="number"
+                                                    min={0}
                                                     inputMode="decimal"
                                                     value={transferAmount}
                                                     onChange={(e) => setTransferAmount(e.target.value)}
@@ -527,6 +530,7 @@ export default function POSPage() {
                                                 <Label className="text-xs">บัตรเครดิต</Label>
                                                 <Input
                                                     type="number"
+                                                    min={0}
                                                     inputMode="decimal"
                                                     value={creditAmount}
                                                     onChange={(e) => setCreditAmount(e.target.value)}
@@ -550,6 +554,7 @@ export default function POSPage() {
                                                     <div className="relative">
                                                         <Input
                                                             type="number"
+                                                            min={0}
                                                             inputMode="decimal"
                                                             value={depositAmount}
                                                             onChange={(e) => {

@@ -23,20 +23,35 @@ export async function GET(request: Request) {
         let dateFilter = {}
         if (dateStr) {
             const date = new Date(dateStr)
-            const startOfDay = new Date(date)
-            startOfDay.setHours(0, 0, 0, 0)
+            let startOfRange = new Date(date)
+            let endOfRange = new Date(date)
 
-            const endOfDay = new Date(date)
-            if (view === 'week') {
-                endOfDay.setDate(date.getDate() + 7)
+            if (view === 'month') {
+                startOfRange.setDate(1)
+                startOfRange.setHours(0, 0, 0, 0)
+
+                endOfRange.setMonth(startOfRange.getMonth() + 1)
+                endOfRange.setDate(0)
+                endOfRange.setHours(23, 59, 59, 999)
+            } else if (view === 'week') {
+                // start of week (Sunday)
+                const day = startOfRange.getDay()
+                startOfRange.setDate(startOfRange.getDate() - day)
+                startOfRange.setHours(0, 0, 0, 0)
+
+                endOfRange = new Date(startOfRange)
+                endOfRange.setDate(startOfRange.getDate() + 6)
+                endOfRange.setHours(23, 59, 59, 999)
             } else {
-                endOfDay.setHours(23, 59, 59, 999)
+                // day view
+                startOfRange.setHours(0, 0, 0, 0)
+                endOfRange.setHours(23, 59, 59, 999)
             }
 
             dateFilter = {
                 appointment_date: {
-                    gte: startOfDay,
-                    lte: endOfDay
+                    gte: startOfRange,
+                    lte: endOfRange
                 }
             }
         }
