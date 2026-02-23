@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -309,9 +309,6 @@ export default function ServicePage() {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         <ClipboardCheck className="h-6 w-6 text-primary" />
@@ -366,7 +363,6 @@ export default function ServicePage() {
                                 </div>
                             )}
 
-                            {/* Quick select: Customers with active courses */}
                             {!selectedCustomer && customersWithCourses.length > 0 && (
                                 <div className="mt-4">
                                     <p className="text-sm font-medium text-slate-700 mb-2">ลูกค้าที่มีคอร์สคงเหลือ:</p>
@@ -405,52 +401,100 @@ export default function ServicePage() {
                         </CardContent>
                     </Card>
 
-                    {/* Customer Courses */}
+                    {/* Customer Courses Card */}
                     {selectedCustomer && (
-                        <Card>
+                        <Card className="mt-6 border-primary/20 shadow-md animate-in fade-in slide-in-from-top-2 duration-300">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <Package className="h-5 w-5" />
-                                    คอร์สที่มี ({customerCourses.length})
+                                    <Package className="h-5 w-5 text-primary" />
+                                    ข้อมูลลูกค้าและคอร์สที่เลือก
                                 </CardTitle>
                                 <CardDescription>
-                                    เลือกคอร์สที่ต้องการใช้บริการ
+                                    HN: {selectedCustomer.hn_code} | คุณ {selectedCustomer.full_name}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                {customerCourses.length === 0 ? (
-                                    <p className="text-muted-foreground text-center py-4">
-                                        ไม่มีคอร์สที่ใช้ได้
-                                    </p>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {customerCourses.map((cc) => (
+                            
+                            <CardContent className="space-y-6">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-700 mb-2">สลับเลือกลูกค้าคนอื่นที่มีคอร์สคงเหลือ:</p>
+                                    <div className="border rounded-lg divide-y max-h-48 overflow-y-auto bg-slate-50/50">
+                                        {customersWithCourses.slice(0, 10).map((cwc) => (
                                             <div
-                                                key={cc.id}
-                                                className="p-4 border rounded-lg hover:border-accent hover:bg-accent/5 cursor-pointer transition-all"
-                                                onClick={() => handleSelectCourse(cc)}
+                                                key={cwc.customer_id}
+                                                className={cn(
+                                                    "p-3 hover:bg-primary/5 cursor-pointer flex justify-between items-start transition-colors",
+                                                    selectedCustomer.customer_id === cwc.customer_id ? "bg-white border-l-4 border-primary" : "bg-white"
+                                                )}
+                                                onClick={() => handleSelectCustomer({
+                                                    customer_id: cwc.customer_id,
+                                                    hn_code: cwc.hn_code,
+                                                    full_name: cwc.full_name,
+                                                })}
                                             >
-                                                <div className="flex items-start justify-between">
-                                                    <div>
-                                                        <h4 className="font-semibold">{cc.course.course_name}</h4>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <Badge variant={cc.remaining_sessions > 0 ? 'default' : 'secondary'}>
-                                                                เหลือ {cc.remaining_sessions}/{cc.total_sessions} ครั้ง
-                                                            </Badge>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                ซื้อ: {new Date(cc.purchase_date).toLocaleDateString('th-TH')}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <Button size="sm" disabled={cc.remaining_sessions <= 0} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-                                                        <Plus className="h-4 w-4 mr-1" />
-                                                        ใช้บริการ
-                                                    </Button>
+                                                <div>
+                                                    <p className="font-medium text-sm">{cwc.full_name}</p>
+                                                    <p className="text-xs text-slate-500">HN: {cwc.hn_code}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    {cwc.courses.slice(0, 2).map((c) => (
+                                                        <Badge key={c.id} variant="outline" className="text-[10px] ml-1">
+                                                            {c.course_name} ({c.remaining_sessions})
+                                                        </Badge>
+                                                    ))}
+                                                    {cwc.courses.length > 2 && (
+                                                        <span className="text-[10px] text-slate-400 ml-1">+{cwc.courses.length - 2}</span>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                )}
+                                </div>
+
+                                <hr className="border-slate-100" />
+
+                                <div>
+                                    <p className="text-sm font-medium text-slate-700 mb-3">คอร์สที่พร้อมใช้งาน ({customerCourses.length}):</p>
+                                    {customerCourses.length === 0 ? (
+                                        <p className="text-muted-foreground text-center py-4 border border-dashed rounded-lg text-sm">
+                                            ไม่มีคอร์สที่ใช้ได้
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {customerCourses.map((cc) => (
+                                                <div
+                                                    key={cc.id}
+                                                    className="p-4 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
+                                                    onClick={() => handleSelectCourse(cc)}
+                                                >
+                                                    <div className="flex items-start justify-between">
+                                                        <div>
+                                                            <h4 className="font-semibold group-hover:text-primary transition-colors">
+                                                                {cc.course.course_name}
+                                                            </h4>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <Badge variant={cc.remaining_sessions > 0 ? 'default' : 'secondary'}>
+                                                                    เหลือ {cc.remaining_sessions}/{cc.total_sessions} ครั้ง
+                                                                </Badge>
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    ซื้อ: {new Date(cc.purchase_date).toLocaleDateString('th-TH')}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <Button 
+                                                            size="sm" 
+                                                            disabled={cc.remaining_sessions <= 0} 
+                                                            variant="outline" 
+                                                            className="border-primary text-primary hover:bg-primary hover:text-white shadow-sm"
+                                                        >
+                                                            <Plus className="h-4 w-4 mr-1" />
+                                                            ใช้บริการ
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
                     )}
@@ -514,7 +558,6 @@ export default function ServicePage() {
                     </DialogHeader>
 
                     <div className="space-y-4">
-                        {/* Session info */}
                         <div className="p-3 bg-primary/10 rounded-lg">
                             <p className="text-sm text-primary">
                                 ครั้งที่ใช้: {selectedCourse ? selectedCourse.total_sessions - selectedCourse.remaining_sessions + 1 : 0} / {selectedCourse?.total_sessions}
@@ -524,7 +567,6 @@ export default function ServicePage() {
                             </p>
                         </div>
 
-                        {/* Doctor */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label className="flex items-center gap-1">
@@ -559,7 +601,6 @@ export default function ServicePage() {
                             </div>
                         </div>
 
-                        {/* Therapist */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label className="flex items-center gap-1">
@@ -594,7 +635,6 @@ export default function ServicePage() {
                             </div>
                         </div>
 
-                        {/* Note */}
                         <div className="space-y-2">
                             <Label>หมายเหตุ</Label>
                             <Textarea
@@ -605,7 +645,6 @@ export default function ServicePage() {
                             />
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-2 justify-end pt-4">
                             <Button variant="outline" onClick={handleCloseDialog}>
                                 ยกเลิก
