@@ -207,7 +207,7 @@ export default function TransferPage() {
                                     <Input
                                         type="number"
                                         min={1}
-                                        value={row.qty_main}
+                                        value={row.qty_main || ''}
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             updateRow(row.id, 'qty_main', val === '' ? '' : parseInt(val, 10));

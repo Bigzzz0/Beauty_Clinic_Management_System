@@ -551,6 +551,7 @@ export default function ServicePage() {
                                 <Label>ค่า DF (บาท)</Label>
                                 <Input
                                     type="number"
+                                    min={0}
                                     value={formData.doctor_fee || ''}
                                     onChange={(e) => setFormData({ ...formData, doctor_fee: Number(e.target.value) })}
                                     placeholder="0"
@@ -585,6 +586,7 @@ export default function ServicePage() {
                                 <Label>ค่ามือ (บาท)</Label>
                                 <Input
                                     type="number"
+                                    min={0}
                                     value={formData.therapist_fee || ''}
                                     onChange={(e) => setFormData({ ...formData, therapist_fee: Number(e.target.value) })}
                                     placeholder="0"

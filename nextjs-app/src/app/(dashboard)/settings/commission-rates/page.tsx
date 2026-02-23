@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
     DollarSign, Plus, Search, Edit, Trash2, Save, X,
-    Settings, ArrowLeft
+    Settings, ArrowLeft, RefreshCw
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -189,12 +189,7 @@ export default function CommissionRatesPage() {
     const handleCloseDialog = () => {
         setIsDialogOpen(false)
         setEditingRate(null)
-        setFormData({
-            category: 'TREATMENT_COVER',
-            itemName: '',
-            rateAmount: 30,
-            positionType: '',
-        })
+        setFormData(prev => ({ ...prev, itemName: '' })) // Keep category, position, etc.
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -242,99 +237,106 @@ export default function CommissionRatesPage() {
                         <p className="text-muted-foreground mt-1">จัดการอัตราค่าคอมมิชชั่นตามประเภทบริการ</p>
                     </div>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                            onClick={() => handleOpenDialog()}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            เพิ่มค่ามือ
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>
-                                {editingRate ? 'แก้ไขค่ามือ' : 'เพิ่มค่ามือใหม่'}
-                            </DialogTitle>
-                            <DialogDescription>
-                                กรอกข้อมูลอัตราค่าคอมมิชชั่น
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>หมวดหมู่</Label>
-                                <Select
-                                    value={formData.category}
-                                    onValueChange={(v) => setFormData({ ...formData, category: v })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {CATEGORIES.map((cat) => (
-                                            <SelectItem key={cat.value} value={cat.value}>
-                                                {cat.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>ชื่อรายการ</Label>
-                                <Input
-                                    value={formData.itemName}
-                                    onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
-                                    placeholder="เช่น JIIN Bright, เลเซอร์รักแร้"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>ค่ามือ (บาท)</Label>
-                                <Input
-                                    type="number"
-                                    value={formData.rateAmount}
-                                    onChange={(e) => setFormData({ ...formData, rateAmount: Number(e.target.value) })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>ตำแหน่งที่ใช้ (ไม่บังคับ)</Label>
-                                <Select
-                                    value={formData.positionType || "ALL"}
-                                    onValueChange={(v) => setFormData({ ...formData, positionType: v === "ALL" ? "" : v })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="ทุกตำแหน่ง" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="ALL">ทุกตำแหน่ง</SelectItem>
-                                        {POSITIONS.map((pos) => (
-                                            <SelectItem key={pos.value} value={pos.value}>
-                                                {pos.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="flex gap-2 justify-end">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleCloseDialog}
-                                >
-                                    <X className="h-4 w-4 mr-2" />
-                                    ยกเลิก
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={saveMutation.isPending}
-                                >
-                                    <Save className="h-4 w-4 mr-2" />
-                                    {saveMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
-                                </Button>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ['commission-rates'] })}>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        รีเฟรช
+                    </Button>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                                onClick={() => handleOpenDialog()}
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                เพิ่มค่ามือ
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>
+                                    {editingRate ? 'แก้ไขค่ามือ' : 'เพิ่มค่ามือใหม่'}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    กรอกข้อมูลอัตราค่าคอมมิชชั่น
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>หมวดหมู่</Label>
+                                    <Select
+                                        value={formData.category}
+                                        onValueChange={(v) => setFormData({ ...formData, category: v })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {CATEGORIES.map((cat) => (
+                                                <SelectItem key={cat.value} value={cat.value}>
+                                                    {cat.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>ชื่อรายการ</Label>
+                                    <Input
+                                        value={formData.itemName}
+                                        onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
+                                        placeholder="เช่น JIIN Bright, เลเซอร์รักแร้"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>ค่ามือ (บาท)</Label>
+                                    <Input
+                                        type="number"
+                                        min={0}
+                                        value={formData.rateAmount}
+                                        onChange={(e) => setFormData({ ...formData, rateAmount: Number(e.target.value) })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>ตำแหน่งที่ใช้ (ไม่บังคับ)</Label>
+                                    <Select
+                                        value={formData.positionType || "ALL"}
+                                        onValueChange={(v) => setFormData({ ...formData, positionType: v === "ALL" ? "" : v })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="ทุกตำแหน่ง" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ALL">ทุกตำแหน่ง</SelectItem>
+                                            {POSITIONS.map((pos) => (
+                                                <SelectItem key={pos.value} value={pos.value}>
+                                                    {pos.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex gap-2 justify-end">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleCloseDialog}
+                                    >
+                                        <X className="h-4 w-4 mr-2" />
+                                        ยกเลิก
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={saveMutation.isPending}
+                                    >
+                                        <Save className="h-4 w-4 mr-2" />
+                                        {saveMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
             {/* Filters */}

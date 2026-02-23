@@ -11,7 +11,7 @@ interface TransactionDetail {
     transaction_id: number
     transaction_date: string
     total_amount: number
-    discount_amount: number
+    discount: number
     net_amount: number
     customer: {
         full_name: string | null
@@ -97,7 +97,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
             paid: Number(d.subtotal || 0),
         })),
         subtotal: Number(transaction.total_amount || 0),
-        discount: Number(transaction.discount_amount || 0),
+        discount: Number(transaction.discount || 0),
         total: Number(transaction.net_amount || 0),
         paid: totalPaid,
         remaining: remaining > 0 ? remaining : 0,

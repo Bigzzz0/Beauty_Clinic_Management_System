@@ -146,7 +146,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     },
 
     getTotal: () => {
-        return get().getSubtotal() - get().discount
+        return Math.max(0, get().getSubtotal() - get().discount)
     },
 
     getItemCount: () => {

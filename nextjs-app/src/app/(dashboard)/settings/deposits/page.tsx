@@ -464,9 +464,16 @@ export default function DepositsPage() {
                             <Label>จำนวนเงิน (บาท)</Label>
                             <Input
                                 type="number"
+                                min={0}
                                 placeholder="0.00"
                                 value={formData.amount}
                                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && formData.customer_id && formData.amount && !addMutation.isPending) {
+                                        e.preventDefault()
+                                        addMutation.mutate(formData)
+                                    }
+                                }}
                                 className="text-lg"
                             />
                         </div>
@@ -476,6 +483,12 @@ export default function DepositsPage() {
                                 placeholder="รายละเอียดเพิ่มเติม..."
                                 value={formData.note}
                                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey && formData.customer_id && formData.amount && !addMutation.isPending) {
+                                        e.preventDefault()
+                                        addMutation.mutate(formData)
+                                    }
+                                }}
                             />
                         </div>
                         <Button

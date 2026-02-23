@@ -42,7 +42,7 @@ interface Product {
 interface UsageRow {
     id: string
     product_id: number | null
-    qty_used: number
+    qty_used: number | ''
 }
 
 export default function UsageRecordPage() {
@@ -113,7 +113,7 @@ export default function UsageRecordPage() {
             if (!usageRows[usageId]) {
                 setUsageRows({
                     ...usageRows,
-                    [usageId]: [{ id: '1', product_id: null, qty_used: 0 }]
+                    [usageId]: [{ id: '1', product_id: null, qty_used: '' }]
                 })
             }
         }
@@ -123,7 +123,7 @@ export default function UsageRecordPage() {
         const current = usageRows[usageId] || []
         setUsageRows({
             ...usageRows,
-            [usageId]: [...current, { id: Date.now().toString(), product_id: null, qty_used: 0 }]
+            [usageId]: [...current, { id: Date.now().toString(), product_id: null, qty_used: '' }]
         })
     }
 
@@ -147,7 +147,7 @@ export default function UsageRecordPage() {
 
     const handleSubmit = (usageId: number) => {
         const rows = usageRows[usageId] || []
-        const validRows = rows.filter(r => r.product_id && r.qty_used > 0)
+        const validRows = rows.filter(r => r.product_id && Number(r.qty_used) > 0)
 
         if (validRows.length === 0) {
             toast.error('กรุณาเพิ่มการใช้ยาอย่างน้อย 1 รายการ')
@@ -158,7 +158,7 @@ export default function UsageRecordPage() {
             usage_id: usageId,
             items: validRows.map(r => ({
                 product_id: r.product_id!,
-                qty_used: r.qty_used,
+                qty_used: Number(r.qty_used),
             }))
         })
     }
@@ -259,7 +259,10 @@ export default function UsageRecordPage() {
                                                                 type="number"
                                                                 min={0}
                                                                 value={row.qty_used || ''}
-                                                                onChange={(e) => updateRow(service.usage_id, row.id, 'qty_used', parseInt(e.target.value) || 0)}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value;
+                                                                    updateRow(service.usage_id, row.id, 'qty_used', val === '' ? '' : parseInt(val, 10))
+                                                                }}
                                                                 placeholder={`หน่วย (${product?.sub_unit || 'หน่วย'})`}
                                                             />
                                                         </div>
