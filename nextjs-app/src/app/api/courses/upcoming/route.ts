@@ -7,30 +7,36 @@ export async function GET() {
         const now = new Date();
         const nextWeek = addDays(now, 7);
 
-        const upcomingCourses = await prisma.customer_course.findMany({
+        const upcomingAppointments = await (prisma as any).appointment.findMany({
             where: {
-                status: 'ACTIVE',
-                expiry_date: {
+                status: 'SCHEDULED',
+                appointment_date: {
                     gte: startOfDay(now),
-                    lte: endOfDay(nextWeek)
+                    lte: endOfDay(now)
                 }
             },
             include: {
                 customer: true,
-                course: true
+                customer_course: {
+                    include: {
+                        course: true
+                    }
+                }
             },
             orderBy: {
-                expiry_date: 'asc'
+                appointment_date: 'asc'
             }
         });
 
-        // แปลงรูปแบบให้ตรงกับ UI (Mockเดิม)
-        const formattedData = upcomingCourses.map(item => ({
-            time: item.expiry_date ? new Date(item.expiry_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : 'ไม่ระบุ',
-            customer: item.customer?.full_name || 'ไม่ระบุชื่อ',
-            service: item.course?.course_name || 'ไม่ระบุบริการ',
-            remaining: item.remaining_sessions
-        }));
+        const formattedData = (upcomingAppointments as any[]).map((item: any) => {
+            const time = new Date(item.appointment_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            const serviceName = item.customer_course?.course?.course_name || 'บริการทั่วไป'
+            return {
+                time: time,
+                customer: item.customer?.full_name || item.customer?.first_name || 'ไม่ระบุชื่อ',
+                service: serviceName,
+            }
+        });
 
         return NextResponse.json(formattedData);
     } catch (error) {

@@ -337,7 +337,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                     <p className="text-2xl font-bold text-red-700">฿{patient.total_debt.toLocaleString()}</p>
                                 </div>
                             </div>
-                            <Button className="bg-red-600 hover:bg-red-700">ชำระเงิน</Button>
+                            <Button
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={() => router.push(`/debtors?search=${patient.hn_code}`)}
+                            >
+                                ชำระเงิน
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

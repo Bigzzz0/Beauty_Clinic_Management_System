@@ -307,6 +307,7 @@ enum stock_movement_action_type {
   IN
   OUT
   TRANSFER
+  MANUAL_OUT
   ADJUST_DAMAGED
   ADJUST_EXPIRED
   ADJUST_CLAIM

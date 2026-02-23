@@ -51,6 +51,7 @@ interface Category {
 const CATEGORY_TYPES = [
     { value: 'PRODUCT', label: 'หมวดสินค้า', icon: Package },
     { value: 'COMMISSION', label: 'หมวดค่ามือ', icon: DollarSign },
+    { value: 'UNIT', label: 'หน่วยสินค้า', icon: Tags },
 ]
 
 export default function CategoriesPage() {
@@ -182,7 +183,9 @@ export default function CategoriesPage() {
                                     <CardDescription>
                                         {type.value === 'PRODUCT'
                                             ? 'หมวดหมู่สำหรับจัดกลุ่มสินค้าในคลัง'
-                                            : 'หมวดหมู่สำหรับจัดกลุ่มอัตราค่ามือ'}
+                                            : type.value === 'COMMISSION'
+                                                ? 'หมวดหมู่สำหรับจัดกลุ่มอัตราค่ามือ'
+                                                : 'หน่วยของสินค้า (เช่น ชิ้น, กล่อง)'}
                                     </CardDescription>
                                 </div>
                                 <Button onClick={handleOpenCreate}>

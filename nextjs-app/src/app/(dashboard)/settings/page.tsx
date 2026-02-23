@@ -85,9 +85,7 @@ interface Staff {
     is_active: boolean
 }
 
-const CATEGORIES = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
-const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
-const UNITS = ['ชิ้น', 'ขวด', 'กล่อง', 'หลอด', 'กระปุก', 'แพ็ค', 'cc', 'unit', 'กรัม', 'มิลลิลิตร', 'เม็ด', 'แคปซูล', 'ซอง', 'เซ็ต', 'ครั้ง']
+// Categories and Units will be fetched dynamically
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
@@ -112,11 +110,13 @@ export default function SettingsPage() {
     const [deleteProductId, setDeleteProductId] = useState<number | null>(null)
 
     // Course state
+    const [courseSearch, setCourseSearch] = useState('')
     const [courseDialog, setCourseDialog] = useState(false)
     const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null)
     const [deleteCourseId, setDeleteCourseId] = useState<number | null>(null)
 
     // Staff state
+    const [staffSearch, setStaffSearch] = useState('')
     const [staffDialog, setStaffDialog] = useState(false)
     const [editingStaff, setEditingStaff] = useState<Partial<Staff> & { password?: string } | null>(null)
     const [deleteStaffId, setDeleteStaffId] = useState<number | null>(null)
@@ -157,6 +157,25 @@ export default function SettingsPage() {
             return res.json()
         },
     })
+
+    // Fetch dynamic categories
+    const { data: dynamicCategories = [] } = useQuery<{ id: number, name: string }[]>({
+        queryKey: ['categories-product'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=PRODUCT`)
+            return res.json()
+        },
+    })
+
+    const { data: dynamicUnits = [] } = useQuery<{ id: number, name: string }[]>({
+        queryKey: ['categories-unit'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=UNIT`)
+            return res.json()
+        },
+    })
+
+    const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
 
     // Product mutations
     const productMutation = useMutation({
@@ -284,6 +303,16 @@ export default function SettingsPage() {
         onError: () => toast.error('เกิดข้อผิดพลาด'),
     })
 
+    const filteredCourses = courses.filter(c =>
+        c.course_name.toLowerCase().includes(courseSearch.toLowerCase()) ||
+        c.course_code.toLowerCase().includes(courseSearch.toLowerCase())
+    )
+
+    const filteredStaffList = staffList.filter(s =>
+        s.full_name.toLowerCase().includes(staffSearch.toLowerCase()) ||
+        s.username.toLowerCase().includes(staffSearch.toLowerCase())
+    )
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -407,11 +436,23 @@ export default function SettingsPage() {
                 <TabsContent value="courses">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>รายการคอร์ส ({courses.length})</CardTitle>
-                            <Button onClick={() => { setEditingCourse({}); setCourseDialog(true) }}>
-                                <Plus className="h-4 w-4 mr-2" />
-                                เพิ่มคอร์ส
-                            </Button>
+                            <CardTitle>รายการคอร์ส ({filteredCourses.length})</CardTitle>
+                            <div className="flex gap-2">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="ค้นหาชื่อ หรือ รหัส..."
+                                        value={courseSearch}
+                                        onChange={(e) => setCourseSearch(e.target.value)}
+                                        className="pl-10 w-64"
+                                        aria-label="Search courses"
+                                    />
+                                </div>
+                                <Button onClick={() => { setEditingCourse({}); setCourseDialog(true) }}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    เพิ่มคอร์ส
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="rounded-lg border overflow-hidden">
@@ -427,7 +468,7 @@ export default function SettingsPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {courses.map((c) => (
+                                        {filteredCourses.map((c) => (
                                             <TableRow key={c.course_id}>
                                                 <TableCell className="font-mono text-sm">{c.course_code}</TableCell>
                                                 <TableCell className="font-medium">{c.course_name}</TableCell>
@@ -463,11 +504,23 @@ export default function SettingsPage() {
                 <TabsContent value="staff">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>รายชื่อพนักงาน ({staffList.length})</CardTitle>
-                            <Button onClick={() => { setEditingStaff({}); setStaffDialog(true) }}>
-                                <Plus className="h-4 w-4 mr-2" />
-                                เพิ่มพนักงาน
-                            </Button>
+                            <CardTitle>รายชื่อพนักงาน ({filteredStaffList.length})</CardTitle>
+                            <div className="flex gap-2">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="ค้นหาชื่อ หรือ username..."
+                                        value={staffSearch}
+                                        onChange={(e) => setStaffSearch(e.target.value)}
+                                        className="pl-10 w-64"
+                                        aria-label="Search staff"
+                                    />
+                                </div>
+                                <Button onClick={() => { setEditingStaff({}); setStaffDialog(true) }}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    เพิ่มพนักงาน
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="rounded-lg border overflow-hidden">
@@ -482,7 +535,7 @@ export default function SettingsPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {staffList.map((s) => (
+                                        {filteredStaffList.map((s) => (
                                             <TableRow key={s.staff_id}>
                                                 <TableCell className="font-medium">{s.full_name}</TableCell>
                                                 <TableCell>
@@ -530,7 +583,7 @@ export default function SettingsPage() {
                             <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกหมวด" /></SelectTrigger>
                                 <SelectContent>
-                                    {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                    {dynamicCategories.map((c) => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -540,7 +593,7 @@ export default function SettingsPage() {
                                 <Select value={editingProduct?.main_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยใหญ่" /></SelectTrigger>
                                     <SelectContent>
-                                        {UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                                        {dynamicUnits.map((u) => <SelectItem key={u.name} value={u.name}>{u.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -549,7 +602,7 @@ export default function SettingsPage() {
                                 <Select value={editingProduct?.sub_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, sub_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยย่อย" /></SelectTrigger>
                                     <SelectContent>
-                                        {UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                                        {dynamicUnits.map((u) => <SelectItem key={u.name} value={u.name}>{u.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>

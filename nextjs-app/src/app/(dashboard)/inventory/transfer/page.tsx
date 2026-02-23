@@ -47,12 +47,22 @@ export default function TransferPage() {
     const token = useAuthStore((s) => s.token)
 
     const [destination, setDestination] = useState('')
+    const [reason, setReason] = useState('')
     const [rows, setRows] = useState<TransferRow[]>([
         { id: '1', product_id: null, qty_main: 1 }
     ])
     const [note, setNote] = useState('')
     const [evidenceImage, setEvidenceImage] = useState<string | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+    const { data: outReasons = [] } = useQuery<{ id: number, name: string }[]>({
+        queryKey: ['categories-out-reason'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=INVENTORY_OUT_REASON`)
+            if (!res.ok) return [] // Fallback if no endpoint exists yet or fails
+            return res.json()
+        },
+    })
 
     const { data: products = [] } = useQuery<Product[]>({
         queryKey: ['products-list'],
@@ -66,7 +76,7 @@ export default function TransferPage() {
     })
 
     const transferMutation = useMutation({
-        mutationFn: async (data: { items: { product_id: number; qty_main: number }[]; destination: string; evidence_image: string; note?: string }) => {
+        mutationFn: async (data: { items: { product_id: number; qty_main: number }[]; destination?: string; evidence_image?: string; note?: string; reason?: string }) => {
             const res = await fetch('/api/inventory/transfer', {
                 method: 'POST',
                 headers: {
@@ -118,13 +128,22 @@ export default function TransferPage() {
     }
 
     const handleSubmit = () => {
-        if (!destination) {
-            toast.error('กรุณาเลือกปลายทาง')
+        if (!reason) {
+            toast.error('กรุณาเลือกสาเหตุการเบิก/โอน')
             return
         }
-        if (!evidenceImage) {
-            toast.error('กรุณาถ่ายรูปพัสดุก่อนส่ง')
-            return
+
+        const isTransfer = reason.includes('โอนย้าย') || reason.includes('Transfer')
+
+        if (isTransfer) {
+            if (!destination) {
+                toast.error('กรุณาเลือกปลายทาง')
+                return
+            }
+            if (!evidenceImage) {
+                toast.error('กรุณาถ่ายรูปพัสดุก่อนส่งสำหรับการโอนย้าย')
+                return
+            }
         }
 
         const validRows = rows.filter(row => row.product_id && Number(row.qty_main) > 0)
@@ -138,11 +157,14 @@ export default function TransferPage() {
                 product_id: row.product_id!,
                 qty_main: Number(row.qty_main),
             })),
-            destination,
-            evidence_image: evidenceImage,
+            destination: isTransfer ? destination : undefined,
+            evidence_image: evidenceImage || undefined,
             note: note || undefined,
+            reason: reason,
         })
     }
+
+    const isTransferForm = reason.includes('โอนย้าย') || reason.includes('Transfer') || !reason // Default to true if not selected just to show warning but not strict
 
     return (
         <div className="space-y-6">
@@ -154,39 +176,65 @@ export default function TransferPage() {
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         <Truck className="h-6 w-6 text-blue-500" />
-                        โอนย้าย / ส่งออก
+                        เบิกจ่าย / โอนย้าย
                     </h1>
-                    <p className="text-muted-foreground">โอนสินค้าไปยังสาขาอื่น</p>
+                    <p className="text-muted-foreground">บันทึกการเบิกใช้สินค้าหรือโอนย้ายระหว่างสาขา</p>
                 </div>
             </div>
 
-            <Alert variant="destructive" className="bg-warning/10 border-warning/20 text-warning">
-                <AlertTriangle className="h-4 w-4 text-warning" />
-                <AlertDescription className="text-warning-foreground">
-                    ⚠️ กรุณาถ่ายรูปพัสดุก่อนจัดส่ง (บังคับ)
-                </AlertDescription>
-            </Alert>
+            {isTransferForm && (
+                <Alert variant="destructive" className="bg-warning/10 border-warning/20 text-warning">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-warning-foreground">
+                        ⚠️ กรุณาถ่ายรูปพัสดุก่อนจัดส่งสำหรับการโอนย้าย (บังคับ)
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {/* Form */}
             <Card>
                 <CardHeader>
-                    <CardTitle>รายละเอียดการโอนย้าย</CardTitle>
+                    <CardTitle>รายละเอียดการเบิก/โอน</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {/* Destination */}
+                    {/* Reason */}
                     <div>
-                        <Label>ปลายทาง *</Label>
-                        <Select value={destination} onValueChange={setDestination}>
+                        <Label>สาเหตุ *</Label>
+                        <Select value={reason} onValueChange={setReason}>
                             <SelectTrigger>
-                                <SelectValue placeholder="เลือกปลายทาง" />
+                                <SelectValue placeholder="เลือกสาเหตุ" />
                             </SelectTrigger>
                             <SelectContent>
-                                {branches.map((b) => (
-                                    <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                                {outReasons.map((r) => (
+                                    <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>
                                 ))}
+                                {outReasons.length === 0 && (
+                                    <>
+                                        <SelectItem value="โอนย้าย (Transfer)">โอนย้าย (Transfer)</SelectItem>
+                                        <SelectItem value="ใช้ในคลินิก (Clinic Use)">ใช้ในคลินิก (Clinic Use)</SelectItem>
+                                        <SelectItem value="สินค้าชำรุด/หมดอายุ (Damaged/Expired)">สินค้าชำรุด/หมดอายุ (Damaged/Expired)</SelectItem>
+                                    </>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Destination */}
+                    {(isTransferForm || destination) && (
+                        <div>
+                            <Label>ปลายทาง {isTransferForm && '*'}</Label>
+                            <Select value={destination} onValueChange={setDestination}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="เลือกปลายทาง" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {branches.map((b) => (
+                                        <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
                     {/* Items */}
                     <div className="space-y-3">
@@ -247,33 +295,35 @@ export default function TransferPage() {
                         />
                     </div>
 
-                    {/* Photo Upload - Mandatory */}
-                    <div>
-                        <Label className="text-red-600">รูปถ่ายพัสดุ (บังคับ) *</Label>
-                        <div className="mt-2 flex items-center gap-4">
-                            <label className="cursor-pointer">
-                                <div className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-muted/50 ${!evidenceImage ? 'border-destructive/30 bg-destructive/10' : ''}`}>
-                                    <Upload className="h-4 w-4" />
-                                    <span>อัพโหลดรูป</span>
-                                </div>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageUpload}
-                                />
-                            </label>
-                            {imagePreview && (
-                                <Image
-                                    src={imagePreview}
-                                    alt="Preview"
-                                    width={80}
-                                    height={80}
-                                    className="object-cover rounded-lg border"
-                                />
-                            )}
+                    {/* Photo Upload */}
+                    {(isTransferForm || evidenceImage) && (
+                        <div>
+                            <Label className={isTransferForm ? "text-red-600" : ""}>รูปถ่ายพัสดุ/หลักฐาน {isTransferForm ? '(บังคับ) *' : '(ถ้ามี)'}</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                                <label className="cursor-pointer">
+                                    <div className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-muted/50 ${isTransferForm && !evidenceImage ? 'border-destructive/30 bg-destructive/10' : ''}`}>
+                                        <Upload className="h-4 w-4" />
+                                        <span>อัพโหลดรูป</span>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                    />
+                                </label>
+                                {imagePreview && (
+                                    <Image
+                                        src={imagePreview}
+                                        alt="Preview"
+                                        width={80}
+                                        height={80}
+                                        className="object-cover rounded-lg border"
+                                    />
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Submit */}
                     <div className="flex justify-end gap-4 pt-4 border-t">

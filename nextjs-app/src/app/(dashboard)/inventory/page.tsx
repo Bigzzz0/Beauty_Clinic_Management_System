@@ -96,7 +96,7 @@ interface StockCardData {
     }>
 }
 
-const categories = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
+// categories will be fetched dynamically
 const months = [
     { value: 1, label: 'มกราคม' },
     { value: 2, label: 'กุมภาพันธ์' },
@@ -136,6 +136,15 @@ export default function InventoryPage() {
         if (searchQuery) setSearch(searchQuery)
     }, [])
 
+
+    // Fetch dynamic categories
+    const { data: dynamicCategories = [] } = useQuery<{ id: number, code: string, name: string }[]>({
+        queryKey: ['categories-product'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=PRODUCT`)
+            return res.json()
+        },
+    })
 
     // Fetch inventory data
     const { data: inventory = [], isLoading } = useQuery<InventoryItem[]>({
@@ -337,8 +346,8 @@ export default function InventoryPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">ทั้งหมด</SelectItem>
-                                {categories.map((cat) => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                {dynamicCategories.map((cat) => (
+                                    <SelectItem key={cat.code} value={cat.name}>{cat.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
