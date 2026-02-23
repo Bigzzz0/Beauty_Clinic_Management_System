@@ -28,6 +28,7 @@ import { useHotkeys } from '@/hooks/use-hotkeys'
 // <Button aria-label="Decrease quantity" ... />
 // <Button aria-label="Increase quantity" ... />
 // <Button aria-label="Remove item" ... />
+
 import {
     Search, ShoppingCart, Trash2, Plus, Minus,
     CreditCard, Banknote, QrCode, AlertTriangle,
@@ -283,7 +284,10 @@ export default function POSPage() {
             {/* Courses Section */}
             <div className="flex-1 space-y-4 overflow-hidden">
                 <div className="flex items-center justify-between">
-                    <h2 className="font-semibold">รายการสินค้า</h2>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <ShoppingCart className="h-6 w-6 text-primary" />
+                        รายการสินค้า
+                    </h2>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded border">
                         <div className="flex items-center gap-1"><Keyboard className="h-3 w-3" /> <span className="font-mono bg-background px-1 rounded shadow-sm">F2</span> ค้นหา</div>
                         <div className="flex items-center gap-1"><span className="font-mono bg-background px-1 rounded shadow-sm">F9</span> ชำระเงิน</div>

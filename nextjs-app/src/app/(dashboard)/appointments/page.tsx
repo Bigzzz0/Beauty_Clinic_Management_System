@@ -16,7 +16,7 @@ import { Appointment } from '@/types'
 import { DailyTimeline } from '@/components/appointments/daily-timeline'
 import { WeeklyTimeline } from '@/components/appointments/weekly-timeline'
 import { MonthlyCalendar } from '@/components/appointments/monthly-calendar'
-
+import { CalendarCheck } from 'lucide-react';
 type ViewType = 'day' | 'week' | 'month';
 
 export default function AppointmentsPage() {
@@ -102,7 +102,10 @@ export default function AppointmentsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">ตารางนัดหมาย</h2>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <CalendarCheck className="h-6 w-6 text-primary" />
+                        ตารางนัดหมาย
+                    </h2>
                     <p className="text-muted-foreground">จัดการและติดตามการนัดหมายของลูกค้าในแต่ละวัน</p>
                 </div>
                 <div className="flex items-center gap-2">
