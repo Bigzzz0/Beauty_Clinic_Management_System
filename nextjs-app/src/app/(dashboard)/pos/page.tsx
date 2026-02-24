@@ -305,15 +305,17 @@ export default function POSPage() {
                         aria-label="Search products"
                     />
                     {searchProduct && (
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => {
                                 setSearchProduct('')
                                 searchInputRef.current?.focus()
                             }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-600 cursor-pointer"
                         >
                             <X className="h-4 w-4" />
-                        </button>
+                        </Button>
                     )}
                 </div>
 
@@ -389,12 +391,14 @@ export default function POSPage() {
                                     aria-label="Search customers"
                                 />
                                 {searchCustomer && (
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
                                         onClick={() => setSearchCustomer('')}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-600 cursor-pointer"
                                     >
                                         <X className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                 )}
                                 {customers.length > 0 && (
                                     <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-auto">
@@ -444,7 +448,7 @@ export default function POSPage() {
                     </div>
 
                     {/* Summary */}
-                    <div className="border-t pt-4">
+                    <div className="border-t bg-card pt-4 pb-4 sticky bottom-0 mt-auto z-10 w-full shadow-[0_-15px_15px_-15px_rgba(0,0,0,0.05)]">
                         <div className="mb-2 flex justify-between">
                             <span>ยอดรวม</span>
                             <span>{formatCurrency(getSubtotal())}</span>
@@ -500,15 +504,29 @@ export default function POSPage() {
                                             <Banknote className="h-5 w-5 text-green-600" />
                                             <div className="flex-1">
                                                 <Label className="text-xs">เงินสด</Label>
-                                                <Input
-                                                    type="number"
-                                                    min={0}
-                                                    inputMode="decimal"
-                                                    value={cashAmount}
-                                                    onChange={(e) => setCashAmount(e.target.value)}
-                                                    placeholder="0"
-                                                    className="h-9"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        inputMode="decimal"
+                                                        value={cashAmount}
+                                                        onChange={(e) => setCashAmount(e.target.value)}
+                                                        placeholder="0"
+                                                        className="h-9 pr-16"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const remaining = getRemainingBalance()
+                                                            if (remaining > 0) {
+                                                                setCashAmount(((parseFloat(cashAmount) || 0) + remaining).toString())
+                                                            }
+                                                        }}
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                    >
+                                                        เหลือทั้งหมด
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -516,15 +534,29 @@ export default function POSPage() {
                                             <QrCode className="h-5 w-5 text-blue-600" />
                                             <div className="flex-1">
                                                 <Label className="text-xs">โอนเงิน</Label>
-                                                <Input
-                                                    type="number"
-                                                    min={0}
-                                                    inputMode="decimal"
-                                                    value={transferAmount}
-                                                    onChange={(e) => setTransferAmount(e.target.value)}
-                                                    placeholder="0"
-                                                    className="h-9"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        inputMode="decimal"
+                                                        value={transferAmount}
+                                                        onChange={(e) => setTransferAmount(e.target.value)}
+                                                        placeholder="0"
+                                                        className="h-9 pr-16"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const remaining = getRemainingBalance()
+                                                            if (remaining > 0) {
+                                                                setTransferAmount(((parseFloat(transferAmount) || 0) + remaining).toString())
+                                                            }
+                                                        }}
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                    >
+                                                        เหลือทั้งหมด
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -532,15 +564,29 @@ export default function POSPage() {
                                             <CreditCard className="h-5 w-5 text-purple-600" />
                                             <div className="flex-1">
                                                 <Label className="text-xs">บัตรเครดิต</Label>
-                                                <Input
-                                                    type="number"
-                                                    min={0}
-                                                    inputMode="decimal"
-                                                    value={creditAmount}
-                                                    onChange={(e) => setCreditAmount(e.target.value)}
-                                                    placeholder="0"
-                                                    className="h-9"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        inputMode="decimal"
+                                                        value={creditAmount}
+                                                        onChange={(e) => setCreditAmount(e.target.value)}
+                                                        placeholder="0"
+                                                        className="h-9 pr-16"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const remaining = getRemainingBalance()
+                                                            if (remaining > 0) {
+                                                                setCreditAmount(((parseFloat(creditAmount) || 0) + remaining).toString())
+                                                            }
+                                                        }}
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                    >
+                                                        เหลือทั้งหมด
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 

@@ -179,7 +179,7 @@ export function Sidebar() {
                             <Separator className="my-3 bg-slate-700" />
                             <p
                                 className={cn(
-                                    'mb-2 px-3 text-xs font-medium uppercase tracking-wider text-slate-500',
+                                    'mb-2 px-3 text-xs font-medium uppercase tracking-wider text-slate-400',
                                     !isSidebarOpen && 'hidden'
                                 )}
                             >

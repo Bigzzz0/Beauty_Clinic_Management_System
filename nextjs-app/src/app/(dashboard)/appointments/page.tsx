@@ -9,6 +9,8 @@ import { th } from 'date-fns/locale'
 import { useQuery } from '@tanstack/react-query'
 import { AppointmentModal } from '@/components/appointments/appointment-modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarUI } from "@/components/ui/calendar"
 import { useAuthStore } from '@/stores/auth-store'
 import { toast } from 'sonner'
 import { Appointment } from '@/types'
@@ -135,9 +137,21 @@ export default function AppointmentsPage() {
                         <Button variant="outline" size="icon" onClick={handleNext}>
                             <ChevronRight className="h-4 w-4" />
                         </Button>
-                        <h3 className="text-lg font-semibold ml-2 min-w-[200px]">
-                            {getFormattedDateRange()}
-                        </h3>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" className="text-lg font-semibold ml-2 min-w-[200px] justify-start hover:bg-muted/50">
+                                    {getFormattedDateRange()}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarUI
+                                    mode="single"
+                                    selected={currentDate}
+                                    onSelect={(date) => date && setCurrentDate(date)}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <Tabs value={view} onValueChange={(v) => setView(v as ViewType)} className="w-full sm:w-auto">
