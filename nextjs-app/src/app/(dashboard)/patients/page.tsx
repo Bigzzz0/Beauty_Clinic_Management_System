@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
     Users, Search, ArrowUpDown, Plus,
     UserCircle, Phone, Edit, History, ShoppingCart,
-    AlertTriangle, X
+    AlertTriangle, X, Loader2
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -76,7 +76,7 @@ export default function PatientsPage() {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const limit = 15
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isFetching } = useQuery({
         queryKey: ['patients', { search, page, sortBy, sortOrder }],
         queryFn: async () => {
             const params = new URLSearchParams()
@@ -128,7 +128,7 @@ export default function PatientsPage() {
                     <p className="text-muted-foreground">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
                 </div>
                 <Link href="/patients/new">
-                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 border-0 shadow-sm">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
                         <Plus className="h-4 w-4 mr-2" />
                         เพิ่มคนไข้ใหม่
                     </Button>
@@ -159,6 +159,9 @@ export default function PatientsPage() {
                                 className="pl-10 pr-8"
                                 aria-label="Search patients"
                             />
+                            {isFetching && (
+                                <Loader2 className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                            )}
                             {search && (
                                 <button
                                     onClick={() => {
@@ -236,12 +239,12 @@ export default function PatientsPage() {
                                     <TableHead className="w-20"></TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
+                            <TableBody className={isFetching && customers.length > 0 ? "opacity-50 transition-opacity duration-200" : ""}>
+                                {isLoading || (isFetching && customers.length === 0) ? (
                                     [...Array(5)].map((_, i) => (
                                         <TableRow key={i}>
                                             <TableCell colSpan={7}>
-                                                <div className="h-14 animate-pulse rounded bg-slate-100" />
+                                                <div className="h-14 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
                                             </TableCell>
                                         </TableRow>
                                     ))

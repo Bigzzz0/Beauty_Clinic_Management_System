@@ -33,8 +33,9 @@ import {
     Search, ShoppingCart, Trash2, Plus, Minus,
     CreditCard, Banknote, QrCode, AlertTriangle,
     User, Stethoscope, HandHelping, ChevronDown, Wallet, Printer,
-    X, Keyboard
+    X, Keyboard, UserPlus
 } from 'lucide-react'
+import Link from 'next/link'
 import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
@@ -383,23 +384,35 @@ export default function POSPage() {
                             </div>
                         ) : (
                             <div className="relative">
-                                <Input
-                                    placeholder="ค้นหาลูกค้า (ชื่อ/เบอร์/HN)..."
-                                    value={searchCustomer}
-                                    onChange={(e) => setSearchCustomer(e.target.value)}
-                                    className="pr-8"
-                                    aria-label="Search customers"
-                                />
-                                {searchCustomer && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setSearchCustomer('')}
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Input
+                                            placeholder="ค้นหาลูกค้า (ชื่อ/เบอร์/HN)..."
+                                            value={searchCustomer}
+                                            onChange={(e) => setSearchCustomer(e.target.value)}
+                                            className="pr-8"
+                                            aria-label="Search customers"
+                                        />
+                                        {searchCustomer && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setSearchCustomer('')}
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <Link
+                                        href="/patients/new"
+                                        target="_blank"
+                                        title="เพิ่มลูกค้าใหม่"
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
                                     >
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                )}
+                                        <UserPlus className="h-4 w-4" />
+                                    </Link>
+                                </div>
                                 {customers.length > 0 && (
                                     <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow-lg max-h-60 overflow-auto">
                                         {customers.map((customer) => (
@@ -500,7 +513,7 @@ export default function POSPage() {
 
                                     {/* Split Payment Inputs */}
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50">
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
                                             <Banknote className="h-5 w-5 text-green-600" />
                                             <div className="flex-1">
                                                 <Label className="text-xs">เงินสด</Label>
@@ -530,7 +543,7 @@ export default function POSPage() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
                                             <QrCode className="h-5 w-5 text-blue-600" />
                                             <div className="flex-1">
                                                 <Label className="text-xs">โอนเงิน</Label>
@@ -560,7 +573,7 @@ export default function POSPage() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50">
+                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
                                             <CreditCard className="h-5 w-5 text-purple-600" />
                                             <div className="flex-1">
                                                 <Label className="text-xs">บัตรเครดิต</Label>
@@ -592,7 +605,7 @@ export default function POSPage() {
 
                                         {/* Deposit Payment - Only show if customer has balance */}
                                         {customerDepositBalance > 0 && (
-                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30">
                                                 <Wallet className="h-5 w-5 text-emerald-600" />
                                                 <div className="flex-1">
                                                     <div className="flex justify-between items-center">
@@ -657,7 +670,7 @@ export default function POSPage() {
 
                                     {/* Partial Payment Toggle */}
                                     {getRemainingBalance() > 0 && (
-                                        <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30">
                                             <p className="text-sm text-amber-700 flex items-center gap-2">
                                                 <AlertTriangle className="h-4 w-4" />
                                                 ลูกค้าจะมียอดค้างชำระ {formatCurrency(getRemainingBalance())}
