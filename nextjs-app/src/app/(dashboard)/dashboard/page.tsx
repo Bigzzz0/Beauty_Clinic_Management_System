@@ -97,6 +97,52 @@ export default function DashboardPage() {
                 </p>
             </div>
 
+            {/* Quick Actions */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <DollarSign className="h-5 w-5 text-emerald-500" aria-hidden="true" />
+                        การดำเนินการด่วน
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Link
+                            href="/pos"
+                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            aria-label="ไปที่หน้าขายสินค้า (POS)"
+                        >
+                            <ShoppingCart className="h-6 w-6" aria-hidden="true" />
+                            <span className="mt-2 font-medium">ขายสินค้า</span>
+                        </Link>
+                        <Link
+                            href="/patients"
+                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            aria-label="ไปที่หน้าจัดการลูกค้า"
+                        >
+                            <Users className="h-6 w-6" aria-hidden="true" />
+                            <span className="mt-2 font-medium">ลูกค้า</span>
+                        </Link>
+                        <Link
+                            href="/inventory"
+                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            aria-label="ไปที่หน้าคลังสินค้า"
+                        >
+                            <Package className="h-6 w-6" aria-hidden="true" />
+                            <span className="mt-2 font-medium">คลังสินค้า</span>
+                        </Link>
+                        <Link
+                            href="/reports"
+                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            aria-label="ไปที่หน้ารายงาน"
+                        >
+                            <TrendingUp className="h-6 w-6" aria-hidden="true" />
+                            <span className="mt-2 font-medium">รายงาน</span>
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
@@ -216,51 +262,6 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {/* Quick Actions */}
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-emerald-500" aria-hidden="true" />
-                            การดำเนินการด่วน
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-4 md:grid-cols-4">
-                            <Link
-                                href="/pos"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                aria-label="ไปที่หน้าขายสินค้า (POS)"
-                            >
-                                <ShoppingCart className="h-8 w-8" aria-hidden="true" />
-                                <span className="mt-2 font-medium">ขายสินค้า</span>
-                            </Link>
-                            <Link
-                                href="/patients"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                aria-label="ไปที่หน้าจัดการลูกค้า"
-                            >
-                                <Users className="h-8 w-8" aria-hidden="true" />
-                                <span className="mt-2 font-medium">ลูกค้า</span>
-                            </Link>
-                            <Link
-                                href="/inventory"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                aria-label="ไปที่หน้าคลังสินค้า"
-                            >
-                                <Package className="h-8 w-8" aria-hidden="true" />
-                                <span className="mt-2 font-medium">คลังสินค้า</span>
-                            </Link>
-                            <Link
-                                href="/reports"
-                                className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                aria-label="ไปที่หน้ารายงาน"
-                            >
-                                <TrendingUp className="h-8 w-8" aria-hidden="true" />
-                                <span className="mt-2 font-medium">รายงาน</span>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div>
     )
