@@ -33,6 +33,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog'
 import {
     Select,
@@ -179,6 +180,7 @@ export default function TransactionsPage() {
                             <Input
                                 placeholder="ค้นหาเลขบิล / ชื่อลูกค้า / HN..."
                                 value={search}
+                                aria-label="Search transactions"
                                 onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                                 className="pl-10"
                             />
@@ -294,6 +296,7 @@ export default function TransactionsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
+                                                        aria-label="ดูรายละเอียดบิล"
                                                         onClick={() => setSelectedTx(tx)}
                                                     >
                                                         <Eye className="h-4 w-4" />
@@ -301,6 +304,7 @@ export default function TransactionsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
+                                                        aria-label="พิมพ์ใบเสร็จ"
                                                         onClick={() => handlePrint(tx)}
                                                     >
                                                         <Printer className="h-4 w-4" />
@@ -310,6 +314,7 @@ export default function TransactionsPage() {
                                                             variant="ghost"
                                                             size="icon"
                                                             className="text-red-500"
+                                                            aria-label="ยกเลิกบิล"
                                                             onClick={() => setVoidTxId(tx.transaction_id)}
                                                         >
                                                             <Ban className="h-4 w-4" />
@@ -336,6 +341,7 @@ export default function TransactionsPage() {
                                     size="sm"
                                     disabled={page <= 1}
                                     onClick={() => setPage(page - 1)}
+                                    aria-label="หน้าก่อน"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
@@ -344,6 +350,7 @@ export default function TransactionsPage() {
                                     size="sm"
                                     disabled={page >= totalPages}
                                     onClick={() => setPage(page + 1)}
+                                    aria-label="หน้าถัดไป"
                                 >
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
@@ -358,6 +365,9 @@ export default function TransactionsPage() {
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>รายละเอียดบิล #{selectedTx?.transaction_id}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            รายละเอียดเต็มของบิลสำหรับ{selectedTx?.customer.first_name} {selectedTx?.customer.last_name}
+                        </DialogDescription>
                     </DialogHeader>
 
                     {selectedTx && (

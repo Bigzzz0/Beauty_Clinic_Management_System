@@ -14,7 +14,7 @@ interface ProductCardProps {
 const ProductCard = memo(({ item, onAdd, type }: ProductCardProps) => {
     return (
         <Card
-            className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 selection:bg-transparent"
+            className="cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 selection:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             onClick={() => onAdd(item)}
             role="button"
             tabIndex={0}

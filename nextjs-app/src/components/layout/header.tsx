@@ -36,7 +36,7 @@ export function Header() {
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-card px-4 lg:px-6">
             <div className="flex items-center gap-4">
                 {isMobile && (
-                    <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+                    <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
                         <Menu className="h-5 w-5" />
                     </Button>
                 )}

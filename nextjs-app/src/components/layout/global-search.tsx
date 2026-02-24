@@ -109,7 +109,7 @@ export function GlobalSearch() {
                             {results.customers.map(customer => (
                                 <button
                                     key={`c-${customer.customer_id}`}
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 focus-visible:outline-none focus-visible:bg-accent focus-visible:text-accent-foreground rounded-sm"
                                     onClick={() => handleSelect(`/patients/${customer.customer_id}`)}
                                 >
                                     <User className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -130,7 +130,7 @@ export function GlobalSearch() {
                             {results.products.map(product => (
                                 <button
                                     key={`p-${product.product_id}`}
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 focus-visible:outline-none focus-visible:bg-accent focus-visible:text-accent-foreground rounded-sm"
                                     onClick={() => handleSelect(`/inventory?search=${encodeURIComponent(product.product_code || product.product_name)}`)}
                                 >
                                     <Package className="h-4 w-4 text-muted-foreground shrink-0" />
