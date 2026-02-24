@@ -43,8 +43,10 @@ interface TransferRow {
 }
 
 const branches = [
-    { value: 'branch_2', label: 'สาขา 2 - เซ็นทรัล' },
-    { value: 'branch_3', label: 'สาขา 3 - เมกาบางนา' },
+    { value: 'sakon', label: 'สกลนคร' },
+    { value: 'mahasarakham', label: 'มหาสารคาม' },
+    { value: 'chonburi', label: 'ชลบุรี' },
+    { value: 'khonkaen', label: 'ขอนแก่น' },
     { value: 'warehouse', label: 'คลังกลาง' },
 ]
 
