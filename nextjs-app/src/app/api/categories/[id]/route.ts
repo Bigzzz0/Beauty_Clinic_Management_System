@@ -63,9 +63,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
         const { id } = await params
         const categoryId = parseInt(id)
 
-        await prisma.category.update({
+        await prisma.category.delete({
             where: { id: categoryId },
-            data: { is_active: false },
         })
 
         return NextResponse.json({ success: true })

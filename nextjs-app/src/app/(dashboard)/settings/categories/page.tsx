@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     Dialog,
@@ -51,7 +52,17 @@ interface Category {
 const CATEGORY_TYPES = [
     { value: 'PRODUCT', label: 'หมวดสินค้า', icon: Package },
     { value: 'COMMISSION', label: 'หมวดค่ามือ', icon: DollarSign },
-    { value: 'UNIT', label: 'หน่วยสินค้า', icon: Tags },
+    { value: 'MAIN_UNIT', label: 'หน่วยใหญ่', icon: Tags },
+    { value: 'SUB_UNIT', label: 'หน่วยย่อย', icon: Tags },
+]
+
+const PREDEFINED_CATEGORIES = [
+    'Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin', 'Service', 'Other'
+]
+
+const PREDEFINED_UNITS = [
+    'ขวด', 'กล่อง', 'หลอด', 'ชิ้น', 'ซีซี', 'ครั้ง', 'เซ็ต', 'แผง', 'เม็ด', 'แคปซูล', 'กรัม', 'มิลลิลิตร', 'ลิตร',
+    'Unit', 'ML', 'CC', 'Amp', 'ซอง', 'เส้น'
 ]
 
 export default function CategoriesPage() {
@@ -70,6 +81,40 @@ export default function CategoriesPage() {
             return Array.isArray(data) ? data : []
         },
     })
+
+    const getPredefinedData = (type: string) => {
+        if (type === 'PRODUCT') {
+            return PREDEFINED_CATEGORIES.map((name, i) => ({
+                id: `system-${name}` as any,
+                type: 'PRODUCT',
+                name,
+                code: name.toUpperCase().replace(/\s/g, '_'),
+                description: 'ค่าพื้นฐานของระบบ',
+                is_active: true,
+                sort_order: 900 + i,
+                isSystem: true
+            }))
+        }
+        if (type === 'MAIN_UNIT' || type === 'SUB_UNIT') {
+            return PREDEFINED_UNITS.map((name, i) => ({
+                id: `system-${name}` as any,
+                type: type,
+                name,
+                code: `${type}_${i + 1}`,
+                description: 'ค่าพื้นฐานของระบบ',
+                is_active: true,
+                sort_order: 900 + i,
+                isSystem: true
+            }))
+        }
+        return []
+    }
+
+    // Combine fetched and predefined
+    const displayCategories = [
+        ...categories,
+        ...getPredefinedData(activeTab).filter(p => !categories.some(c => c.name === p.name))
+    ].sort((a, b) => a.sort_order - b.sort_order)
 
     // Create/Update mutation
     const saveMutation = useMutation({
@@ -179,13 +224,15 @@ export default function CategoriesPage() {
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <div>
-                                    <CardTitle>{type.label} ({categories.length})</CardTitle>
+                                    <CardTitle>{type.label} ({displayCategories.length})</CardTitle>
                                     <CardDescription>
                                         {type.value === 'PRODUCT'
                                             ? 'หมวดหมู่สำหรับจัดกลุ่มสินค้าในคลัง'
                                             : type.value === 'COMMISSION'
                                                 ? 'หมวดหมู่สำหรับจัดกลุ่มอัตราค่ามือ'
-                                                : 'หน่วยของสินค้า (เช่น ชิ้น, กล่อง)'}
+                                                : type.value === 'MAIN_UNIT'
+                                                    ? 'หน่วยใหญ่ของสินค้า (เช่น กล่อง, ลัง, ขวด)'
+                                                    : 'หน่วยย่อยของสินค้า (เช่น ชิ้น, ซีซี, เม็ด)'}
                                     </CardDescription>
                                 </div>
                                 <Button onClick={handleOpenCreate}>
@@ -207,19 +254,22 @@ export default function CategoriesPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {categories.map((cat) => (
+                                            {displayCategories.map((cat) => (
                                                 <TableRow key={cat.id}>
                                                     <TableCell className="font-mono text-sm">
                                                         {cat.code}
                                                     </TableCell>
                                                     <TableCell className="font-medium">
                                                         {cat.name}
+                                                        {(cat as any).isSystem && (
+                                                            <Badge variant="outline" className="ml-2 text-xs bg-muted/50">พื้นฐาน</Badge>
+                                                        )}
                                                     </TableCell>
                                                     <TableCell className="text-slate-500">
                                                         {cat.description || '-'}
                                                     </TableCell>
                                                     <TableCell className="text-center">
-                                                        {cat.sort_order}
+                                                        {(cat as any).isSystem ? '-' : cat.sort_order}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Badge variant={cat.is_active ? 'default' : 'secondary'}>
@@ -227,27 +277,31 @@ export default function CategoriesPage() {
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="flex gap-1">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleOpenEdit(cat)}
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="text-red-500"
-                                                                onClick={() => setDeleteId(cat.id)}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
+                                                        {!(cat as any).isSystem && (
+                                                            <div className="flex gap-1">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    title="แก้ไข"
+                                                                    onClick={() => handleOpenEdit(cat)}
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="text-red-500"
+                                                                    title="ลบ"
+                                                                    onClick={() => setDeleteId(cat.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        )}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            {categories.length === 0 && (
+                                            {displayCategories.length === 0 && (
                                                 <TableRow>
                                                     <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                                                         ยังไม่มีหมวดหมู่ กดปุ่ม "เพิ่มหมวดหมู่" เพื่อสร้าง
@@ -319,6 +373,19 @@ export default function CategoriesPage() {
                                 })}
                             />
                         </div>
+                        {editingCategory?.id && (
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="is-active"
+                                    checked={editingCategory?.is_active ?? true}
+                                    onCheckedChange={(v) => setEditingCategory({
+                                        ...editingCategory,
+                                        is_active: v
+                                    })}
+                                />
+                                <Label htmlFor="is-active">เปิดใช้งาน</Label>
+                            </div>
+                        )}
                         <Button
                             className="w-full"
                             onClick={handleSave}

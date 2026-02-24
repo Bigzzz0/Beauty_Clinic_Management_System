@@ -105,7 +105,8 @@ const PREDEFINED_CATEGORIES = [
 ]
 
 const PREDEFINED_UNITS = [
-    'ขวด', 'กล่อง', 'หลอด', 'ชิ้น', 'ซีซี', 'ครั้ง', 'เซ็ต', 'แผง', 'เม็ด', 'แคปซูล', 'กรัม', 'มิลลิลิตร', 'ลิตร'
+    'ขวด', 'กล่อง', 'หลอด', 'ชิ้น', 'ซีซี', 'ครั้ง', 'เซ็ต', 'แผง', 'เม็ด', 'แคปซูล', 'กรัม', 'มิลลิลิตร', 'ลิตร',
+    'Unit', 'ML', 'CC', 'Amp', 'ซอง', 'เส้น'
 ]
 
 export default function SettingsPage() {
@@ -176,16 +177,25 @@ export default function SettingsPage() {
         },
     })
 
-    const { data: dynamicUnits = [] } = useQuery<{ id: number, name: string }[]>({
-        queryKey: ['categories-unit'],
+    const { data: dynamicMainUnits = [] } = useQuery<{ id: number, name: string }[]>({
+        queryKey: ['categories-main-unit'],
         queryFn: async () => {
-            const res = await fetch(`/api/categories?type=UNIT`)
+            const res = await fetch(`/api/categories?type=MAIN_UNIT`)
+            return res.json()
+        },
+    })
+
+    const { data: dynamicSubUnits = [] } = useQuery<{ id: number, name: string }[]>({
+        queryKey: ['categories-sub-unit'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=SUB_UNIT`)
             return res.json()
         },
     })
 
     const allCategories = Array.from(new Set([...PREDEFINED_CATEGORIES, ...dynamicCategories.map(c => c.name)]))
-    const allUnits = Array.from(new Set([...PREDEFINED_UNITS, ...dynamicUnits.map(u => u.name)]))
+    const allMainUnits = Array.from(new Set([...PREDEFINED_UNITS, ...dynamicMainUnits.map(u => u.name)]))
+    const allSubUnits = Array.from(new Set([...PREDEFINED_UNITS, ...dynamicSubUnits.map(u => u.name)]))
 
     const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
 
@@ -608,7 +618,7 @@ export default function SettingsPage() {
                                 <Select value={editingProduct?.main_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยใหญ่" /></SelectTrigger>
                                     <SelectContent>
-                                        {allUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                                        {allMainUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -617,7 +627,7 @@ export default function SettingsPage() {
                                 <Select value={editingProduct?.sub_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, sub_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยย่อย" /></SelectTrigger>
                                     <SelectContent>
-                                        {allUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                                        {allSubUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
