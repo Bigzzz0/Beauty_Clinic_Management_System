@@ -29,6 +29,10 @@ interface Product {
     category: string
     main_unit: string
     sub_unit: string
+    inventory?: {
+        full_qty: number
+        opened_qty: number
+    }[]
 }
 
 interface TransferRow {
@@ -243,59 +247,72 @@ export default function TransferPage() {
                     <div className="space-y-3">
                         <Label>รายการสินค้า (พิมพ์ค้นหาได้)</Label>
                         {rows.map((row) => (
-                            <div key={row.id} className="grid gap-4 md:grid-cols-12 items-end p-4 bg-muted/50 rounded-lg">
-                                <div className="md:col-span-7">
-                                    <ProductSearchSelect
-                                        products={products}
-                                        value={row.product_id}
-                                        onSelect={(id) => updateRow(row.id, 'product_id', id)}
-                                        placeholder="ค้นหาสินค้า..."
-                                    />
-                                </div>
-
-                                <div className="md:col-span-4 flex gap-2">
-                                    <div className="flex-1">
-                                        <Label>จำนวน</Label>
-                                        <Input
-                                            type="number"
-                                            min={1}
-                                            value={row.qty || ''}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                updateRow(row.id, 'qty', val === '' ? '' : parseInt(val, 10));
-                                            }}
-                                            placeholder="จำนวน"
+                            <div key={row.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
+                                <div className="grid gap-4 md:grid-cols-12 items-end">
+                                    <div className="md:col-span-7">
+                                        <ProductSearchSelect
+                                            products={products}
+                                            value={row.product_id}
+                                            onSelect={(id) => updateRow(row.id, 'product_id', id)}
+                                            placeholder="ค้นหาสินค้า..."
                                         />
                                     </div>
-                                    <div className="w-[120px]">
-                                        <Label>หน่วย</Label>
-                                        <Select
-                                            value={row.unit_type}
-                                            onValueChange={(val) => updateRow(row.id, 'unit_type', val)}
-                                            disabled={!row.product_id}
+
+                                    <div className="md:col-span-4 flex gap-2">
+                                        <div className="flex-1">
+                                            <Label>จำนวน</Label>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                value={row.qty || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    updateRow(row.id, 'qty', val === '' ? '' : parseInt(val, 10));
+                                                }}
+                                                placeholder="จำนวน"
+                                            />
+                                        </div>
+                                        <div className="w-[120px]">
+                                            <Label>หน่วย</Label>
+                                            <Select
+                                                value={row.unit_type}
+                                                onValueChange={(val) => updateRow(row.id, 'unit_type', val)}
+                                                disabled={!row.product_id}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="MAIN">{products.find(p => p.product_id === row.product_id)?.main_unit || 'หน่วยใหญ่'}</SelectItem>
+                                                    <SelectItem value="SUB">{products.find(p => p.product_id === row.product_id)?.sub_unit || 'หน่วยย่อย'}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="md:col-span-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-destructive"
+                                            onClick={() => removeRow(row.id)}
+                                            disabled={rows.length === 1}
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="MAIN">{products.find(p => p.product_id === row.product_id)?.main_unit || 'หน่วยใหญ่'}</SelectItem>
-                                                <SelectItem value="SUB">{products.find(p => p.product_id === row.product_id)?.sub_unit || 'หน่วยย่อย'}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 </div>
-
-                                <div className="md:col-span-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-destructive"
-                                        onClick={() => removeRow(row.id)}
-                                        disabled={rows.length === 1}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                                {row.product_id && (() => {
+                                    const product = products.find(p => p.product_id === row.product_id);
+                                    const inv = product?.inventory?.[0];
+                                    if (!inv) return null;
+                                    return (
+                                        <div className="text-sm font-medium text-blue-600 pl-1">
+                                            คงเหลือ: {inv.full_qty} {product.main_unit}
+                                            {inv.opened_qty > 0 ? ` (และ ${inv.opened_qty} ${product.sub_unit})` : ''}
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         ))}
 
