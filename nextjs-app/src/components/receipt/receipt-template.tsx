@@ -37,7 +37,7 @@ interface ReceiptTemplateProps {
 export function ReceiptTemplate({ data, showCopy = true }: ReceiptTemplateProps) {
     const renderReceipt = (isClinicCopy: boolean) => (
         <div
-            className="receipt-section bg-white mx-auto relative overflow-hidden"
+            className="receipt-section bg-white mx-auto relative overflow-visible"
             style={{
                 fontFamily: "'Sarabun', 'Prompt', Arial, sans-serif",
                 maxWidth: '210mm',
@@ -345,7 +345,7 @@ export function ReceiptTemplate({ data, showCopy = true }: ReceiptTemplateProps)
                             </div>
                         )}
                         <div style={{ textAlign: 'center' }}>
-                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#888', fontWeight: '500' }}>ยอดรวม</p>
+                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#888', fontWeight: '500' }}>ยอดสุทธิ</p>
                             <p style={{ margin: '0', fontSize: '20px', fontWeight: '700', color: '#8b6914' }}>
                                 {formatCurrency(data.total)}
                             </p>
@@ -510,7 +510,6 @@ export function ReceiptTemplate({ data, showCopy = true }: ReceiptTemplateProps)
                         width: 100%;
                     }
                     .receipt-section {
-                        page-break-inside: avoid;
                         box-shadow: none !important;
                     }
                     .print\\:break-before-page {

@@ -5,7 +5,7 @@ import { z } from 'zod'
 const customerSchema = z.object({
     first_name: z.string().min(1, 'ต้องระบุชื่อจริง').max(50, 'ชื่อจริงต้องไม่เกิน 50 ตัวอักษร'),
     last_name: z.string().min(1, 'ต้องระบุนามสกุล').max(50, 'นามสกุลต้องไม่เกิน 50 ตัวอักษร'),
-    phone_number: z.string().min(1, 'ต้องระบุเบอร์โทรศัพท์'),
+    phone_number: z.string().min(9, 'เบอร์โทรศัพท์ต้องมีอย่างน้อย 9 หลัก').max(15, 'เบอร์โทรศัพท์ยาวเกินไป').regex(/^[0-9+() -]+$/, 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง'),
     id_card_number: z.string().nullable().optional(),
     nickname: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
@@ -112,13 +112,16 @@ export async function GET(request: NextRequest) {
 
         // Sort
         customersWithStats.sort((a, b) => {
+            if (sortBy === 'name') {
+                const valA = a.full_name || `${a.first_name} ${a.last_name}`;
+                const valB = b.full_name || `${b.first_name} ${b.last_name}`;
+                return sortOrder === 'asc' ? valA.localeCompare(valB, 'th') : valB.localeCompare(valA, 'th');
+            }
+
             let valA: any = null
             let valB: any = null
 
-            if (sortBy === 'name') {
-                valA = a.full_name || `${a.first_name} ${a.last_name}`
-                valB = b.full_name || `${b.first_name} ${b.last_name}`
-            } else if (sortBy === 'last_visit') {
+            if (sortBy === 'last_visit') {
                 if (!a.last_visit && b.last_visit) return 1;
                 if (a.last_visit && !b.last_visit) return -1;
                 if (!a.last_visit && !b.last_visit) return 0;
@@ -128,8 +131,11 @@ export async function GET(request: NextRequest) {
                 valA = a.total_debt
                 valB = b.total_debt
             } else {
-                valA = a.created_at ? new Date(a.created_at).getTime() : 0
-                valB = b.created_at ? new Date(b.created_at).getTime() : 0
+                if (!a.created_at && b.created_at) return 1;
+                if (a.created_at && !b.created_at) return -1;
+                if (!a.created_at && !b.created_at) return 0;
+                valA = new Date(a.created_at!).getTime()
+                valB = new Date(b.created_at!).getTime()
             }
 
             if (valA === valB) return 0;

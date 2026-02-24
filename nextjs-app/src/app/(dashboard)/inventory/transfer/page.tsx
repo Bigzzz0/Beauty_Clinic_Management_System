@@ -207,7 +207,7 @@ export default function TransferPage() {
                     {/* Reason */}
                     <div>
                         <Label>สาเหตุ *</Label>
-                        <Select value={reason} onValueChange={setReason}>
+                        <Select value={reason || undefined} onValueChange={setReason}>
                             <SelectTrigger>
                                 <SelectValue placeholder="เลือกสาเหตุ" />
                             </SelectTrigger>
@@ -230,7 +230,7 @@ export default function TransferPage() {
                     {(isTransferForm || destination) && (
                         <div>
                             <Label>ปลายทาง {isTransferForm && '*'}</Label>
-                            <Select value={destination} onValueChange={setDestination}>
+                            <Select value={destination || undefined} onValueChange={setDestination}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="เลือกปลายทาง" />
                                 </SelectTrigger>

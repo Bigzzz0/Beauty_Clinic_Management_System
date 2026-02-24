@@ -117,10 +117,10 @@ export default function DepositsPage() {
     })
 
     // Search customers
-    const { data: customers } = useQuery<{ data: Customer[] }>({
+    const { data: customers } = useQuery<Customer[]>({
         queryKey: ['customers-search', search],
         queryFn: async () => {
-            if (!search) return { data: [] }
+            if (!search) return []
             const res = await fetch(`/api/customers/search?q=${search}&limit=10`)
             return res.json()
         },
@@ -226,9 +226,9 @@ export default function DepositsPage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
-                        {customers?.data && customers.data.length > 0 && (
+                        {customers && customers.length > 0 && (
                             <div className="space-y-2 max-h-60 overflow-y-auto">
-                                {customers.data.map((c) => (
+                                {customers.map((c) => (
                                     <div
                                         key={c.customer_id}
                                         className="p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
@@ -423,9 +423,9 @@ export default function DepositsPage() {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                            {customers?.data && customers.data.length > 0 && !formData.customer_id && (
+                            {customers && customers.length > 0 && !formData.customer_id && (
                                 <div className="space-y-1 max-h-40 overflow-y-auto">
-                                    {customers.data.map((c) => (
+                                    {customers.map((c) => (
                                         <div
                                             key={c.customer_id}
                                             className="p-2 rounded bg-muted hover:bg-muted/80 cursor-pointer text-sm"

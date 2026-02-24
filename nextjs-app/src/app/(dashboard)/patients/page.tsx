@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
     Users, Search, ArrowUpDown, Plus,
     UserCircle, Phone, Edit, History, ShoppingCart,
-    AlertTriangle, X, Loader2
+    AlertTriangle, X, Loader2, Trash2
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -37,6 +37,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { toast } from 'sonner'
 
 interface Customer {
     customer_id: number
@@ -76,8 +77,8 @@ export default function PatientsPage() {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const limit = 15
 
-    const { data, isLoading, isFetching } = useQuery({
-        queryKey: ['patients', { search, page, sortBy, sortOrder }],
+    const { data, isLoading, isFetching, refetch } = useQuery({
+        queryKey: ['patients', { search, page, sortBy, sortOrder, tab }],
         queryFn: async () => {
             const params = new URLSearchParams()
             params.set('page', page.toString())
@@ -94,6 +95,24 @@ export default function PatientsPage() {
             return res.json()
         },
     })
+
+    const handleDeleteCustomer = async (id: number, name: string) => {
+        if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลลูกค้ารายนี้ (${name})?\nการกระทำนี้ไม่สามารถย้อนกลับได้`)) return;
+        try {
+            const res = await fetch(`/api/customers/${id}`, {
+                method: 'DELETE',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to delete customer');
+            }
+            toast.success('ลบข้อมูลลูกค้าสำเร็จ');
+            refetch();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    }
 
     const customers: Customer[] = data?.data || []
     const totalPages = data?.meta?.totalPages || 1
@@ -345,6 +364,16 @@ export default function PatientsPage() {
                                                                 <ShoppingCart className="h-4 w-4 mr-2" />
                                                                 ออกบิลใหม่
                                                             </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteCustomer(customer.customer_id, customer.full_name || customer.first_name);
+                                                            }}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                            ลบข้อมูล
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>

@@ -119,3 +119,46 @@ export async function PUT(request: NextRequest, { params }: Params) {
         )
     }
 }
+
+// DELETE /api/customers/[id] - Delete customer
+export async function DELETE(request: NextRequest, { params }: Params) {
+    try {
+        const { id } = await params
+        const customerId = parseInt(id)
+
+        // Check if customer exists
+        const customer = await prisma.customer.findUnique({
+            where: { customer_id: customerId },
+        })
+
+        if (!customer) {
+            return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
+        }
+
+        // Proceed to delete (Prisma cascading might handle related records, or we check relations)
+        // If we want to allow deleting customers with transactions, we need to ensure onDelete Cascade is set
+        // Or we block deletion if they have transactions.
+        const transactions = await prisma.transaction_header.count({
+            where: { customer_id: customerId }
+        })
+
+        if (transactions > 0) {
+            return NextResponse.json(
+                { error: 'ไม่สามารถลบข้อมูลลูกค้าได้ เนื่องจากมีประวัติการทำรายการในระบบ' },
+                { status: 400 }
+            )
+        }
+
+        await prisma.customer.delete({
+            where: { customer_id: customerId },
+        })
+
+        return NextResponse.json({ message: 'Customer deleted successfully' })
+    } catch (error: any) {
+        console.error('Error deleting customer:', error)
+        return NextResponse.json(
+            { error: error?.message || 'Failed to delete customer' },
+            { status: 500 }
+        )
+    }
+}

@@ -210,7 +210,11 @@ export function AppointmentModal({ open, onOpenChange, onSuccess, initialDate, a
                 })
             }
 
-            if (!res.ok) throw new Error('บันทึกผิดพลาด')
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => null);
+                console.error('API Error Response:', errorData);
+                throw new Error('บันทึกผิดพลาด')
+            }
 
             toast.success(appointmentId ? 'อัปเดตนัดหมายสำเร็จ' : 'สร้างนัดหมายสำเร็จ')
             onSuccess()

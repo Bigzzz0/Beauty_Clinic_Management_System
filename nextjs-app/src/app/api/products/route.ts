@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         }
         const prefix = prefixMap[body.category] || 'PRD'
         const timestamp = Date.now().toString(36).toUpperCase()
-        const product_code = `${prefix}${timestamp}`
+        const product_code = `${prefix}-${timestamp}`
 
         const product = await prisma.product.create({
             data: {

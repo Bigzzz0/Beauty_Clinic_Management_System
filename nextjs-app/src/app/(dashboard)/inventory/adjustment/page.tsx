@@ -180,7 +180,7 @@ export default function AdjustmentPage() {
                     {/* Reason */}
                     <div>
                         <Label>สาเหตุ *</Label>
-                        <Select value={reason} onValueChange={setReason}>
+                        <Select value={reason || undefined} onValueChange={setReason}>
                             <SelectTrigger>
                                 <SelectValue placeholder="เลือกสาเหตุ" />
                             </SelectTrigger>

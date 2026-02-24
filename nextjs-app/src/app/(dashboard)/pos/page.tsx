@@ -74,6 +74,7 @@ interface Staff {
 
 export default function POSPage() {
     const token = useAuthStore((s) => s.token)
+    const isAdmin = useAuthStore((s) => s.isAdmin())
 
     const searchInputRef = useRef<HTMLInputElement>(null)
     const [searchProduct, setSearchProduct] = useState('')
@@ -473,9 +474,11 @@ export default function POSPage() {
                                 <Input
                                     type="number"
                                     min={0}
-                                    value={discount}
-                                    onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                                    value={discount || ''}
+                                    onChange={(e) => setDiscount(parseFloat(e.target.value.replace(/-/g, '')) || 0)}
                                     className="w-24 text-right"
+                                    disabled={!isAdmin}
+                                    title={!isAdmin ? "เฉพาะผู้ดูแลระบบเท่านั้น" : "ส่วนลด"}
                                 />
                             </div>
                         </div>
@@ -523,7 +526,7 @@ export default function POSPage() {
                                                         min={0}
                                                         inputMode="decimal"
                                                         value={cashAmount}
-                                                        onChange={(e) => setCashAmount(e.target.value)}
+                                                        onChange={(e) => setCashAmount(e.target.value.replace(/-/g, ''))}
                                                         placeholder="0"
                                                         className="h-9 pr-16"
                                                     />
@@ -553,7 +556,7 @@ export default function POSPage() {
                                                         min={0}
                                                         inputMode="decimal"
                                                         value={transferAmount}
-                                                        onChange={(e) => setTransferAmount(e.target.value)}
+                                                        onChange={(e) => setTransferAmount(e.target.value.replace(/-/g, ''))}
                                                         placeholder="0"
                                                         className="h-9 pr-16"
                                                     />
@@ -583,7 +586,7 @@ export default function POSPage() {
                                                         min={0}
                                                         inputMode="decimal"
                                                         value={creditAmount}
-                                                        onChange={(e) => setCreditAmount(e.target.value)}
+                                                        onChange={(e) => setCreditAmount(e.target.value.replace(/-/g, ''))}
                                                         placeholder="0"
                                                         className="h-9 pr-16"
                                                     />
@@ -621,9 +624,9 @@ export default function POSPage() {
                                                             inputMode="decimal"
                                                             value={depositAmount}
                                                             onChange={(e) => {
-                                                                const val = parseFloat(e.target.value) || 0
+                                                                const val = parseFloat(e.target.value.replace(/-/g, '')) || 0
                                                                 if (val <= customerDepositBalance) {
-                                                                    setDepositAmount(e.target.value)
+                                                                    setDepositAmount(e.target.value.replace(/-/g, ''))
                                                                 } else {
                                                                     setDepositAmount(customerDepositBalance.toString())
                                                                 }

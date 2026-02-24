@@ -134,7 +134,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: error.issues }, { status: 400 })
         }
         return NextResponse.json(
-            { error: 'Failed to create appointment' },
+            { error: 'Failed to create appointment', details: error.message },
             { status: 500 }
         )
     }

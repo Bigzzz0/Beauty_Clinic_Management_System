@@ -108,10 +108,16 @@ export const useCartStore = create<CartState>((set, get) => ({
                 : item
         )
         set({ items })
+        if (get().discount > get().getSubtotal()) {
+            set({ discount: get().getSubtotal() })
+        }
     },
 
     removeItem: (itemId) => {
         set({ items: get().items.filter((item) => item.id !== itemId) })
+        if (get().discount > get().getSubtotal()) {
+            set({ discount: get().getSubtotal() })
+        }
     },
 
     clearCart: () => {
@@ -131,7 +137,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     },
 
     setDiscount: (discount) => {
-        set({ discount })
+        const d = Math.max(0, discount)
+        set({ discount: Math.min(d, get().getSubtotal()) })
     },
 
     setItemStaff: (itemId, staff) => {

@@ -74,8 +74,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'gallery')
     await fs.mkdir(uploadsDir, { recursive: true })
 
+    const match = image_data.match(/^data:image\/(\w+);base64,/)
+    const ext = match ? match[1] : 'jpg'
     const timestamp = Date.now()
-    const fileName = `gallery_${customerId}_${timestamp}.jpg`
+    const fileName = `gallery_${customerId}_${timestamp}.${ext}`
     const filePath = path.join(uploadsDir, fileName)
 
     // Extract base64 data and save

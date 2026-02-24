@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
             where.product_id = parseInt(productId)
         }
 
-        if (actionType) {
+        if (actionType && actionType !== 'all') {
             where.action_type = actionType
         }
 

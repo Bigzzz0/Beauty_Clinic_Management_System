@@ -183,10 +183,14 @@ export default function NewPatientPage() {
                                     <Input
                                         id="phone_number"
                                         required
+                                        minLength={9}
+                                        maxLength={15}
+                                        pattern="^[0-9+() -]+$"
                                         className="pl-9"
                                         value={formData.phone_number}
-                                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/[^0-9+() -]/g, '') })}
                                         placeholder="08x-xxx-xxxx"
+                                        title="โปรดกรอกเบอร์โทรศัพท์ที่ถูกต้อง (ตัวเลข และเครื่องหมาย + - ( ) เท่านั้น)"
                                     />
                                 </div>
                             </div>

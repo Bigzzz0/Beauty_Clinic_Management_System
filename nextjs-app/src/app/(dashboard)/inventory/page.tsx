@@ -8,6 +8,7 @@ import {
     Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe, X
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
 import { formatDateTime } from '@/lib/utils'
@@ -121,7 +122,7 @@ const quickActions = [
 
 export default function InventoryPage() {
     const [search, setSearch] = useState('')
-    const [category, setCategory] = useState<string>('')
+    const [category, setCategory] = useState<string>('all')
     const [sortBy, setSortBy] = useState<string>('product_name')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -129,12 +130,12 @@ export default function InventoryPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
     const token = useAuthStore((s) => s.token)
+    const searchParams = useSearchParams()
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search)
-        const searchQuery = params.get('search')
+        const searchQuery = searchParams.get('search')
         if (searchQuery) setSearch(searchQuery)
-    }, [])
+    }, [searchParams])
 
 
     // Fetch dynamic categories

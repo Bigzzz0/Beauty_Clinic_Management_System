@@ -605,7 +605,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <Label>หมวดหมู่ *</Label>
-                            <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
+                            <Select value={editingProduct?.category || undefined} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกหมวด" /></SelectTrigger>
                                 <SelectContent>
                                     {allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -615,7 +615,7 @@ export default function SettingsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>หน่วยใหญ่ *</Label>
-                                <Select value={editingProduct?.main_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
+                                <Select value={editingProduct?.main_unit || undefined} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยใหญ่" /></SelectTrigger>
                                     <SelectContent>
                                         {allMainUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
@@ -624,7 +624,7 @@ export default function SettingsPage() {
                             </div>
                             <div>
                                 <Label>หน่วยย่อย *</Label>
-                                <Select value={editingProduct?.sub_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, sub_unit: v })}>
+                                <Select value={editingProduct?.sub_unit || undefined} onValueChange={(v) => setEditingProduct({ ...editingProduct, sub_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยย่อย" /></SelectTrigger>
                                     <SelectContent>
                                         {allSubUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
@@ -733,7 +733,7 @@ export default function SettingsPage() {
                         </div>
                         <div>
                             <Label>ตำแหน่ง *</Label>
-                            <Select value={editingStaff?.position || ''} onValueChange={(v) => setEditingStaff({ ...editingStaff, position: v })}>
+                            <Select value={editingStaff?.position || undefined} onValueChange={(v) => setEditingStaff({ ...editingStaff, position: v })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกตำแหน่ง" /></SelectTrigger>
                                 <SelectContent>
                                     {POSITIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
