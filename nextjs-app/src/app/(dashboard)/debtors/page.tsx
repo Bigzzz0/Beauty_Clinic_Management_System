@@ -97,7 +97,9 @@ export default function DebtorPage() {
             toast.success(`ชำระเงินสำเร็จ - ยอดคงเหลือ ${formatCurrency(data.new_balance)}`)
             queryClient.invalidateQueries({ queryKey: ['debtors'] })
             setSelectedDebtor(null)
+            setSelectedTransaction(null)
             setPayAmount('')
+            setPayMethod('CASH')
         },
         onError: () => {
             toast.error('เกิดข้อผิดพลาด')
@@ -224,7 +226,12 @@ export default function DebtorPage() {
                                                     size="sm"
                                                     className="bg-green-600 hover:bg-green-700 text-white"
                                                     aria-label={`ชำระหนี้ของ ${debtor.full_name}`}
-                                                    onClick={() => setSelectedDebtor(debtor)}
+                                                    onClick={() => {
+                                                        setSelectedDebtor(debtor)
+                                                        setSelectedTransaction(null)
+                                                        setPayAmount('')
+                                                        setPayMethod('CASH')
+                                                    }}
                                                 >
                                                     <DollarSign className="h-4 w-4 mr-1" />
                                                     ชำระ
@@ -240,7 +247,14 @@ export default function DebtorPage() {
             </Card>
 
             {/* Pay Debt Dialog */}
-            <Dialog open={!!selectedDebtor} onOpenChange={(open) => !open && setSelectedDebtor(null)}>
+            <Dialog open={!!selectedDebtor} onOpenChange={(open) => {
+                if (!open) {
+                    setSelectedDebtor(null)
+                    setSelectedTransaction(null)
+                    setPayAmount('')
+                    setPayMethod('CASH')
+                }
+            }}>
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
