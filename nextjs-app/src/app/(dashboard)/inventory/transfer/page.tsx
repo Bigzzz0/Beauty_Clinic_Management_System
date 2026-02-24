@@ -28,12 +28,14 @@ interface Product {
     product_name: string
     category: string
     main_unit: string
+    sub_unit: string
 }
 
 interface TransferRow {
     id: string
     product_id: number | null
-    qty_main: number | ''
+    qty: number | ''
+    unit_type: 'MAIN' | 'SUB'
 }
 
 const branches = [
@@ -49,7 +51,7 @@ export default function TransferPage() {
     const [destination, setDestination] = useState('')
     const [reason, setReason] = useState('')
     const [rows, setRows] = useState<TransferRow[]>([
-        { id: '1', product_id: null, qty_main: 1 }
+        { id: '1', product_id: null, qty: 1, unit_type: 'MAIN' }
     ])
     const [note, setNote] = useState('')
     const [evidenceImage, setEvidenceImage] = useState<string | null>(null)
@@ -76,7 +78,7 @@ export default function TransferPage() {
     })
 
     const transferMutation = useMutation({
-        mutationFn: async (data: { items: { product_id: number; qty_main: number }[]; destination?: string; evidence_image?: string; note?: string; reason?: string }) => {
+        mutationFn: async (data: { items: { product_id: number; qty: number; unit_type: 'MAIN' | 'SUB' }[]; destination?: string; evidence_image?: string; note?: string; reason?: string }) => {
             const res = await fetch('/api/inventory/transfer', {
                 method: 'POST',
                 headers: {
@@ -101,7 +103,7 @@ export default function TransferPage() {
     })
 
     const addRow = () => {
-        setRows([...rows, { id: Date.now().toString(), product_id: null, qty_main: 1 }])
+        setRows([...rows, { id: Date.now().toString(), product_id: null, qty: 1, unit_type: 'MAIN' }])
     }
 
     const removeRow = (id: string) => {
@@ -146,7 +148,7 @@ export default function TransferPage() {
             }
         }
 
-        const validRows = rows.filter(row => row.product_id && Number(row.qty_main) > 0)
+        const validRows = rows.filter(row => row.product_id && Number(row.qty) > 0)
         if (validRows.length === 0) {
             toast.error('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ')
             return
@@ -155,7 +157,8 @@ export default function TransferPage() {
         transferMutation.mutate({
             items: validRows.map(row => ({
                 product_id: row.product_id!,
-                qty_main: Number(row.qty_main),
+                qty: Number(row.qty),
+                unit_type: row.unit_type,
             })),
             destination: isTransfer ? destination : undefined,
             evidence_image: evidenceImage || undefined,
@@ -250,23 +253,36 @@ export default function TransferPage() {
                                     />
                                 </div>
 
-                                <div className="md:col-span-4 relative">
-                                    <Label>จำนวน</Label>
-                                    <Input
-                                        type="number"
-                                        min={1}
-                                        value={row.qty_main || ''}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            updateRow(row.id, 'qty_main', val === '' ? '' : parseInt(val, 10));
-                                        }}
-                                        placeholder="จำนวน"
-                                    />
-                                    {row.product_id && (
-                                        <span className="absolute right-3 top-9 text-sm text-muted-foreground pointer-events-none">
-                                            {products.find(p => p.product_id === row.product_id)?.main_unit || ''}
-                                        </span>
-                                    )}
+                                <div className="md:col-span-4 flex gap-2">
+                                    <div className="flex-1">
+                                        <Label>จำนวน</Label>
+                                        <Input
+                                            type="number"
+                                            min={1}
+                                            value={row.qty || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                updateRow(row.id, 'qty', val === '' ? '' : parseInt(val, 10));
+                                            }}
+                                            placeholder="จำนวน"
+                                        />
+                                    </div>
+                                    <div className="w-[120px]">
+                                        <Label>หน่วย</Label>
+                                        <Select
+                                            value={row.unit_type}
+                                            onValueChange={(val) => updateRow(row.id, 'unit_type', val)}
+                                            disabled={!row.product_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="MAIN">{products.find(p => p.product_id === row.product_id)?.main_unit || 'หน่วยใหญ่'}</SelectItem>
+                                                <SelectItem value="SUB">{products.find(p => p.product_id === row.product_id)?.sub_unit || 'หน่วยย่อย'}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 <div className="md:col-span-1">

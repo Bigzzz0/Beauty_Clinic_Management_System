@@ -16,7 +16,8 @@ function getStaffIdFromRequest(request: NextRequest): number | null {
 
 interface TransferItem {
     product_id: number
-    qty_main: number
+    qty: number
+    unit_type: 'MAIN' | 'SUB'
 }
 
 export async function POST(request: NextRequest) {
@@ -61,11 +62,54 @@ export async function POST(request: NextRequest) {
                     where: { product_id: item.product_id },
                 })
 
-                if (!inventory || inventory.full_qty < item.qty_main) {
-                    throw new Error(`Insufficient stock for product ${product.product_name}`)
+                if (!inventory) {
+                    throw new Error(`No inventory for product ${product.product_name}`)
                 }
 
-                const qty_sub = item.qty_main * product.pack_size
+                let newFullQty = inventory.full_qty
+                let newOpenedQty = inventory.opened_qty
+                let qtyMainMovement = 0
+                let qtySubMovement = 0
+
+                if (item.unit_type === 'MAIN') {
+                    if (newFullQty < item.qty) {
+                        throw new Error(`Insufficient stock for product ${product.product_name}`)
+                    }
+                    newFullQty -= item.qty
+                    qtyMainMovement = item.qty
+                    qtySubMovement = item.qty * product.pack_size
+                } else {
+                    // Deduct from sub units
+                    let remainingToDeduct = item.qty
+                    qtySubMovement = item.qty // All we are moving is sub units
+
+                    // First deduct from opened units
+                    if (newOpenedQty >= remainingToDeduct) {
+                        newOpenedQty -= remainingToDeduct
+                        remainingToDeduct = 0
+                    } else {
+                        remainingToDeduct -= newOpenedQty
+                        newOpenedQty = 0
+                    }
+
+                    // If still remaining, open new full units to cover
+                    while (remainingToDeduct > 0 && newFullQty > 0) {
+                        newFullQty -= 1
+                        newOpenedQty += product.pack_size
+
+                        if (newOpenedQty >= remainingToDeduct) {
+                            newOpenedQty -= remainingToDeduct
+                            remainingToDeduct = 0
+                        } else {
+                            remainingToDeduct -= newOpenedQty
+                            newOpenedQty = 0
+                        }
+                    }
+
+                    if (remainingToDeduct > 0) {
+                        throw new Error(`Insufficient stock for product ${product.product_name}`)
+                    }
+                }
 
                 // Create stock movement record
                 const actionType = isTransfer ? 'TRANSFER' : 'MANUAL_OUT'
@@ -81,8 +125,8 @@ export async function POST(request: NextRequest) {
                         product_id: item.product_id,
                         staff_id: staffId,
                         action_type: actionType,
-                        qty_main: item.qty_main,
-                        qty_sub: qty_sub,
+                        qty_main: qtyMainMovement,
+                        qty_sub: qtySubMovement,
                         evidence_image: evidence_image || null,
                         note: movementNote || null,
                     },
@@ -92,7 +136,8 @@ export async function POST(request: NextRequest) {
                 await prisma.inventory.update({
                     where: { inventory_id: inventory.inventory_id },
                     data: {
-                        full_qty: inventory.full_qty - item.qty_main,
+                        full_qty: Math.max(0, newFullQty),
+                        opened_qty: Math.max(0, newOpenedQty),
                         last_updated: new Date(),
                     },
                 })
