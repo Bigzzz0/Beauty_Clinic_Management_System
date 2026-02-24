@@ -250,7 +250,7 @@ export default function TransferPage() {
                                     />
                                 </div>
 
-                                <div className="md:col-span-4">
+                                <div className="md:col-span-4 relative">
                                     <Label>จำนวน</Label>
                                     <Input
                                         type="number"
@@ -262,6 +262,11 @@ export default function TransferPage() {
                                         }}
                                         placeholder="จำนวน"
                                     />
+                                    {row.product_id && (
+                                        <span className="absolute right-3 top-9 text-sm text-muted-foreground pointer-events-none">
+                                            {products.find(p => p.product_id === row.product_id)?.main_unit || ''}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="md:col-span-1">
