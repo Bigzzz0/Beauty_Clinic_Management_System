@@ -45,3 +45,7 @@
 ## 2026-02-18 - Skip Links
 **Learning**: Navigation menus are obstacles for keyboard users. A "Skip to content" link is the single most high-impact A11y feature for heavy dashboard users.
 **Action**: Added a visible-on-focus Skip Link to the primary Dashboard Layout.
+
+## 2026-02-24 - Consistent Keyboard Focus
+**Learning:** Default browser focus rings are often hidden by Tailwind reset or specific component styles, making keyboard navigation difficult for non-button interactive elements like table headers or icon buttons.
+**Action:** Always add explicit `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary` to interactive elements to ensure clear keyboard accessibility.

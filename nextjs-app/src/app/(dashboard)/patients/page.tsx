@@ -165,7 +165,7 @@ export default function PatientsPage() {
                                         setSearch('')
                                         setPage(1)
                                     }}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
                                     aria-label="ล้างคำค้นหา"
                                 >
                                     <X className="h-4 w-4" />
@@ -202,7 +202,7 @@ export default function PatientsPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleSort('name')}
-                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors"
+                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
                                             aria-sort={sortBy === 'name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                         >
                                             ชื่อ-นามสกุล
@@ -215,7 +215,7 @@ export default function PatientsPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleSort('last_visit')}
-                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors"
+                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
                                             aria-sort={sortBy === 'last_visit' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                         >
                                             มาล่าสุด
@@ -226,7 +226,7 @@ export default function PatientsPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleSort('debt')}
-                                            className="flex items-center justify-end gap-1 font-semibold hover:text-primary transition-colors w-full"
+                                            className="flex items-center justify-end gap-1 font-semibold hover:text-primary transition-colors w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -mr-1"
                                             aria-sort={sortBy === 'debt' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                         >
                                             ยอดค้าง

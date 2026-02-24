@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Eye, EyeOff, LogIn } from 'lucide-react'
+import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
@@ -113,7 +113,7 @@ export default function LoginPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 rounded"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                     title={showPassword ? "Hide password" : "Show password"}
                                 >
@@ -130,9 +130,9 @@ export default function LoginPage() {
                             disabled={isLoading}
                             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700"
                         >
-                            <div className="flex items-center gap-2">
-                                <LogIn className="h-4 w-4" />
-                                เข้าสู่ระบบ
+                            <div className="flex items-center justify-center gap-2">
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                                {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
                             </div>
                         </Button>
                     </form>

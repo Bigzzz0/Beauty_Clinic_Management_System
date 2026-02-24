@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
     Search, Filter, Plus, Package, ArrowUpDown, MoreHorizontal,
     History, AlertTriangle, CheckCircle, XCircle, TrendingDown,
-    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe
+    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe, X
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useQuery } from '@tanstack/react-query'
@@ -326,10 +326,20 @@ export default function InventoryPage() {
                                 placeholder="ค้นหาสินค้า..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 pr-8"
                                 aria-label="Search inventory"
                                 autoFocus
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                                    aria-label="ล้างคำค้นหา"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
                         <Select value={category} onValueChange={setCategory}>
                             <SelectTrigger className="w-full md:w-48">
@@ -360,7 +370,7 @@ export default function InventoryPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleSort('product_name')}
-                                                    className="flex items-center gap-1 font-semibold hover:text-primary transition-colors"
+                                                    className="flex items-center gap-1 font-semibold hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
                                                     aria-sort={sortBy === 'product_name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                                 >
                                                     สินค้า

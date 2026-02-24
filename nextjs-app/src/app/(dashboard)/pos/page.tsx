@@ -406,7 +406,7 @@ export default function POSPage() {
                                             <button
                                                 type="button"
                                                 key={customer.customer_id}
-                                                className="w-full text-left p-3 hover:bg-muted transition-colors border-b last:border-0 focus:bg-muted focus:outline-none"
+                                                className="w-full text-left p-3 hover:bg-muted transition-colors border-b last:border-0 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:relative z-10"
                                                 onClick={() => handleSelectCustomer(customer)}
                                             >
                                                 <p className="font-medium">
@@ -522,7 +522,7 @@ export default function POSPage() {
                                                                 setCashAmount(((parseFloat(cashAmount) || 0) + remaining).toString())
                                                             }
                                                         }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                                                     >
                                                         เหลือทั้งหมด
                                                     </button>
@@ -552,7 +552,7 @@ export default function POSPage() {
                                                                 setTransferAmount(((parseFloat(transferAmount) || 0) + remaining).toString())
                                                             }
                                                         }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                                                     >
                                                         เหลือทั้งหมด
                                                     </button>
@@ -582,7 +582,7 @@ export default function POSPage() {
                                                                 setCreditAmount(((parseFloat(creditAmount) || 0) + remaining).toString())
                                                             }
                                                         }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                                                     >
                                                         เหลือทั้งหมด
                                                     </button>
@@ -621,7 +621,7 @@ export default function POSPage() {
                                                         />
                                                         <button
                                                             onClick={() => setDepositAmount(customerDepositBalance.toString())}
-                                                            className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors"
+                                                            className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                                                         >
                                                             ทั้งหมด
                                                         </button>
@@ -712,6 +712,6 @@ export default function POSPage() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }
