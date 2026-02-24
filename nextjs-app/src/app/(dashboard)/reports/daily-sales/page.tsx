@@ -181,7 +181,7 @@ export default function DailySalesPage() {
 
                 {/* Date Navigation */}
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={handlePrevDay}>
+                    <Button variant="outline" size="icon" onClick={handlePrevDay} aria-label="เลือกวันก่อนหน้า">
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Input
@@ -190,7 +190,7 @@ export default function DailySalesPage() {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="w-40"
                     />
-                    <Button variant="outline" size="icon" onClick={handleNextDay}>
+                    <Button variant="outline" size="icon" onClick={handleNextDay} aria-label="เลือกวันถัดไป">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
@@ -270,6 +270,7 @@ export default function DailySalesPage() {
                                 placeholder="ค้นหา HN, ชื่อลูกค้า, รายการ..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
+                                aria-label="ค้นหาข้อมูลยอดขายรายวัน"
                                 className="pl-10"
                             />
                         </div>
@@ -277,6 +278,7 @@ export default function DailySalesPage() {
                             <Button
                                 variant="outline"
                                 onClick={handleExportCSV}
+                                aria-label="ส่งออกรายงานเป็น CSV"
                             >
                                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                                 Export CSV
@@ -306,8 +308,8 @@ export default function DailySalesPage() {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                        <div className="flex items-center justify-center py-12" role="status" aria-label="กำลังโหลดข้อมูลยอดขาย">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                         </div>
                     ) : filteredDetails.length === 0 ? (
                         <div className="text-center py-12">

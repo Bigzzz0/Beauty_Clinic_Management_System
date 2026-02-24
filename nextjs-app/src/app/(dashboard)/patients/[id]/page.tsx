@@ -41,6 +41,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogTrigger,
 } from '@/components/ui/dialog'
 
@@ -264,7 +265,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="ย้อนกลับ">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-2xl font-bold">OPD Card</h1>
@@ -309,11 +310,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                 </Button>
                             ) : (
                                 <>
-                                    <Button variant="secondary" onClick={handleSave} disabled={updateMutation.isPending}>
+                                    <Button variant="secondary" onClick={handleSave} disabled={updateMutation.isPending} aria-busy={updateMutation.isPending}>
                                         <Save className="h-4 w-4 mr-2" />
-                                        บันทึก
+                                        {updateMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
                                     </Button>
-                                    <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                                    <Button variant="ghost" onClick={() => setIsEditing(false)} aria-label="ยกเลิกการแก้ไข">
                                         <X className="h-4 w-4" />
                                     </Button>
                                 </>
@@ -571,6 +572,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                 <DialogContent>
                                     <DialogHeader>
                                         <DialogTitle>อัพโหลดรูปภาพ</DialogTitle>
+                                        <DialogDescription className="sr-only">
+                                            เลือกรูป Before หรือ After และใส่ข้อความสำหรับรูปภาพที่ต้องการอัพโหลด
+                                        </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
                                         <div>
@@ -661,6 +665,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                                 variant="destructive"
                                                                 size="icon"
                                                                 className="h-8 w-8 rounded-full"
+                                                                aria-label="ลบรูปภาพ"
                                                                 onClick={() => setDeleteId(img.gallery_id)}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />

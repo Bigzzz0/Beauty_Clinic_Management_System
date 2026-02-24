@@ -23,6 +23,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog'
 import {
     Select,
@@ -519,6 +520,9 @@ export default function SettingsPage() {
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editingProduct?.product_id ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า'}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            {editingProduct?.product_id ? 'กรอกข้อมูลเพื่อแก้ไขสินค้า' : 'กรอกข้อมูลเพื่อเพิ่มสินค้าใหม่'}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div>
@@ -560,8 +564,8 @@ export default function SettingsPage() {
                                 <Input type="number" min={1} inputMode="decimal" value={editingProduct?.pack_size ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, pack_size: e.target.value === '' ? ('' as any) : parseInt(e.target.value) })} />
                             </div>
                             <div className="flex items-center gap-2 pt-6">
-                                <Switch checked={editingProduct?.is_liquid || false} onCheckedChange={(v) => setEditingProduct({ ...editingProduct, is_liquid: v })} />
-                                <Label>เป็นของเหลว</Label>
+                                <Switch id="is-liquid" checked={editingProduct?.is_liquid || false} onCheckedChange={(v) => setEditingProduct({ ...editingProduct, is_liquid: v })} />
+                                <Label htmlFor="is-liquid">เป็นของเหลว</Label>
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
@@ -580,8 +584,8 @@ export default function SettingsPage() {
                         </div>
                         {editingProduct?.product_id && (
                             <div className="flex items-center gap-2">
-                                <Switch checked={editingProduct?.is_active ?? true} onCheckedChange={(v) => setEditingProduct({ ...editingProduct, is_active: v })} />
-                                <Label>เปิดใช้งาน</Label>
+                                <Switch id="is-active-product" checked={editingProduct?.is_active ?? true} onCheckedChange={(v) => setEditingProduct({ ...editingProduct, is_active: v })} />
+                                <Label htmlFor="is-active-product">เปิดใช้งาน</Label>
                             </div>
                         )}
                         <Button className="w-full" onClick={() => editingProduct && productMutation.mutate(editingProduct)} disabled={productMutation.isPending}>
@@ -597,6 +601,9 @@ export default function SettingsPage() {
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editingCourse?.course_id ? 'แก้ไขคอร์ส' : 'เพิ่มคอร์ส'}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            {editingCourse?.course_id ? 'กรอกข้อมูลเพื่อแก้ไขคอร์ส' : 'กรอกข้อมูลเพื่อเพิ่มคอร์สใหม่'}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div>
@@ -624,8 +631,8 @@ export default function SettingsPage() {
                         </div>
                         {editingCourse?.course_id && (
                             <div className="flex items-center gap-2">
-                                <Switch checked={editingCourse?.is_active ?? true} onCheckedChange={(v) => setEditingCourse({ ...editingCourse, is_active: v })} />
-                                <Label>เปิดใช้งาน</Label>
+                                <Switch id="is-active-course" checked={editingCourse?.is_active ?? true} onCheckedChange={(v) => setEditingCourse({ ...editingCourse, is_active: v })} />
+                                <Label htmlFor="is-active-course">เปิดใช้งาน</Label>
                             </div>
                         )}
                         <Button className="w-full" onClick={() => editingCourse && courseMutation.mutate(editingCourse)} disabled={courseMutation.isPending}>
@@ -641,6 +648,9 @@ export default function SettingsPage() {
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editingStaff?.staff_id ? 'แก้ไขพนักงาน' : 'เพิ่มพนักงาน'}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            {editingStaff?.staff_id ? 'กรอกข้อมูลเพื่อแก้ไขพนักงาน' : 'กรอกข้อมูลเพื่อเพิ่มพนักงานใหม่'}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div>
@@ -685,8 +695,8 @@ export default function SettingsPage() {
                         </div>
                         {editingStaff?.staff_id && (
                             <div className="flex items-center gap-2">
-                                <Switch checked={editingStaff?.is_active ?? true} onCheckedChange={(v) => setEditingStaff({ ...editingStaff, is_active: v })} />
-                                <Label>เปิดใช้งาน</Label>
+                                <Switch id="is-active-staff" checked={editingStaff?.is_active ?? true} onCheckedChange={(v) => setEditingStaff({ ...editingStaff, is_active: v })} />
+                                <Label htmlFor="is-active-staff">เปิดใช้งาน</Label>
                             </div>
                         )}
                         <Button className="w-full" onClick={() => editingStaff && staffMutation.mutate(editingStaff)} disabled={staffMutation.isPending}>

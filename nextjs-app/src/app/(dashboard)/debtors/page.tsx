@@ -28,6 +28,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog'
 import {
     Select,
@@ -144,6 +145,7 @@ export default function DebtorPage() {
                         <Input
                             placeholder="ค้นหา ชื่อ / HN / เบอร์โทร..."
                             value={search}
+                            aria-label="ค้นเลือกลูกหนี้"
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-10"
                         />
@@ -214,6 +216,7 @@ export default function DebtorPage() {
                                                 <Button
                                                     size="sm"
                                                     className="bg-green-600 hover:bg-green-700 text-white"
+                                                    aria-label={`ชำระหนี้ของ ${debtor.full_name}`}
                                                     onClick={() => setSelectedDebtor(debtor)}
                                                 >
                                                     <DollarSign className="h-4 w-4 mr-1" />
@@ -237,6 +240,9 @@ export default function DebtorPage() {
                             <DollarSign className="h-5 w-5 text-green-600" />
                             ชำระหนี้ - {selectedDebtor?.full_name}
                         </DialogTitle>
+                        <DialogDescription className="sr-only">
+                            ชำระบิลค้างชำระของ {selectedDebtor?.full_name}
+                        </DialogDescription>
                     </DialogHeader>
 
                     {selectedDebtor && (
@@ -258,7 +264,7 @@ export default function DebtorPage() {
                                         if (tx) setPayAmount(tx.remaining_balance.toString())
                                     }}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger aria-label="เลือกบิลที่ต้องการชำระ">
                                         <SelectValue placeholder="เลือกบิล" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -304,8 +310,9 @@ export default function DebtorPage() {
 
                             {/* Amount */}
                             <div>
-                                <Label>จำนวนเงิน</Label>
+                                <Label htmlFor="pay-amount">จำนวนเงิน</Label>
                                 <Input
+                                    id="pay-amount"
                                     type="number"
                                     min={0}
                                     value={payAmount}
@@ -319,6 +326,7 @@ export default function DebtorPage() {
                             <Button
                                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                                 disabled={!selectedTransaction || !payAmount || payMutation.isPending}
+                                aria-busy={payMutation.isPending}
                                 onClick={handlePay}
                             >
                                 {payMutation.isPending ? 'กำลังบันทึก...' : 'ยืนยันชำระเงิน'}

@@ -49,3 +49,19 @@
 ## 2026-02-24 - Consistent Keyboard Focus
 **Learning:** Default browser focus rings are often hidden by Tailwind reset or specific component styles, making keyboard navigation difficult for non-button interactive elements like table headers or icon buttons.
 **Action:** Always add explicit `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary` to interactive elements to ensure clear keyboard accessibility.
+
+## 2026-02-24 - Accessibility Context and Associations
+**Learning:** Screen readers depend on explicit relationships in HTML (`htmlFor` linking a Label to a Switch id) and contextual descriptions (like visually hidden `DialogDescription`s) to navigate functionally, rather than just reading raw text on screen. 
+**Action:** Always link form controls to labels explicitly with IDs and provide a `DialogDescription` for all Modals to ensure sufficient context.
+
+## 2026-02-24 - aria-busy and Loading States
+**Learning:** On forms, simply disabling a button during save does not communicate to screen readers *why* it is disabled. `aria-busy="true"` on the button (or surrounding form) tells the assistive tech: "I am currently processing your request".
+**Action:** Add `aria-busy={isMutationPending}` to save/submit buttons, and update button text dynamically to reflect loading state (e.g., 'กำลังบันทึก...').
+
+## 2026-02-24 - Contextual Aria Labels and Live Regions
+**Learning:** Generic labels like "Remove" or generic loading skeletons are confusing. A screen reader user needs to know *what* they are removing (e.g. `aria-label="Remove Botox Aestox"`). Similarly, when a page section is loading via skeleton, wrapping it in `<div aria-busy="true" aria-live="polite">` informs the screen reader that content is loading and will update soon.
+**Action:** Always inject variables into `aria-label`s for list items, and add `aria-busy` and `aria-live` to loading skeleton containers.
+
+## 2026-02-24 - Semantic HTML Form Bindings and Role Status
+**Learning:** Input fields are completely divorced from their visual `<Label>` in the DOM unless explicitly tied together via `id` and `htmlFor`. Additionally, a visual loading spinner requires `role="status"` and a descriptive `aria-label` to be perceivable to screen readers that cannot see the CSS animation.
+**Action:** Always verify every form input has a unique `id` that matches the `htmlFor` of its labeling `<Label>`. Always add `role="status"` and `aria-label="กำลังโหลด..."` to any JSX returning a visual spinner.

@@ -72,7 +72,7 @@ export default function DashboardPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-6" aria-busy="true" aria-live="polite">
                 <Skeleton className="h-[120px] w-full rounded-xl" />
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {[...Array(4)].map((_, i) => (

@@ -111,7 +111,7 @@ export default function AppointmentsPage() {
                     <p className="text-muted-foreground">จัดการและติดตามการนัดหมายของลูกค้าในแต่ละวัน</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" aria-label="ตัวกรอง">
                         <Filter className="h-4 w-4" />
                     </Button>
                     <Button onClick={() => handleTimeSlotClick(currentDate)}>
@@ -124,13 +124,13 @@ export default function AppointmentsPage() {
             <Card>
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-b gap-4">
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={handlePrev}>
+                        <Button variant="outline" size="icon" onClick={handlePrev} aria-label="ย้อนกลับ">
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
                         <Button variant="outline" size="sm" onClick={handleToday}>
                             วันนี้
                         </Button>
-                        <Button variant="outline" size="icon" onClick={handleNext}>
+                        <Button variant="outline" size="icon" onClick={handleNext} aria-label="ถัดไป">
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                         <Popover>

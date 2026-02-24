@@ -335,6 +335,7 @@ export default function ServicePage() {
                                 <Input
                                     placeholder="ค้นหาชื่อ, HN, เบอร์โทร..."
                                     value={customerSearch}
+                                    aria-label="ค้นหาลูกค้า"
                                     onChange={(e) => setCustomerSearch(e.target.value)}
                                     className="pl-10"
                                 />
@@ -413,7 +414,7 @@ export default function ServicePage() {
                                     HN: {selectedCustomer.hn_code} | คุณ {selectedCustomer.full_name}
                                 </CardDescription>
                             </CardHeader>
-                            
+
                             <CardContent className="space-y-6">
                                 <div>
                                     <p className="text-sm font-medium text-slate-700 mb-2">สลับเลือกลูกค้าคนอื่นที่มีคอร์สคงเหลือ:</p>
@@ -480,10 +481,10 @@ export default function ServicePage() {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <Button 
-                                                            size="sm" 
-                                                            disabled={cc.remaining_sessions <= 0} 
-                                                            variant="outline" 
+                                                        <Button
+                                                            size="sm"
+                                                            disabled={cc.remaining_sessions <= 0}
+                                                            variant="outline"
                                                             className="border-primary text-primary hover:bg-primary hover:text-white shadow-sm"
                                                         >
                                                             <Plus className="h-4 w-4 mr-1" />
@@ -590,8 +591,9 @@ export default function ServicePage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>ค่า DF (บาท)</Label>
+                                <Label htmlFor="doctor-fee">ค่า DF (บาท)</Label>
                                 <Input
+                                    id="doctor-fee"
                                     type="number"
                                     min={0}
                                     value={formData.doctor_fee || ''}
@@ -624,8 +626,9 @@ export default function ServicePage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>ค่ามือ (บาท)</Label>
+                                <Label htmlFor="therapist-fee">ค่ามือ (บาท)</Label>
                                 <Input
+                                    id="therapist-fee"
                                     type="number"
                                     min={0}
                                     value={formData.therapist_fee || ''}
@@ -636,8 +639,9 @@ export default function ServicePage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label>หมายเหตุ</Label>
+                            <Label htmlFor="service-note">หมายเหตุ</Label>
                             <Textarea
+                                id="service-note"
                                 value={formData.note}
                                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                                 placeholder="เช่น ตำแหน่งที่ทำ, สภาพผิว..."
@@ -652,6 +656,7 @@ export default function ServicePage() {
                             <Button
                                 onClick={handleSubmitService}
                                 disabled={createUsage.isPending}
+                                aria-busy={createUsage.isPending}
                                 className="bg-green-600 hover:bg-green-700 text-white"
                             >
                                 <Check className="h-4 w-4 mr-2" />
