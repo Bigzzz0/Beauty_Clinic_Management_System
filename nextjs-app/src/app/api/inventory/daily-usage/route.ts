@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
         // Get usage movements for the day
         const usageMovements = await prisma.stock_movement.findMany({
             where: {
-                action_type: 'USAGE',
+                action_type: {
+                    in: ['USAGE', 'TRANSFER'],
+                },
                 created_at: {
                     gte: startOfDay,
                     lte: endOfDay,
@@ -90,16 +92,32 @@ export async function GET(request: NextRequest) {
         })
 
         // Format detail log
-        const detailLog = inventoryUsages.map((u) => ({
-            time: u.service_usage?.service_date,
-            product_name: u.product.product_name,
-            qty_used: u.qty_used,
-            sub_unit: u.product.sub_unit,
-            customer_name: u.service_usage?.customer_course?.customer
-                ? `${u.service_usage.customer_course.customer.first_name} ${u.service_usage.customer_course.customer.last_name}`
-                : null,
-            note: u.service_usage?.note,
-        }))
+        const detailLog = [
+            ...inventoryUsages.map((u) => ({
+                time: u.service_usage?.service_date,
+                product_name: u.product.product_name,
+                qty_used: u.qty_used,
+                sub_unit: u.product.sub_unit,
+                customer_name: u.service_usage?.customer_course?.customer
+                    ? `${u.service_usage.customer_course.customer.first_name} ${u.service_usage.customer_course.customer.last_name}`
+                    : null,
+                note: u.service_usage?.note,
+            })),
+            ...usageMovements
+                .filter(m => m.action_type === 'TRANSFER')
+                .map(m => ({
+                    time: m.created_at,
+                    product_name: m.product.product_name,
+                    qty_used: m.qty_sub,
+                    sub_unit: m.product.sub_unit,
+                    customer_name: 'การโอนย้าย (Transfer)',
+                    note: m.note,
+                }))
+        ].sort((a, b) => {
+            const timeA = a.time ? new Date(a.time).getTime() : 0;
+            const timeB = b.time ? new Date(b.time).getTime() : 0;
+            return timeB - timeA;
+        })
 
         return NextResponse.json({
             date,
