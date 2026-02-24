@@ -273,7 +273,10 @@ export function AppointmentModal({ open, onOpenChange, onSuccess, initialDate, a
                                 onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
                             />
                             {isDropdownOpen && !selectedCustomer && (
-                                <div className="absolute top-full mt-1 left-0 z-50 w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md max-h-48 overflow-y-auto">
+                                <div
+                                    className="absolute top-full mt-1 left-0 z-50 w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md max-h-48 overflow-y-auto"
+                                    onMouseDown={(e) => e.preventDefault()}
+                                >
                                     {(() => {
                                         const term = customerSearch.toLowerCase()
                                         const filtered = customers.filter(c =>

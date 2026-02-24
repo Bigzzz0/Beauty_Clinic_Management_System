@@ -66,11 +66,7 @@ interface CommissionRate {
 
 // ... (previous interfaces)
 
-const CATEGORIES = [
-    { value: 'TREATMENT_COVER', label: 'หมอการคลุมทรีทเมนต์' },
-    { value: 'LASER', label: 'เลเซอร์/ทรีทเมนต์' },
-    { value: 'STAFF_ASSIST', label: 'ค่าช่วยผลักงานพนักงาน' },
-]
+// Categories will be fetched dynamically
 
 const POSITIONS = [
     { value: 'Doctor', label: 'แพทย์' },
@@ -93,9 +89,7 @@ function getCategoryColor(category: string) {
     }
 }
 
-function getCategoryLabel(category: string) {
-    return CATEGORIES.find(c => c.value === category)?.label || category
-}
+
 
 export default function CommissionRatesPage() {
     const queryClient = useQueryClient()
@@ -107,11 +101,21 @@ export default function CommissionRatesPage() {
 
     // Form state
     const [formData, setFormData] = useState({
-        category: 'TREATMENT_COVER',
+        category: '',
         itemName: '',
         rateAmount: 30,
         positionType: '',
     })
+
+    // Fetch dynamic categories
+    const { data: dynamicCategories = [] } = useQuery<{ id: number, code: string, name: string }[]>({
+        queryKey: ['categories-commission'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=COMMISSION`)
+            return res.json()
+        },
+    })
+
 
     // ... (keep logic same)
     // Fetch commission rates
@@ -177,7 +181,7 @@ export default function CommissionRatesPage() {
         } else {
             setEditingRate(null)
             setFormData({
-                category: 'TREATMENT_COVER',
+                category: dynamicCategories.length > 0 ? dynamicCategories[0].code : '',
                 itemName: '',
                 rateAmount: 30,
                 positionType: '',
@@ -213,10 +217,16 @@ export default function CommissionRatesPage() {
         return matchesSearch && matchesCategory
     }) || []
 
+    // Helper to get category label
+    const getCategoryLabel = (categoryCode: string) => {
+        return dynamicCategories.find(c => c.code === categoryCode)?.name || categoryCode
+    }
+
     // Group by category for display
-    const groupedRates = CATEGORIES.map(cat => ({
-        ...cat,
-        rates: filteredRates.filter(r => r.category === cat.value),
+    const groupedRates = dynamicCategories.map(cat => ({
+        value: cat.code,
+        label: cat.name,
+        rates: filteredRates.filter(r => r.category === cat.code),
     })).filter(g => g.rates.length > 0 || selectedCategory === 'ALL')
 
     return (
@@ -272,9 +282,9 @@ export default function CommissionRatesPage() {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {CATEGORIES.map((cat) => (
-                                                <SelectItem key={cat.value} value={cat.value}>
-                                                    {cat.label}
+                                            {dynamicCategories.map((cat) => (
+                                                <SelectItem key={cat.code} value={cat.code}>
+                                                    {cat.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -358,9 +368,9 @@ export default function CommissionRatesPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="ALL">ทุกหมวดหมู่</SelectItem>
-                                {CATEGORIES.map((cat) => (
-                                    <SelectItem key={cat.value} value={cat.value}>
-                                        {cat.label}
+                                {dynamicCategories.map((cat) => (
+                                    <SelectItem key={cat.code} value={cat.code}>
+                                        {cat.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

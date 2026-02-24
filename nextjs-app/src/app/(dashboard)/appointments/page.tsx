@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Filter } from 'lucide-react'
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Filter, User } from 'lucide-react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths } from 'date-fns'
 import { th } from 'date-fns/locale'
 import { useQuery } from '@tanstack/react-query'
@@ -113,6 +113,10 @@ export default function AppointmentsPage() {
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" aria-label="ตัวกรอง">
                         <Filter className="h-4 w-4" />
+                    </Button>
+                    <Button variant="secondary" onClick={() => window.location.href = '/patients'}>
+                        <User className="h-4 w-4 mr-2" />
+                        รายชื่อคนไข้ทั้งหมด
                     </Button>
                     <Button onClick={() => handleTimeSlotClick(currentDate)}>
                         <Plus className="h-4 w-4 mr-2" />

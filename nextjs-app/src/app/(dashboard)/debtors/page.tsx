@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Wallet, Search, Phone, DollarSign, CreditCard, Banknote, QrCode,
     AlertTriangle
@@ -61,6 +61,13 @@ export default function DebtorPage() {
     const [selectedTransaction, setSelectedTransaction] = useState<number | null>(null)
     const [payAmount, setPayAmount] = useState('')
     const [payMethod, setPayMethod] = useState<'CASH' | 'TRANSFER' | 'CREDIT'>('CASH')
+
+    // Read search from URL if present
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const searchQuery = params.get('search')
+        if (searchQuery) setSearch(searchQuery)
+    }, [])
 
     const { data: debtors = [], isLoading } = useQuery<Debtor[]>({
         queryKey: ['debtors'],
@@ -284,6 +291,7 @@ export default function DebtorPage() {
                                     <Button
                                         variant={payMethod === 'CASH' ? 'default' : 'outline'}
                                         onClick={() => setPayMethod('CASH')}
+                                        disabled={!selectedTransaction}
                                         className="flex flex-col gap-1 py-4"
                                     >
                                         <Banknote className="h-5 w-5" />
@@ -292,6 +300,7 @@ export default function DebtorPage() {
                                     <Button
                                         variant={payMethod === 'TRANSFER' ? 'default' : 'outline'}
                                         onClick={() => setPayMethod('TRANSFER')}
+                                        disabled={!selectedTransaction}
                                         className="flex flex-col gap-1 py-4"
                                     >
                                         <QrCode className="h-5 w-5" />
@@ -300,6 +309,7 @@ export default function DebtorPage() {
                                     <Button
                                         variant={payMethod === 'CREDIT' ? 'default' : 'outline'}
                                         onClick={() => setPayMethod('CREDIT')}
+                                        disabled={!selectedTransaction}
                                         className="flex flex-col gap-1 py-4"
                                     >
                                         <CreditCard className="h-5 w-5" />
@@ -318,6 +328,7 @@ export default function DebtorPage() {
                                     value={payAmount}
                                     onChange={(e) => setPayAmount(e.target.value)}
                                     placeholder="0"
+                                    disabled={!selectedTransaction}
                                     className="text-lg"
                                 />
                             </div>

@@ -27,15 +27,18 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { items, destination, evidence_image, note } = body as {
+        const { items, destination, evidence_image, note, reason } = body as {
             items: TransferItem[]
-            destination: string
-            evidence_image: string // Mandatory
+            destination?: string
+            evidence_image?: string
             note?: string
+            reason?: string
         }
 
-        if (!evidence_image) {
-            return NextResponse.json({ error: 'Photo is required for transfer' }, { status: 400 })
+        const isTransfer = reason?.includes('โอนย้าย') || reason?.includes('Transfer') || destination
+
+        if (isTransfer && !evidence_image) {
+            return NextResponse.json({ error: 'Photo/Evidence is required for transfer' }, { status: 400 })
         }
 
         if (!items || items.length === 0) {
@@ -65,15 +68,23 @@ export async function POST(request: NextRequest) {
                 const qty_sub = item.qty_main * product.pack_size
 
                 // Create stock movement record
+                const actionType = isTransfer ? 'TRANSFER' : 'MANUAL_OUT'
+                const movementNoteParts = []
+                if (reason) movementNoteParts.push(`Reason: ${reason}`)
+                if (destination) movementNoteParts.push(`To: ${destination}`)
+                if (note) movementNoteParts.push(note)
+
+                const movementNote = movementNoteParts.join(' | ')
+
                 const movement = await prisma.stock_movement.create({
                     data: {
                         product_id: item.product_id,
                         staff_id: staffId,
-                        action_type: 'TRANSFER',
+                        action_type: actionType,
                         qty_main: item.qty_main,
                         qty_sub: qty_sub,
-                        evidence_image: evidence_image,
-                        note: `Transfer to: ${destination}. ${note || ''}`,
+                        evidence_image: evidence_image || null,
+                        note: movementNote || null,
                     },
                 })
 
