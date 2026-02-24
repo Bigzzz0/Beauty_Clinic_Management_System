@@ -24,9 +24,10 @@ interface MonthlyCalendarProps {
     onAppointmentClick: (appointment: Appointment) => void;
     onTimeSlotClick: (date: Date) => void;
     onAppointmentDrop?: (appointmentId: number, newDate: Date) => void;
+    onSeeMore?: (date: Date) => void;
 }
 
-export function MonthlyCalendar({ date, appointments, onAppointmentClick, onTimeSlotClick, onAppointmentDrop }: MonthlyCalendarProps) {
+export function MonthlyCalendar({ date, appointments, onAppointmentClick, onTimeSlotClick, onAppointmentDrop, onSeeMore }: MonthlyCalendarProps) {
     const monthStart = startOfMonth(date);
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Monday
@@ -204,7 +205,14 @@ export function MonthlyCalendar({ date, appointments, onAppointmentClick, onTime
                             </HoverCard>
                         ))}
                         {dayAppointments.length > 4 && (
-                            <div className="text-[10px] text-muted-foreground text-center pt-1 font-medium bg-muted/30 rounded mx-1 pb-0.5 cursor-pointer hover:bg-muted/50 transition-colors" onClick={(e) => { e.stopPropagation(); onTimeSlotClick(cloneDay); }}>
+                            <div className="text-[10px] text-muted-foreground text-center pt-1 font-medium bg-muted/30 rounded mx-1 pb-0.5 cursor-pointer hover:bg-muted/50 transition-colors" onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSeeMore) {
+                                    onSeeMore(cloneDay);
+                                } else {
+                                    onTimeSlotClick(cloneDay);
+                                }
+                            }}>
                                 +{dayAppointments.length - 4} รายการ (ดูทั้งหมด)
                             </div>
                         )}

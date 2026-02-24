@@ -99,6 +99,14 @@ const getCategoryColor = (cat: string) => {
     return colors[cat] || 'bg-muted text-muted-foreground'
 }
 
+const PREDEFINED_CATEGORIES = [
+    'Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin', 'Service', 'Other'
+]
+
+const PREDEFINED_UNITS = [
+    'ขวด', 'กล่อง', 'หลอด', 'ชิ้น', 'ซีซี', 'ครั้ง', 'เซ็ต', 'แผง', 'เม็ด', 'แคปซูล', 'กรัม', 'มิลลิลิตร', 'ลิตร'
+]
+
 export default function SettingsPage() {
     const token = useAuthStore((s) => s.token)
     const queryClient = useQueryClient()
@@ -174,6 +182,9 @@ export default function SettingsPage() {
             return res.json()
         },
     })
+
+    const allCategories = Array.from(new Set([...PREDEFINED_CATEGORIES, ...dynamicCategories.map(c => c.name)]))
+    const allUnits = Array.from(new Set([...PREDEFINED_UNITS, ...dynamicUnits.map(u => u.name)]))
 
     const POSITIONS = ['Admin', 'Doctor', 'Therapist', 'Sale', 'Cashier']
 
@@ -583,7 +594,7 @@ export default function SettingsPage() {
                             <Select value={editingProduct?.category || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, category: v })}>
                                 <SelectTrigger><SelectValue placeholder="เลือกหมวด" /></SelectTrigger>
                                 <SelectContent>
-                                    {dynamicCategories.map((c) => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
+                                    {allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -593,7 +604,7 @@ export default function SettingsPage() {
                                 <Select value={editingProduct?.main_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยใหญ่" /></SelectTrigger>
                                     <SelectContent>
-                                        {dynamicUnits.map((u) => <SelectItem key={u.name} value={u.name}>{u.name}</SelectItem>)}
+                                        {allUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -602,7 +613,7 @@ export default function SettingsPage() {
                                 <Select value={editingProduct?.sub_unit || ''} onValueChange={(v) => setEditingProduct({ ...editingProduct, sub_unit: v })}>
                                     <SelectTrigger><SelectValue placeholder="เลือกหน่วยย่อย" /></SelectTrigger>
                                     <SelectContent>
-                                        {dynamicUnits.map((u) => <SelectItem key={u.name} value={u.name}>{u.name}</SelectItem>)}
+                                        {allUnits.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>

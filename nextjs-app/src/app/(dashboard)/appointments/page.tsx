@@ -198,6 +198,10 @@ export default function AppointmentsPage() {
                                     onTimeSlotClick={handleTimeSlotClick}
                                     onAppointmentClick={handleAppointmentClick}
                                     onAppointmentDrop={handleAppointmentDrop}
+                                    onSeeMore={(date) => {
+                                        setCurrentDate(date);
+                                        setView('day');
+                                    }}
                                 />
                             )}
                         </div>
