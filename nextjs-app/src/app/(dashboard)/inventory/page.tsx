@@ -209,16 +209,18 @@ export default function InventoryPage() {
         return 'normal'
     }
 
-    const getCategoryColor = (cat: string) => {
+    const getCategoryBadgeClass = (cat: string) => {
         const colors: Record<string, string> = {
-            Botox: 'text-primary',
-            Filler: 'text-accent',
-            Treatment: 'text-blue-500',
-            Medicine: 'text-success',
-            Equipment: 'text-muted-foreground',
-            Skin: 'text-amber-500',
+            Botox: 'bg-purple-100 text-purple-700 border-purple-200',
+            Filler: 'bg-pink-100 text-pink-700 border-pink-200',
+            Treatment: 'bg-sky-100 text-sky-700 border-sky-200',
+            Medicine: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            Equipment: 'bg-amber-100 text-amber-700 border-amber-200',
+            Skin: 'bg-rose-100 text-rose-700 border-rose-200',
+            Service: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            Other: 'bg-slate-100 text-slate-600 border-slate-200',
         }
-        return colors[cat] || 'text-muted-foreground'
+        return colors[cat] || 'bg-slate-100 text-slate-600 border-slate-200'
     }
 
     return (
@@ -433,8 +435,10 @@ export default function InventoryPage() {
                                                         <TableCell className="font-medium">
                                                             {item.product_name}
                                                         </TableCell>
-                                                        <TableCell className={getCategoryColor(item.category)}>
-                                                            {item.category}
+                                                        <TableCell>
+                                                            <Badge className={getCategoryBadgeClass(item.category)}>
+                                                                {item.category}
+                                                            </Badge>
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             <span className="font-medium">{item.full_qty}</span>
@@ -509,8 +513,8 @@ export default function InventoryPage() {
                                 <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
                                     {Object.entries(dailyUsage.by_category).map(([cat, units]) => (
                                         <div key={cat} className="p-3 rounded-lg bg-muted/50">
-                                            <p className={`text-sm ${getCategoryColor(cat)}`}>{cat}</p>
-                                            <p className="text-xl font-bold">{units} <span className="text-sm text-muted-foreground">units</span></p>
+                                            <Badge className={getCategoryBadgeClass(cat)}>{cat}</Badge>
+                                            <p className="text-xl font-bold mt-1">{units} <span className="text-sm text-muted-foreground">units</span></p>
                                         </div>
                                     ))}
                                 </div>
@@ -549,7 +553,11 @@ export default function InventoryPage() {
                                                         {item.product_code}
                                                     </TableCell>
                                                     <TableCell>{item.product_name}</TableCell>
-                                                    <TableCell className={getCategoryColor(item.category)}>{item.category}</TableCell>
+                                                    <TableCell>
+                                                        <Badge className={getCategoryBadgeClass(item.category)}>
+                                                            {item.category}
+                                                        </Badge>
+                                                    </TableCell>
                                                     <TableCell className="text-center">{item.times}</TableCell>
                                                     <TableCell className="text-right">
                                                         <span className="text-primary font-bold">{item.total_used}</span>
@@ -703,7 +711,11 @@ export default function InventoryPage() {
                                                         {item.product_code}
                                                     </TableCell>
                                                     <TableCell>{item.product_name}</TableCell>
-                                                    <TableCell className={getCategoryColor(item.category)}>{item.category}</TableCell>
+                                                    <TableCell>
+                                                        <Badge className={getCategoryBadgeClass(item.category)}>
+                                                            {item.category}
+                                                        </Badge>
+                                                    </TableCell>
                                                     <TableCell className="text-right">{item.begin_balance}</TableCell>
                                                     <TableCell className="text-right">
                                                         {item.stock_in > 0 ? (

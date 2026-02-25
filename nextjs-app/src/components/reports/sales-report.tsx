@@ -133,13 +133,13 @@ export default function SalesReportTab() {
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-accent/10 to-accent/20 dark:from-accent/20 dark:to-accent/30">
+                <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950/30 dark:to-indigo-900/30">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-accent" />
-                            <span className="text-sm text-accent">จำนวนบิล</span>
+                            <Calendar className="h-5 w-5 text-indigo-600" />
+                            <span className="text-sm text-indigo-700 dark:text-indigo-400">จำนวนบิล</span>
                         </div>
-                        <p className="text-2xl font-bold text-accent mt-1">
+                        <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mt-1">
                             {salesLoading ? '...' : salesData?.summary?.transactionCount || 0}
                         </p>
                     </CardContent>

@@ -53,19 +53,17 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20" />
-
-            <Card className="relative w-full max-w-md border-0 bg-white/10 backdrop-blur-xl">
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+            <Card className="w-full max-w-md border border-slate-200 bg-white shadow-lg">
                 <CardHeader className="space-y-4 text-center">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 shadow-lg shadow-pink-500/20">
-                        <span className="text-2xl font-bold text-white">BC</span>
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-400 shadow-lg shadow-amber-200">
+                        <span className="text-2xl font-bold text-slate-900">BC</span>
                     </div>
                     <div>
-                        <CardTitle className="text-2xl font-bold text-white">
+                        <CardTitle className="text-2xl font-bold text-slate-800">
                             Beauty Clinic
                         </CardTitle>
-                        <CardDescription className="text-slate-300">
+                        <CardDescription className="text-slate-500">
                             ระบบบริหารจัดการคลินิกความงาม
                         </CardDescription>
                     </div>
@@ -74,14 +72,13 @@ export default function LoginPage() {
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="username" className="text-slate-200">
-                                ชื่อผู้ใช้ <span className="text-red-400">*</span>
+                            <Label htmlFor="username" className="text-slate-700">
+                                ชื่อผู้ใช้ <span className="text-red-500">*</span>
                             </Label>
                             <Input
                                 id="username"
                                 placeholder="กรอกชื่อผู้ใช้"
                                 autoComplete="username"
-                                className="border-slate-600 bg-slate-800/50 text-white placeholder:text-slate-400"
                                 aria-invalid={!!errors.username}
                                 aria-describedby={errors.username ? "username-error" : undefined}
                                 required
@@ -90,13 +87,13 @@ export default function LoginPage() {
                                 {...register('username')}
                             />
                             {errors.username && (
-                                <p id="username-error" className="text-sm text-red-400" role="alert">{errors.username.message}</p>
+                                <p id="username-error" className="text-sm text-red-500" role="alert">{errors.username.message}</p>
                             )}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-slate-200">
-                                รหัสผ่าน <span className="text-red-400">*</span>
+                            <Label htmlFor="password" className="text-slate-700">
+                                รหัสผ่าน <span className="text-red-500">*</span>
                             </Label>
                             <div className="relative">
                                 <Input
@@ -104,7 +101,7 @@ export default function LoginPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="กรอกรหัสผ่าน"
                                     autoComplete="current-password"
-                                    className="border-slate-600 bg-slate-800/50 pr-10 text-white placeholder:text-slate-400"
+                                    className="pr-10"
                                     aria-invalid={!!errors.password}
                                     aria-describedby={errors.password ? "password-error" : undefined}
                                     required
@@ -113,7 +110,7 @@ export default function LoginPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 rounded"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                     title={showPassword ? "Hide password" : "Show password"}
                                 >
@@ -121,14 +118,14 @@ export default function LoginPage() {
                                 </button>
                             </div>
                             {errors.password && (
-                                <p id="password-error" className="text-sm text-red-400" role="alert">{errors.password.message}</p>
+                                <p id="password-error" className="text-sm text-red-500" role="alert">{errors.password.message}</p>
                             )}
                         </div>
 
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700"
+                            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold"
                         >
                             <div className="flex items-center justify-center gap-2">
                                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}

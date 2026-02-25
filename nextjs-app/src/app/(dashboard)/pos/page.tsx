@@ -353,10 +353,10 @@ export default function POSPage() {
                         <Label className="mb-2 block">ลูกค้า</Label>
                         {customerId ? (
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3">
+                                <div className="flex items-center justify-between rounded-lg bg-amber-50 p-3">
                                     <div className="flex items-center gap-2">
-                                        <User className="h-5 w-5 text-primary" />
-                                        <span className="font-medium text-primary">{customerName}</span>
+                                        <User className="h-5 w-5 text-amber-600" />
+                                        <span className="font-medium text-amber-700">{customerName}</span>
                                     </div>
                                     <Button
                                         variant="ghost"
@@ -484,13 +484,13 @@ export default function POSPage() {
                         </div>
                         <div className="mb-4 flex justify-between text-lg font-bold">
                             <span>สุทธิ</span>
-                            <span className="text-primary">{formatCurrency(getTotal())}</span>
+                            <span className="text-amber-600">{formatCurrency(getTotal())}</span>
                         </div>
 
                         <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
                             <DialogTrigger asChild>
                                 <Button
-                                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600"
+                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold"
                                     disabled={items.length === 0 || !customerId}
                                 >
                                     ชำระเงิน
@@ -538,7 +538,7 @@ export default function POSPage() {
                                                                 setCashAmount(((parseFloat(cashAmount) || 0) + remaining).toString())
                                                             }
                                                         }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                                     >
                                                         เหลือทั้งหมด
                                                     </button>
@@ -568,7 +568,7 @@ export default function POSPage() {
                                                                 setTransferAmount(((parseFloat(transferAmount) || 0) + remaining).toString())
                                                             }
                                                         }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                                     >
                                                         เหลือทั้งหมด
                                                     </button>
@@ -598,7 +598,7 @@ export default function POSPage() {
                                                                 setCreditAmount(((parseFloat(creditAmount) || 0) + remaining).toString())
                                                             }
                                                         }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                                     >
                                                         เหลือทั้งหมด
                                                     </button>
@@ -637,7 +637,7 @@ export default function POSPage() {
                                                         />
                                                         <button
                                                             onClick={() => setDepositAmount(customerDepositBalance.toString())}
-                                                            className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-100 rounded hover:bg-emerald-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                                            className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                                         >
                                                             ทั้งหมด
                                                         </button>
@@ -651,7 +651,7 @@ export default function POSPage() {
                                     <div className="rounded-lg bg-slate-100 p-4 space-y-2">
                                         <div className="flex justify-between">
                                             <span>ยอดที่ต้องชำระ</span>
-                                            <span className="font-bold text-primary">{formatCurrency(getTotal())}</span>
+                                            <span className="font-bold text-amber-600">{formatCurrency(getTotal())}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>รวมที่ชำระ</span>
@@ -682,7 +682,7 @@ export default function POSPage() {
                                     )}
 
                                     <Button
-                                        className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600"
+                                        className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold"
                                         onClick={handleCheckout}
                                         disabled={createTransaction.isPending || addPayment.isPending || getTotalPayment() <= 0}
                                     >
@@ -714,7 +714,7 @@ export default function POSPage() {
                             ไม่ต้อง
                         </Button>
                         <Button
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-amber-500 hover:bg-amber-600 text-white"
                             onClick={() => {
                                 setShowReceiptPrompt(false)
                                 if (lastTransactionId) {

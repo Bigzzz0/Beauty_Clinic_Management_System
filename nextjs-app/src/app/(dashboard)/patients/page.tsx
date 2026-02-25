@@ -57,12 +57,16 @@ interface Customer {
 
 const getMemberBadgeColor = (level: string | null) => {
     switch (level?.toLowerCase()) {
+        case 'platinum gold':
+            return 'bg-purple-600 text-white border-purple-700'
         case 'platinum':
-            return 'bg-accent/20 text-accent border-accent/30'
+            return 'bg-indigo-100 text-indigo-800 border-indigo-300'
         case 'gold':
-            return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300'
+            return 'bg-amber-400 text-amber-900 border-amber-500'
+        case 'silver':
+            return 'bg-slate-200 text-slate-700 border-slate-400'
         default:
-            return 'bg-muted text-muted-foreground border-border'
+            return 'bg-slate-100 text-slate-600 border-slate-300'
     }
 }
 

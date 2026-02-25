@@ -123,25 +123,25 @@ export function Sidebar() {
     return (
         <aside
             className={cn(
-                'fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white transition-all duration-300',
+                'fixed left-0 top-0 z-40 h-screen bg-white border-r border-slate-200 transition-all duration-300',
                 isSidebarOpen ? 'w-64' : 'w-20'
             )}
         >
-            <div className="flex h-16 items-center justify-between border-b border-slate-700 px-4">
+            <div className="flex h-16 items-center justify-between border-b border-slate-100 px-4">
                 <div className={cn('flex items-center gap-3', !isSidebarOpen && 'hidden')}>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-                        <span className="text-lg font-bold">BC</span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-400">
+                        <span className="text-lg font-bold text-slate-900">BC</span>
                     </div>
                     <div>
-                        <h1 className="text-sm font-semibold">Beauty Clinic</h1>
-                        <p className="text-xs text-slate-400">Management System</p>
+                        <h1 className="text-sm font-semibold text-slate-800">Beauty Clinic</h1>
+                        <p className="text-xs text-slate-500">Management System</p>
                     </div>
                 </div>
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={toggleSidebar}
-                    className="text-slate-400 hover:bg-slate-700 hover:text-white"
+                    className="text-slate-500 hover:bg-amber-50 hover:text-amber-700"
                     aria-label="Toggle sidebar"
                 >
                     <ChevronLeft
@@ -164,8 +164,8 @@ export function Sidebar() {
                                 className={cn(
                                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                     isActive(item.href)
-                                        ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
-                                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
+                                        ? 'bg-amber-50 text-amber-800 border-l-4 border-amber-500 font-medium pl-2'
+                                        : 'text-slate-500 hover:bg-amber-50 hover:text-amber-700'
                                 )}
                             >
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -176,7 +176,7 @@ export function Sidebar() {
                     {/* Inventory Section */}
                     {['Admin', 'Doctor', 'Therapist'].includes(user?.position || '') && (
                         <>
-                            <Separator className="my-3 bg-slate-700" />
+                            <Separator className="my-3" />
                             <p
                                 className={cn(
                                     'mb-2 px-3 text-xs font-medium uppercase tracking-wider text-slate-400',
@@ -194,8 +194,8 @@ export function Sidebar() {
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
-                                            ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
-                                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
+                                            ? 'bg-amber-50 text-amber-800 border-l-4 border-amber-500 font-medium pl-2'
+                                            : 'text-slate-500 hover:bg-amber-50 hover:text-amber-700'
                                     )}
                                 >
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -208,7 +208,7 @@ export function Sidebar() {
                     {/* Reports Section */}
                     {['Admin', 'Sale', 'Cashier'].includes(user?.position || '') && (
                         <>
-                            <Separator className="my-3 bg-slate-700" />
+                            <Separator className="my-3" />
                             {reportItems.map((item) => (
                                 <Link
                                     key={item.href}
@@ -218,8 +218,8 @@ export function Sidebar() {
                                     className={cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                                         isActive(item.href)
-                                            ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
-                                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
+                                            ? 'bg-amber-50 text-amber-800 border-l-4 border-amber-500 font-medium pl-2'
+                                            : 'text-slate-500 hover:bg-amber-50 hover:text-amber-700'
                                     )}
                                 >
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -230,7 +230,7 @@ export function Sidebar() {
                     )}
 
                     {/* Settings */}
-                    <Separator className="my-3 bg-slate-700" />
+                    <Separator className="my-3" />
                     <Link
                         href="/settings"
                         title={!isSidebarOpen ? "ตั้งค่า" : undefined}
@@ -238,8 +238,8 @@ export function Sidebar() {
                         className={cn(
                             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200',
                             isActive('/settings')
-                                ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-white border-l-2 border-primary shadow-[0_0_15px_-3px_rgba(255,50,150,0.3)]'
-                                : 'text-slate-400 hover:bg-slate-800/50 hover:text-white hover:pl-4'
+                                ? 'bg-amber-50 text-amber-800 border-l-4 border-amber-500 font-medium pl-2'
+                                : 'text-slate-500 hover:bg-amber-50 hover:text-amber-700'
                         )}
                     >
                         <Settings className="h-5 w-5 flex-shrink-0" />
@@ -249,20 +249,20 @@ export function Sidebar() {
             </ScrollArea>
 
             {/* User Section */}
-            <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700 p-3">
+            <div className="absolute bottom-0 left-0 right-0 border-t border-slate-100 p-3">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-medium">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-400 text-sm font-semibold text-slate-900">
                         {user?.full_name?.charAt(0) || 'U'}
                     </div>
                     <div className={cn('flex-1', !isSidebarOpen && 'hidden')}>
-                        <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
-                        <p className="text-xs text-slate-400">{user?.position || 'Staff'}</p>
+                        <p className="text-sm font-medium text-slate-800">{user?.full_name || 'User'}</p>
+                        <p className="text-xs text-slate-500">{user?.position || 'Staff'}</p>
                     </div>
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={logout}
-                        className={cn('text-slate-400 hover:bg-slate-700 hover:text-white', !isSidebarOpen && 'hidden')}
+                        className={cn('text-slate-500 hover:bg-amber-50 hover:text-amber-700', !isSidebarOpen && 'hidden')}
                         aria-label="Logout"
                     >
                         <LogOut className="h-4 w-4" />

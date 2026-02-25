@@ -50,7 +50,7 @@ export function Header() {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="flex items-center gap-2" aria-label="User menu">
                             <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white">
+                                <AvatarFallback className="bg-amber-400 text-slate-900 font-semibold">
                                     {user?.full_name?.charAt(0) || 'U'}
                                 </AvatarFallback>
                             </Avatar>

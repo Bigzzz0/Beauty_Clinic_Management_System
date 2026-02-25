@@ -101,9 +101,11 @@ interface GalleryImage {
 
 const getMemberBadgeColor = (level: string | null) => {
     switch (level?.toLowerCase()) {
-        case 'platinum': return 'bg-purple-100 text-purple-800 border-purple-200'
-        case 'gold': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-        default: return 'bg-slate-100 text-slate-700 border-slate-200'
+        case 'platinum gold': return 'bg-purple-600 text-white border-purple-700'
+        case 'platinum': return 'bg-indigo-100 text-indigo-800 border-indigo-300'
+        case 'gold': return 'bg-amber-400 text-amber-900 border-amber-500'
+        case 'silver': return 'bg-slate-200 text-slate-700 border-slate-400'
+        default: return 'bg-slate-100 text-slate-600 border-slate-300'
     }
 }
 

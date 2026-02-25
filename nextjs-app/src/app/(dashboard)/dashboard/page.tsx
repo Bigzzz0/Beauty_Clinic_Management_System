@@ -46,10 +46,10 @@ export default function DashboardPage() {
 
     // แมพข้อมูลเข้ากับรูปแบบที่ HTML เดิมต้องการ
     const stats = apiData ? [
-        { ...apiData[0], icon: Users, color: 'from-primary to-primary/80' },
-        { ...apiData[1], icon: ShoppingCart, color: 'from-emerald-500 to-emerald-600' },
-        { ...apiData[2], icon: Package, color: 'from-accent to-accent/80' },
-        { ...apiData[3], icon: TrendingUp, color: 'from-primary to-accent' },
+        { ...apiData[0], icon: Users, color: 'from-sky-500 to-sky-600' },
+        { ...apiData[1], icon: ShoppingCart, color: 'from-amber-500 to-amber-600' },
+        { ...apiData[2], icon: Package, color: 'from-slate-600 to-slate-700' },
+        { ...apiData[3], icon: TrendingUp, color: 'from-emerald-500 to-emerald-600' },
     ] : []
 
     const { data: lowStockItems = [], isLoading: isLoadingStock } = useQuery({
@@ -90,11 +90,16 @@ export default function DashboardPage() {
     return (
         <div className="space-y-6">
             {/* Welcome Header */}
-            <div className="rounded-xl bg-gradient-to-r from-primary via-accent to-primary p-6 text-white shadow-lg">
-                <h1 className="text-2xl font-bold">สวัสดี, {user?.full_name || 'ผู้ใช้'} 👋</h1>
-                <p className="mt-1 text-white/80">
-                    ยินดีต้อนรับเข้าสู่ระบบบริหารจัดการคลินิกความงาม
-                </p>
+            <div className="rounded-xl bg-white border border-amber-200 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 flex-shrink-0">
+                    <span className="text-xl font-bold text-slate-900">BC</span>
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800">สวัสดี, {user?.full_name || 'ผู้ใช้'} 👋</h1>
+                    <p className="mt-0.5 text-slate-500">
+                        ยินดีต้อนรับเข้าสู่ระบบบริหารจัดการคลินิกความงาม
+                    </p>
+                </div>
             </div>
 
             {/* Quick Actions */}
@@ -109,7 +114,7 @@ export default function DashboardPage() {
                     <div className="grid gap-4 md:grid-cols-4">
                         <Link
                             href="/pos"
-                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex flex-col items-center justify-center rounded-xl bg-amber-500 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] hover:bg-amber-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
                             aria-label="ไปที่หน้าขายสินค้า (POS)"
                         >
                             <ShoppingCart className="h-6 w-6" aria-hidden="true" />
@@ -117,7 +122,7 @@ export default function DashboardPage() {
                         </Link>
                         <Link
                             href="/patients"
-                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex flex-col items-center justify-center rounded-xl bg-sky-500 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] hover:bg-sky-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2"
                             aria-label="ไปที่หน้าจัดการลูกค้า"
                         >
                             <Users className="h-6 w-6" aria-hidden="true" />
@@ -125,7 +130,7 @@ export default function DashboardPage() {
                         </Link>
                         <Link
                             href="/inventory"
-                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent/80 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex flex-col items-center justify-center rounded-xl bg-slate-600 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] hover:bg-slate-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
                             aria-label="ไปที่หน้าคลังสินค้า"
                         >
                             <Package className="h-6 w-6" aria-hidden="true" />
@@ -133,7 +138,7 @@ export default function DashboardPage() {
                         </Link>
                         <Link
                             href="/reports"
-                            className="flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent p-4 text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            className="flex flex-col items-center justify-center rounded-xl bg-amber-600 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] hover:bg-amber-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
                             aria-label="ไปที่หน้ารายงาน"
                         >
                             <TrendingUp className="h-6 w-6" aria-hidden="true" />
@@ -195,7 +200,7 @@ export default function DashboardPage() {
                                         className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-medium text-white">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-400 text-sm font-semibold text-slate-900">
                                                 {apt.customer.charAt(3)}
                                             </div>
                                             <div>
@@ -204,7 +209,7 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-medium text-primary">{apt.time}</p>
+                                            <p className="font-medium text-amber-600">{apt.time}</p>
                                         </div>
                                     </div>
                                 ))}
