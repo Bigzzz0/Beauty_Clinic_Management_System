@@ -68,6 +68,7 @@ model customer {
   customer_deposit   customer_deposit[] // Deposit history
   service_usage      service_usage[] // Service usage history
   appointment        appointment[]
+  patient_gallery    patient_gallery[]
 
   @@index([first_name, last_name, phone_number, hn_code])
   @@index([phone_number])
@@ -87,11 +88,13 @@ model customer_course {
   status             customer_course_status? @default(ACTIVE)
   customer           customer                @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "customer_course_ibfk_1")
   course             course                  @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction, map: "customer_course_ibfk_2")
+  transaction_header transaction_header      @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
   service_usage      service_usage[]
   appointment        appointment[]
 
   @@index([course_id], map: "course_id")
   @@index([customer_id], map: "customer_id")
+  @@index([transaction_id])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -145,8 +148,10 @@ model patient_gallery {
   notes         String?                     @db.Text
   created_at    DateTime?                   @default(now()) @db.Timestamp(0)
   service_usage service_usage?              @relation(fields: [usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_gallery_ibfk_1")
+  customer      customer                    @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([usage_id], map: "usage_id")
+  @@index([customer_id])
 }
 
 model payment_log {
@@ -157,8 +162,10 @@ model payment_log {
   payment_method     payment_log_payment_method
   payment_date       DateTime?                  @default(now()) @db.Timestamp(0)
   transaction_header transaction_header         @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "payment_log_ibfk_1")
+  staff              staff                      @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([transaction_id], map: "transaction_id")
+  @@index([staff_id])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -197,23 +204,38 @@ model service_usage {
   fee_log            fee_log[]
   inventory_usage    inventory_usage[]
   patient_gallery    patient_gallery[]
+  stock_movement     stock_movement[]
   customer           customer          @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "service_usage_customer_fk")
   customer_course    customer_course?  @relation(fields: [customer_course_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_usage_ibfk_1")
+  transaction_header transaction_header? @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
+  doctor             staff?            @relation("DoctorServiceUsage", fields: [doctor_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
+  therapist          staff?            @relation("TherapistServiceUsage", fields: [therapist_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([customer_id], map: "customer_id")
   @@index([customer_course_id], map: "customer_course_id")
   @@index([service_date])
+  @@index([transaction_id])
+  @@index([doctor_id])
+  @@index([therapist_id])
 }
 
 model staff {
-  staff_id      Int            @id @default(autoincrement())
-  full_name     String         @db.VarChar(100)
-  position      staff_position
-  username      String         @unique(map: "username") @db.VarChar(50)
-  password_hash String         @db.VarChar(255)
-  is_active     Boolean?       @default(true)
-  created_at    DateTime?      @default(now()) @db.Timestamp(0)
-  fee_log       fee_log[]
+  staff_id                Int                  @id @default(autoincrement())
+  full_name               String               @db.VarChar(100)
+  position                staff_position
+  username                String               @unique(map: "username") @db.VarChar(50)
+  password_hash           String               @db.VarChar(255)
+  is_active               Boolean?             @default(true)
+  created_at              DateTime?            @default(now()) @db.Timestamp(0)
+  fee_log                 fee_log[]
+  transaction_header      transaction_header[]
+  payment_log             payment_log[]
+  stock_movement          stock_movement[]
+  doctor_service_usage    service_usage[]      @relation("DoctorServiceUsage")
+  therapist_service_usage service_usage[]      @relation("TherapistServiceUsage")
+  doctor_appointments     appointment[]        @relation("DoctorAppointments")
+  therapist_appointments  appointment[]        @relation("TherapistAppointments")
+  customer_deposit        customer_deposit[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -232,9 +254,15 @@ model stock_movement {
   related_usage_id       Int?
   created_at             DateTime?                  @default(now()) @db.Timestamp(0)
   product                product                    @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "stock_movement_ibfk_1")
+  staff                  staff                      @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
+  transaction_header     transaction_header?        @relation(fields: [related_transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
+  service_usage          service_usage?             @relation(fields: [related_usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([product_id], map: "product_id")
   @@index([created_at])
+  @@index([staff_id])
+  @@index([related_transaction_id])
+  @@index([related_usage_id])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -251,10 +279,16 @@ model transaction_header {
   channel           transaction_header_channel?        @default(WALK_IN)
   payment_log       payment_log[]
   customer          customer                           @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_header_ibfk_1")
+  staff             staff                              @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
   transaction_item  transaction_item[]
+  customer_course   customer_course[]
+  customer_deposit  customer_deposit[]
+  service_usage     service_usage[]
+  stock_movement    stock_movement[]
 
   @@index([customer_id], map: "customer_id")
   @@index([transaction_date])
+  @@index([staff_id])
 }
 
 model transaction_item {
@@ -292,15 +326,6 @@ enum patient_gallery_image_type {
   After
   Follow_up @map("Follow-up")
   Document
-}
-
-enum product_category {
-  Botox
-  Filler
-  Treatment
-  Medicine
-  Equipment
-  Skin
 }
 
 enum stock_movement_action_type {
@@ -342,13 +367,6 @@ enum transaction_header_channel {
   ONLINE
 }
 
-// หมวดหมู่ค่ามือ (Commission category)
-enum commission_category {
-  TREATMENT_COVER // หมอการคลุมทรีทเมนต์
-  LASER // เลเซอร์/ทรีทเมนต์
-  STAFF_ASSIST // ค่าช่วยผลักงานพนักงาน
-}
-
 // ตารางอัตราค่ามือ (Commission rate table)
 model commission_rate {
   id            Int             @id @default(autoincrement())
@@ -382,9 +400,12 @@ model customer_deposit {
   created_at     DateTime                 @default(now()) @db.Timestamp(0)
   created_by     Int? // staff_id who created
   customer       customer                 @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction)
+  transaction_header transaction_header?  @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction)
+  staff          staff?                   @relation(fields: [created_by], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([customer_id], map: "customer_deposit_customer_id")
   @@index([transaction_id], map: "customer_deposit_transaction_id")
+  @@index([created_by])
 }
 
 // ระบบนัดหมาย (Appointments system)
@@ -410,7 +431,12 @@ model appointment {
 
   customer        customer         @relation(fields: [customer_id], references: [customer_id])
   customer_course customer_course? @relation(fields: [customer_course_id], references: [id])
+  doctor          staff?           @relation("DoctorAppointments", fields: [doctor_id], references: [staff_id], onDelete: SetNull, onUpdate: Cascade)
+  therapist       staff?           @relation("TherapistAppointments", fields: [therapist_id], references: [staff_id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([customer_id])
   @@index([appointment_date])
+  @@index([doctor_id])
+  @@index([therapist_id])
+  @@index([customer_course_id])
 }
