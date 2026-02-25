@@ -378,19 +378,19 @@ export default function ServicePage() {
                                                     full_name: cwc.full_name,
                                                 })}
                                             >
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <p className="font-medium">{cwc.full_name}</p>
+                                                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2 w-full min-w-0">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-medium truncate">{cwc.full_name}</p>
                                                         <p className="text-sm text-slate-500">HN: {cwc.hn_code}</p>
                                                     </div>
-                                                    <div className="text-right">
+                                                    <div className="text-left md:text-right flex flex-wrap gap-1 shrink-0">
                                                         {cwc.courses.slice(0, 2).map((c) => (
-                                                            <Badge key={c.id} variant="outline" className="text-xs ml-1">
+                                                            <Badge key={c.id} variant="outline" className="text-xs truncate max-w-[150px] md:max-w-[200px]">
                                                                 {c.course_name} ({c.remaining_sessions})
                                                             </Badge>
                                                         ))}
                                                         {cwc.courses.length > 2 && (
-                                                            <span className="text-xs text-slate-400 ml-1">+{cwc.courses.length - 2}</span>
+                                                            <span className="text-xs text-slate-400 self-center">+{cwc.courses.length - 2}</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -423,7 +423,7 @@ export default function ServicePage() {
                                             <div
                                                 key={cwc.customer_id}
                                                 className={cn(
-                                                    "p-3 hover:bg-primary/5 cursor-pointer flex justify-between items-start transition-colors",
+                                                    "p-3 hover:bg-primary/5 cursor-pointer flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 transition-colors",
                                                     selectedCustomer.customer_id === cwc.customer_id ? "bg-white border-l-4 border-primary" : "bg-white"
                                                 )}
                                                 onClick={() => handleSelectCustomer({
@@ -432,19 +432,21 @@ export default function ServicePage() {
                                                     full_name: cwc.full_name,
                                                 })}
                                             >
-                                                <div>
-                                                    <p className="font-medium text-sm">{cwc.full_name}</p>
-                                                    <p className="text-xs text-slate-500">HN: {cwc.hn_code}</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    {cwc.courses.slice(0, 2).map((c) => (
-                                                        <Badge key={c.id} variant="outline" className="text-[10px] ml-1">
-                                                            {c.course_name} ({c.remaining_sessions})
-                                                        </Badge>
-                                                    ))}
-                                                    {cwc.courses.length > 2 && (
-                                                        <span className="text-[10px] text-slate-400 ml-1">+{cwc.courses.length - 2}</span>
-                                                    )}
+                                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 w-full min-w-0">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-medium text-sm truncate">{cwc.full_name}</p>
+                                                        <p className="text-xs text-slate-500">HN: {cwc.hn_code}</p>
+                                                    </div>
+                                                    <div className="text-left md:text-right flex flex-wrap md:justify-end gap-1 shrink-0">
+                                                        {cwc.courses.slice(0, 2).map((c) => (
+                                                            <Badge key={c.id} variant="outline" className="text-[10px] truncate max-w-[150px] md:max-w-[200px]">
+                                                                {c.course_name} ({c.remaining_sessions})
+                                                            </Badge>
+                                                        ))}
+                                                        {cwc.courses.length > 2 && (
+                                                            <span className="text-[10px] text-slate-400 self-center">+{cwc.courses.length - 2}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
@@ -467,16 +469,16 @@ export default function ServicePage() {
                                                     className="p-4 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
                                                     onClick={() => handleSelectCourse(cc)}
                                                 >
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
-                                                            <h4 className="font-semibold group-hover:text-primary transition-colors">
+                                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <h4 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base">
                                                                 {cc.course.course_name}
                                                             </h4>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <Badge variant={cc.remaining_sessions > 0 ? 'default' : 'secondary'}>
+                                                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                                <Badge variant={cc.remaining_sessions > 0 ? 'default' : 'secondary'} className="text-xs">
                                                                     เหลือ {cc.remaining_sessions}/{cc.total_sessions} ครั้ง
                                                                 </Badge>
-                                                                <span className="text-xs text-muted-foreground">
+                                                                <span className="text-xs text-muted-foreground whitespace-nowrap">
                                                                     ซื้อ: {new Date(cc.purchase_date).toLocaleDateString('th-TH')}
                                                                 </span>
                                                             </div>
@@ -485,7 +487,7 @@ export default function ServicePage() {
                                                             size="sm"
                                                             disabled={cc.remaining_sessions <= 0}
                                                             variant="outline"
-                                                            className="border-primary text-primary hover:bg-primary hover:text-white shadow-sm"
+                                                            className="border-primary text-primary hover:bg-primary hover:text-white shadow-sm w-full sm:w-auto"
                                                         >
                                                             <Plus className="h-4 w-4 mr-1" />
                                                             ใช้บริการ
@@ -509,48 +511,50 @@ export default function ServicePage() {
                             รายการล่าสุด
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>วันที่</TableHead>
-                                    <TableHead>ลูกค้า</TableHead>
-                                    <TableHead>บริการ</TableHead>
-                                    <TableHead className="text-right">ค่ามือ</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {recentUsages.map((usage) => (
-                                    <TableRow key={usage.usage_id}>
-                                        <TableCell className="text-sm">
-                                            {new Date(usage.service_date).toLocaleDateString('th-TH')}
-                                        </TableCell>
-                                        <TableCell>
-                                            <p className="font-medium">{usage.customer?.full_name}</p>
-                                            <p className="text-xs text-slate-500">{usage.customer?.hn_code}</p>
-                                        </TableCell>
-                                        <TableCell>{usage.service_name}</TableCell>
-                                        <TableCell className="text-right">
-                                            {usage.fee_log?.reduce((sum, f) => sum + Number(f.amount), 0).toLocaleString() || 0}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {recentUsages.length === 0 && (
+                    <CardContent className="p-0 sm:p-6 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-slate-500">
-                                            ยังไม่มีข้อมูล
-                                        </TableCell>
+                                        <TableHead>วันที่</TableHead>
+                                        <TableHead>ลูกค้า</TableHead>
+                                        <TableHead>บริการ</TableHead>
+                                        <TableHead className="text-right">ค่ามือ</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {recentUsages.map((usage) => (
+                                        <TableRow key={usage.usage_id}>
+                                            <TableCell className="text-sm">
+                                                {new Date(usage.service_date).toLocaleDateString('th-TH')}
+                                            </TableCell>
+                                            <TableCell>
+                                                <p className="font-medium">{usage.customer?.full_name}</p>
+                                                <p className="text-xs text-slate-500">{usage.customer?.hn_code}</p>
+                                            </TableCell>
+                                            <TableCell>{usage.service_name}</TableCell>
+                                            <TableCell className="text-right">
+                                                {usage.fee_log?.reduce((sum, f) => sum + Number(f.amount), 0).toLocaleString() || 0}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {recentUsages.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="text-center text-slate-500">
+                                                ยังไม่มีข้อมูล
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Service Dialog */}
             <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="w-[95vw] sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                     <DialogHeader>
                         <DialogTitle>บันทึกการรับบริการ</DialogTitle>
                         <DialogDescription>

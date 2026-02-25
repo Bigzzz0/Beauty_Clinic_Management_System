@@ -156,7 +156,7 @@ export default function DashboardPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
                         <Link
                             href="/pos"
                             className="flex flex-col items-center justify-center rounded-xl bg-amber-500 p-4 text-white shadow-sm transition-transform hover:scale-[1.02] hover:bg-amber-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
@@ -196,7 +196,7 @@ export default function DashboardPage() {
             {/* Debtors Alert Banner */}
             {debtors.length > 0 && (
                 <Link href="/debtors" className="block mt-6">
-                    <div className="flex items-center justify-between rounded-xl bg-red-50 border border-red-200 px-5 py-3.5 hover:bg-red-100 transition-colors cursor-pointer">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 rounded-xl bg-red-50 border border-red-200 px-5 py-3.5 hover:bg-red-100 transition-colors cursor-pointer">
                         <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100">
                                 <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {[
                                 { label: 'เงินสด', amount: cashTotal, icon: Banknote, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                                 { label: 'โอนเงิน', amount: transferTotal, icon: QrCode, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -280,14 +280,14 @@ export default function DashboardPage() {
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Upcoming Appointments */}
                 <Card className="flex flex-col">
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col items-start sm:flex-row sm:items-center justify-between pb-2">
                         <CardTitle className="flex items-center gap-2">
                             <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
                             นัดหมายวันนี้
                         </CardTitle>
-                        {/* Appointment Status Badges (NEW) */}
+                        {/* Appointment Status Badges */}
                         {appointments.length > 0 && (
-                            <div className="flex gap-1.5 flex-wrap">
+                            <div className="flex flex-wrap gap-1.5 mt-2 sm:mt-0">
                                 {apptScheduled > 0 && (
                                     <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 gap-1 text-xs">
                                         <Clock className="h-3 w-3" /> {apptScheduled} รอ

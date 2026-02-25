@@ -372,7 +372,8 @@ export default function InventoryPage() {
                             <CardTitle>รายการสต๊อกคงเหลือ</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-lg border overflow-hidden">
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block rounded-lg border overflow-hidden">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="bg-muted/50">
@@ -453,6 +454,71 @@ export default function InventoryPage() {
                                         )}
                                     </TableBody>
                                 </Table>
+                            </div>
+
+                            {/* Mobile Card View */}
+                            <div className="grid grid-cols-1 gap-4 md:hidden">
+                                {isLoading ? (
+                                    [...Array(5)].map((_, i) => (
+                                        <div key={i} className="flex animate-pulse flex-col gap-3 rounded-xl border p-4">
+                                            <div className="flex justify-between">
+                                                <div className="h-5 w-1/2 rounded bg-slate-100" />
+                                                <div className="h-5 w-16 rounded bg-slate-100" />
+                                            </div>
+                                            <div className="h-4 w-1/3 rounded bg-slate-100" />
+                                            <div className="mt-2 border-t pt-2">
+                                                <div className="h-6 w-24 rounded bg-slate-100 ml-auto" />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : inventory.length === 0 ? (
+                                    <div className="py-8">
+                                        <EmptyState
+                                            icon={Package}
+                                            title="ไม่พบข้อมูลสินค้า"
+                                            description={search ? `ไม่พบสินค้าที่ตรงกับ "${search}"` : "ยังไม่มีสินค้าในคลัง เริ่มต้นด้วยการเพิ่มสินค้าใหม่"}
+                                            action={
+                                                <Link href="/inventory/stock-in">
+                                                    <Button variant="outline" className="mt-4">
+                                                        รับสินค้าเข้า
+                                                    </Button>
+                                                </Link>
+                                            }
+                                        />
+                                    </div>
+                                ) : (
+                                    inventory.map((item) => {
+                                        const status = getStockStatus(item)
+                                        return (
+                                            <div key={item.product_id} className="flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-sm">
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <div className="font-medium text-slate-900">{item.product_name}</div>
+                                                        <div className="mt-0.5 font-mono text-xs text-muted-foreground">{item.product_code}</div>
+                                                    </div>
+                                                    <Badge className={getCategoryBadgeClass(item.category)}>{item.category}</Badge>
+                                                </div>
+                                                <div className="mt-2 flex items-end justify-between border-t pt-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        {status === 'normal' && <CheckCircle className="h-4 w-4 text-success" />}
+                                                        {status === 'low' && <AlertTriangle className="h-4 w-4 text-warning" />}
+                                                        {status === 'out' && <XCircle className="h-4 w-4 text-destructive" />}
+                                                        <span className={`text-sm font-medium ${status === 'normal' ? 'text-success' : status === 'low' ? 'text-warning' : 'text-destructive'}`}>
+                                                            {status === 'normal' ? 'ปกติ' : status === 'low' ? 'ใกล้หมด' : 'หมด'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-xl font-bold">{item.full_qty}</span>
+                                                        <span className="ml-1 text-sm text-muted-foreground">{item.main_unit}</span>
+                                                        {item.opened_qty > 0 && (
+                                                            <span className="ml-1 text-sm text-primary">(+{item.opened_qty} {item.sub_unit})</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                )}
                             </div>
                         </CardContent>
                     </Card>

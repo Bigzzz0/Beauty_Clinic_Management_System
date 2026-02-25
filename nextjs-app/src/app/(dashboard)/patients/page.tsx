@@ -219,7 +219,8 @@ export default function PatientsPage() {
                     <CardTitle>รายชื่อคนไข้ ({data?.meta?.total || 0} คน)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-lg border overflow-hidden">
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block rounded-lg border overflow-hidden">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-slate-50">
@@ -389,6 +390,121 @@ export default function PatientsPage() {
                         </Table>
                     </div>
 
+                    {/* Mobile Card View */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {isLoading || (isFetching && customers.length === 0) ? (
+                            [...Array(5)].map((_, i) => (
+                                <div key={i} className="flex animate-pulse gap-4 rounded-xl border p-4">
+                                    <div className="h-10 w-10 rounded-full bg-slate-100" />
+                                    <div className="flex-1 space-y-2 py-1">
+                                        <div className="h-4 w-3/4 rounded bg-slate-100" />
+                                        <div className="h-3 w-1/2 rounded bg-slate-100" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : customers.length === 0 ? (
+                            <div className="py-8">
+                                <EmptyState
+                                    icon={Users}
+                                    title="ไม่พบข้อมูลคนไข้"
+                                    description={search ? `ไม่พบคนไข้ที่ตรงกับ "${search}"` : "ยังไม่มีข้อมูลคนไข้ในระบบ เริ่มต้นด้วยการเพิ่มคนไข้ใหม่"}
+                                    action={
+                                        <Button variant="outline" onClick={() => router.push('/patients/new')}>
+                                            เพิ่มคนไข้ใหม่
+                                        </Button>
+                                    }
+                                />
+                            </div>
+                        ) : (
+                            customers.map((customer) => (
+                                <div key={customer.customer_id} className="relative flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20">
+                                                <UserCircle className="h-6 w-6 text-primary" />
+                                            </div>
+                                            <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <Link
+                                                        href={`/patients/${customer.customer_id}`}
+                                                        className="font-medium text-slate-900 hover:text-primary hover:underline"
+                                                    >
+                                                        {customer.full_name || `${customer.first_name} ${customer.last_name}`}
+                                                    </Link>
+                                                    <Badge className={`${getMemberBadgeColor(customer.member_level)} text-[10px] px-1.5 py-0`}>
+                                                        {customer.member_level || 'General'}
+                                                    </Badge>
+                                                </div>
+                                                <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                                                    <span className="font-mono">{customer.hn_code}</span>
+                                                    {customer.nickname && <span>• "{customer.nickname}"</span>}
+                                                </div>
+                                                {(customer.drug_allergy || customer.underlying_disease) && (
+                                                    <div className="mt-1.5 flex items-center gap-1 text-xs text-red-500 font-medium">
+                                                        <AlertTriangle className="h-3.5 w-3.5" />
+                                                        มีข้อควรระวัง
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="shrink-0 space-y-1 text-right">
+                                            <div className="text-xs text-slate-500 flex items-center justify-end gap-1">
+                                                <Phone className="h-3 w-3" />
+                                                <span>{customer.phone_number}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between border-t pt-3 mt-1">
+                                        <div className="text-xs text-slate-500">
+                                            มาล่าสุด: <span className="font-medium text-slate-700">{formatDate(customer.last_visit)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {customer.total_debt > 0 ? (
+                                                <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-xs">
+                                                    ค้าง ฿{customer.total_debt.toLocaleString()}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-xs text-emerald-600 font-medium">ไม่มีค้าง</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button positioned absolutely or just simple dropdown */}
+                                    <div className="absolute right-2 top-2">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500">
+                                                    <span className="sr-only">ตัวเลือก</span>
+                                                    <Edit className="h-4 w-4" /> {/* Or dots icon */}
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/patients/${customer.customer_id}`}>แก้ไขข้อมูล</Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/patients/${customer.customer_id}?tab=history`}>ประวัติการรักษา</Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/pos?customer=${customer.customer_id}`}>ออกบิลใหม่</Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="text-red-500"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteCustomer(customer.customer_id, customer.full_name || customer.first_name);
+                                                    }}
+                                                >
+                                                    ลบข้อมูล
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <nav className="flex items-center justify-between mt-4" aria-label="Pagination">
@@ -419,6 +535,6 @@ export default function PatientsPage() {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }

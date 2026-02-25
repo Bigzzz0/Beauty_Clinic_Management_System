@@ -347,7 +347,7 @@ export default function SettingsPage() {
             </div>
 
             <Tabs defaultValue="products" className="space-y-4">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     {/* Main content tabs */}
                     <TabsList>
                         <TabsTrigger value="products">
@@ -365,7 +365,7 @@ export default function SettingsPage() {
                     </TabsList>
 
                     {/* Sub-page navigation links */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Link href="/settings/categories">
                             <Button variant="outline" size="sm" className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
                                 <Package className="h-3.5 w-3.5" />
@@ -615,7 +615,7 @@ export default function SettingsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <Label>หน่วยใหญ่ *</Label>
                                 <Select value={editingProduct?.main_unit || undefined} onValueChange={(v) => setEditingProduct({ ...editingProduct, main_unit: v })}>
@@ -635,7 +635,7 @@ export default function SettingsPage() {
                                 </Select>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <Label>จำนวนต่อหน่วย *</Label>
                                 <Input type="number" min={1} inputMode="decimal" value={editingProduct?.pack_size ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, pack_size: e.target.value === '' ? ('' as any) : parseInt(e.target.value) })} />
@@ -645,7 +645,7 @@ export default function SettingsPage() {
                                 <Label htmlFor="is-liquid">เป็นของเหลว</Label>
                             </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <Label>ราคาทุน</Label>
                                 <Input type="number" min={0} inputMode="decimal" value={editingProduct?.cost_price ?? ''} onChange={(e) => setEditingProduct({ ...editingProduct, cost_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />
@@ -691,7 +691,7 @@ export default function SettingsPage() {
                             <Label>รายละเอียด</Label>
                             <Textarea value={editingCourse?.description || ''} onChange={(e) => setEditingCourse({ ...editingCourse, description: e.target.value })} />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <Label>ราคาขาย *</Label>
                                 <Input type="number" min={0} inputMode="decimal" value={editingCourse?.standard_price ?? ''} onChange={(e) => setEditingCourse({ ...editingCourse, standard_price: e.target.value === '' ? ('' as any) : parseFloat(e.target.value) })} />

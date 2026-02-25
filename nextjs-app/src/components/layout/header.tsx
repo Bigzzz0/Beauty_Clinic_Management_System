@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { useAuthStore } from '@/stores/auth-store'
@@ -27,36 +29,56 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { SidebarContent } from './sidebar'
 
 export function Header() {
-    const { toggleSidebar, isMobile } = useUIStore()
+    const { isSidebarOpen, setSidebarOpen, isMobile } = useUIStore()
     const { user, logout } = useAuthStore()
+    const pathname = usePathname()
+
+    // Auto-close mobile sidebar when pathname changes
+    useEffect(() => {
+        if (isMobile && isSidebarOpen) {
+            setSidebarOpen(false)
+        }
+    }, [pathname, isMobile, isSidebarOpen, setSidebarOpen])
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-card px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4 lg:px-6 shadow-sm">
             <div className="flex items-center gap-4">
                 {isMobile && (
-                    <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
-                        <Menu className="h-5 w-5" />
-                    </Button>
+                    <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" aria-label="Toggle sidebar">
+                                <Menu className="h-5 w-5" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-[280px] p-0 border-r-0 [&>button]:hidden sm:[&>button]:flex flex-col gap-0">
+                            <SheetHeader className="sr-only">
+                                <SheetTitle>Navigation Menu</SheetTitle>
+                            </SheetHeader>
+                            <SidebarContent isMobile={true} />
+                        </SheetContent>
+                    </Sheet>
                 )}
                 <GlobalSearch />
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
                 <NotificationMenu />
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="flex items-center gap-2" aria-label="User menu">
+                        <Button variant="ghost" className="flex items-center gap-2 pl-2 sm:pl-3" aria-label="User menu">
                             <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-amber-400 text-slate-900 font-semibold">
+                                <AvatarFallback className="bg-amber-400 text-slate-900 font-semibold border border-amber-500/20">
                                     {user?.full_name?.charAt(0) || 'U'}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="hidden text-left md:block">
-                                <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
-                                <p className="text-xs text-muted-foreground">{user?.position || 'Staff'}</p>
+                                <p className="text-sm font-medium text-slate-800">{user?.full_name || 'User'}</p>
+                                <p className="text-xs text-slate-500">{user?.position || 'Staff'}</p>
                             </div>
                         </Button>
                     </DropdownMenuTrigger>
