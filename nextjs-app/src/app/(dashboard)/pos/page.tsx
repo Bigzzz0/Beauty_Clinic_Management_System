@@ -496,151 +496,177 @@ export default function POSPage() {
                                     ชำระเงิน
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle>ชำระเงิน</DialogTitle>
-                                    <DialogDescription>
-                                        ระบุยอดเงินตามช่องทางที่ลูกค้าชำระ (สามารถแยกชำระได้หลายช่องทาง)
+                            <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl">
+                                {/* Dialog Header */}
+                                <div className="bg-amber-500 px-6 py-5 text-white">
+                                    <DialogTitle className="text-lg font-bold text-white">ชำระเงิน</DialogTitle>
+                                    <DialogDescription className="text-amber-100 text-sm mt-0.5">
+                                        ระบุยอดเงินตามช่องทางที่ลูกค้าชำระ
                                     </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                    {/* Customer Alert in Payment */}
+                                    <div className="mt-3 flex items-end justify-between">
+                                        <span className="text-amber-100 text-sm">ยอดที่ต้องชำระ</span>
+                                        <span className="text-3xl font-bold tracking-tight">{formatCurrency(getTotal())}</span>
+                                    </div>
+                                </div>
+                                <div className="px-6 py-5 space-y-4">
+                                    {/* Customer Alert */}
                                     {(customerAlerts?.drug_allergy || customerAlerts?.underlying_disease) && (
-                                        <div className="rounded-lg bg-red-100 border border-red-300 p-3">
-                                            <div className="flex items-center gap-2 text-red-700 font-medium">
-                                                <AlertTriangle className="h-4 w-4" />
-                                                ⚠️ {customerName} - ข้อควรระวัง
+                                        <div className="flex items-center gap-3 rounded-xl bg-red-50 border border-red-200 p-3">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 shrink-0">
+                                                <AlertTriangle className="h-4 w-4 text-red-600" />
                                             </div>
+                                            <p className="text-sm font-medium text-red-700">
+                                                ⚠️ {customerName} — ข้อควรระวัง
+                                            </p>
                                         </div>
                                     )}
 
-                                    {/* Split Payment Inputs */}
+                                    {/* Payment Method Rows */}
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                                            <Banknote className="h-5 w-5 text-green-600" />
-                                            <div className="flex-1">
-                                                <Label className="text-xs">เงินสด</Label>
-                                                <div className="relative">
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        inputMode="decimal"
-                                                        value={cashAmount}
-                                                        onChange={(e) => setCashAmount(e.target.value.replace(/-/g, ''))}
-                                                        placeholder="0"
-                                                        className="h-9 pr-16"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const remaining = getRemainingBalance()
-                                                            if (remaining > 0) {
-                                                                setCashAmount(((parseFloat(cashAmount) || 0) + remaining).toString())
-                                                            }
-                                                        }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                                                    >
-                                                        เหลือทั้งหมด
-                                                    </button>
+                                        {/* Cash */}
+                                        <div className="rounded-xl border border-green-200 bg-green-50">
+                                            <div className="flex items-center gap-3 px-4 py-3">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 shrink-0">
+                                                    <Banknote className="h-4 w-4 text-green-600" />
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                                            <QrCode className="h-5 w-5 text-blue-600" />
-                                            <div className="flex-1">
-                                                <Label className="text-xs">โอนเงิน</Label>
-                                                <div className="relative">
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        inputMode="decimal"
-                                                        value={transferAmount}
-                                                        onChange={(e) => setTransferAmount(e.target.value.replace(/-/g, ''))}
-                                                        placeholder="0"
-                                                        className="h-9 pr-16"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const remaining = getRemainingBalance()
-                                                            if (remaining > 0) {
-                                                                setTransferAmount(((parseFloat(transferAmount) || 0) + remaining).toString())
-                                                            }
-                                                        }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                                                    >
-                                                        เหลือทั้งหมด
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
-                                            <CreditCard className="h-5 w-5 text-purple-600" />
-                                            <div className="flex-1">
-                                                <Label className="text-xs">บัตรเครดิต</Label>
-                                                <div className="relative">
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        inputMode="decimal"
-                                                        value={creditAmount}
-                                                        onChange={(e) => setCreditAmount(e.target.value.replace(/-/g, ''))}
-                                                        placeholder="0"
-                                                        className="h-9 pr-16"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const remaining = getRemainingBalance()
-                                                            if (remaining > 0) {
-                                                                setCreditAmount(((parseFloat(creditAmount) || 0) + remaining).toString())
-                                                            }
-                                                        }}
-                                                        className="absolute right-1 top-1/2 -translate-y-1/2 px-1.5 flex items-center h-6 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                                                    >
-                                                        เหลือทั้งหมด
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Deposit Payment - Only show if customer has balance */}
-                                        {customerDepositBalance > 0 && (
-                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30">
-                                                <Wallet className="h-5 w-5 text-emerald-600" />
                                                 <div className="flex-1">
-                                                    <div className="flex justify-between items-center">
-                                                        <Label className="text-xs">ใช้เงินมัดจำ</Label>
-                                                        <span className="text-xs text-emerald-600 font-medium">
-                                                            ยอดคงเหลือ: ฿{customerDepositBalance.toLocaleString()}
-                                                        </span>
-                                                    </div>
+                                                    <p className="text-xs font-semibold text-green-700 mb-1.5">เงินสด</p>
                                                     <div className="relative">
                                                         <Input
                                                             type="number"
                                                             min={0}
                                                             inputMode="decimal"
-                                                            value={depositAmount}
-                                                            onChange={(e) => {
-                                                                const val = parseFloat(e.target.value.replace(/-/g, '')) || 0
-                                                                if (val <= customerDepositBalance) {
-                                                                    setDepositAmount(e.target.value.replace(/-/g, ''))
-                                                                } else {
-                                                                    setDepositAmount(customerDepositBalance.toString())
-                                                                }
-                                                            }}
-                                                            placeholder="0"
-                                                            max={customerDepositBalance}
-                                                            className="h-9 pr-14"
+                                                            value={cashAmount}
+                                                            onChange={(e) => setCashAmount(e.target.value.replace(/-/g, ''))}
+                                                            placeholder="0.00"
+                                                            className="h-10 pr-24 bg-white border-green-200 focus-visible:ring-green-400"
                                                         />
                                                         <button
-                                                            onClick={() => setDepositAmount(customerDepositBalance.toString())}
-                                                            className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const remaining = getRemainingBalance()
+                                                                if (remaining > 0) {
+                                                                    setCashAmount(((parseFloat(cashAmount) || 0) + remaining).toString())
+                                                                }
+                                                            }}
+                                                            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors"
                                                         >
-                                                            ทั้งหมด
+                                                            เหลือทั้งหมด
                                                         </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Transfer */}
+                                        <div className="rounded-xl border border-blue-200 bg-blue-50">
+                                            <div className="flex items-center gap-3 px-4 py-3">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 shrink-0">
+                                                    <QrCode className="h-4 w-4 text-blue-600" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-semibold text-blue-700 mb-1.5">โอนเงิน</p>
+                                                    <div className="relative">
+                                                        <Input
+                                                            type="number"
+                                                            min={0}
+                                                            inputMode="decimal"
+                                                            value={transferAmount}
+                                                            onChange={(e) => setTransferAmount(e.target.value.replace(/-/g, ''))}
+                                                            placeholder="0.00"
+                                                            className="h-10 pr-24 bg-white border-blue-200 focus-visible:ring-blue-400"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const remaining = getRemainingBalance()
+                                                                if (remaining > 0) {
+                                                                    setTransferAmount(((parseFloat(transferAmount) || 0) + remaining).toString())
+                                                                }
+                                                            }}
+                                                            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors"
+                                                        >
+                                                            เหลือทั้งหมด
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Credit Card */}
+                                        <div className="rounded-xl border border-purple-200 bg-purple-50">
+                                            <div className="flex items-center gap-3 px-4 py-3">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 shrink-0">
+                                                    <CreditCard className="h-4 w-4 text-purple-600" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-semibold text-purple-700 mb-1.5">บัตรเครดิต</p>
+                                                    <div className="relative">
+                                                        <Input
+                                                            type="number"
+                                                            min={0}
+                                                            inputMode="decimal"
+                                                            value={creditAmount}
+                                                            onChange={(e) => setCreditAmount(e.target.value.replace(/-/g, ''))}
+                                                            placeholder="0.00"
+                                                            className="h-10 pr-24 bg-white border-purple-200 focus-visible:ring-purple-400"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const remaining = getRemainingBalance()
+                                                                if (remaining > 0) {
+                                                                    setCreditAmount(((parseFloat(creditAmount) || 0) + remaining).toString())
+                                                                }
+                                                            }}
+                                                            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors"
+                                                        >
+                                                            เหลือทั้งหมด
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Deposit */}
+                                        {customerDepositBalance > 0 && (
+                                            <div className="rounded-xl border border-emerald-200 bg-emerald-50">
+                                                <div className="flex items-center gap-3 px-4 py-3">
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 shrink-0">
+                                                        <Wallet className="h-4 w-4 text-emerald-600" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between mb-1.5">
+                                                            <p className="text-xs font-semibold text-emerald-700">เงินมัดจำ</p>
+                                                            <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-medium">
+                                                                คงเหลือ ฿{customerDepositBalance.toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                        <div className="relative">
+                                                            <Input
+                                                                type="number"
+                                                                min={0}
+                                                                inputMode="decimal"
+                                                                value={depositAmount}
+                                                                onChange={(e) => {
+                                                                    const val = parseFloat(e.target.value.replace(/-/g, '')) || 0
+                                                                    if (val <= customerDepositBalance) {
+                                                                        setDepositAmount(e.target.value.replace(/-/g, ''))
+                                                                    } else {
+                                                                        setDepositAmount(customerDepositBalance.toString())
+                                                                    }
+                                                                }}
+                                                                placeholder="0.00"
+                                                                max={customerDepositBalance}
+                                                                className="h-10 pr-20 bg-white border-emerald-200 focus-visible:ring-emerald-400"
+                                                            />
+                                                            <button
+                                                                onClick={() => setDepositAmount(customerDepositBalance.toString())}
+                                                                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors"
+                                                            >
+                                                                ทั้งหมด
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -648,41 +674,37 @@ export default function POSPage() {
                                     </div>
 
                                     {/* Summary */}
-                                    <div className="rounded-lg bg-slate-100 p-4 space-y-2">
-                                        <div className="flex justify-between">
-                                            <span>ยอดที่ต้องชำระ</span>
-                                            <span className="font-bold text-amber-600">{formatCurrency(getTotal())}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>รวมที่ชำระ</span>
-                                            <span className="font-bold text-green-600">{formatCurrency(getTotalPayment())}</span>
+                                    <div className="rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+                                        <div className="px-4 py-3 flex items-center justify-between">
+                                            <span className="text-sm text-slate-500">รวมที่ชำระ</span>
+                                            <span className="text-lg font-bold text-emerald-600">{formatCurrency(getTotalPayment())}</span>
                                         </div>
                                         {getRemainingBalance() > 0 && (
-                                            <div className="flex justify-between text-red-600">
-                                                <span>ยอดค้างชำระ</span>
-                                                <span className="font-bold">{formatCurrency(getRemainingBalance())}</span>
+                                            <div className="px-4 py-2 flex items-center justify-between bg-red-50 border-t border-red-100">
+                                                <span className="text-sm text-red-600">ยังขาดอีก</span>
+                                                <span className="text-sm font-bold text-red-600">{formatCurrency(getRemainingBalance())}</span>
                                             </div>
                                         )}
                                         {getTotalPayment() > getTotal() && (
-                                            <div className="flex justify-between text-blue-600">
-                                                <span>เงินทอน</span>
-                                                <span className="font-bold">{formatCurrency(getTotalPayment() - getTotal())}</span>
+                                            <div className="px-4 py-2 flex items-center justify-between bg-blue-50 border-t border-blue-100">
+                                                <span className="text-sm text-blue-600">เงินทอน</span>
+                                                <span className="text-sm font-bold text-blue-600">{formatCurrency(getTotalPayment() - getTotal())}</span>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Partial Payment Toggle */}
+                                    {/* Partial Payment Notice */}
                                     {getRemainingBalance() > 0 && (
-                                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30">
-                                            <p className="text-sm text-amber-700 flex items-center gap-2">
-                                                <AlertTriangle className="h-4 w-4" />
-                                                ลูกค้าจะมียอดค้างชำระ {formatCurrency(getRemainingBalance())}
+                                        <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                                            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                                            <p className="text-sm text-amber-700">
+                                                ลูกค้าจะมียอดค้างชำระ <span className="font-bold">{formatCurrency(getRemainingBalance())}</span>
                                             </p>
                                         </div>
                                     )}
 
                                     <Button
-                                        className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold"
+                                        className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-bold text-base rounded-xl"
                                         onClick={handleCheckout}
                                         disabled={createTransaction.isPending || addPayment.isPending || getTotalPayment() <= 0}
                                     >
