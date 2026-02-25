@@ -9,15 +9,17 @@
 
 ## ✨ Key Features
 
-- 👥 **Patient Management** - ระบบจัดการข้อมูลลูกค้า พร้อม HN อัตโนมัติ
-- 🛒 **POS System** - ระบบขายสินค้าและบริการ
-- 📦 **Inventory Management** - จัดการคลังสินค้าและวัตถุดิบ
-- 💉 **Course Management** - ระบบคอร์สรักษาแบบหลายครั้ง
-- 💰 **Commission Tracking** - คำนวณค่าคอมมิชชั่นอัตโนมัติ
-- 📊 **Reports & Analytics** - รายงานยอดขาย, ค่ามือ, และหนี้ค้างชำระ
-- 💳 **Deposit System** - ระบบมัดจำลูกค้า
+- 👥 **Patient Management & Gallery** - ระบบจัดการข้อมูลลูกค้า พร้อมประวัติรูปถ่าย Before/After และ HN อัตโนมัติ
+- 📅 **Appointments System** - ระบบนัดหมายแพทย์และพนักงาน พร้อมปฏิทินแสดงผล
+- 🛒 **POS System** - ระบบขายสินค้าและบริการ พร้อมคำนวณส่วนลดและการจ่ายแบบแบ่งชำระ
+- 💳 **Deposit & Debtors** - ระบบมัดจำลูกค้า และระบบจัดการลูกหนี้ค้างชำระ
+- 📦 **Inventory Management** - จัดการคลังสินค้า รับเข้า โอนย้าย ปรับยอด และตัดสต๊อกอัตโนมัติเมื่อใช้งาน
+- 💉 **Course & Service Usage** - ระบบคอร์สรักษาแบบหลายครั้ง และบันทึกการเข้ารับบริการ (OPD)
+- 💰 **Commission Tracking** - คำนวณค่าคอมมิชชั่นและค่ามือ (DF) อัตโนมัติสำหรับแพทย์และผู้ช่วย
+- 📊 **Reports & Analytics** - รายงานยอดขายประจำวัน, รายงานสินค้าคงคลัง, รายงานค่ามือ, และรายงานหนี้สิน
 - 🧾 **Receipt Printing** - พิมพ์ใบเสร็จแบบพรีเมียม
 - 🌙 **Dark/Light Mode** - รองรับทั้ง 2 ธีม
+- 🕵️‍♂️ **Security & PDPA** - ระบบ Audit Trails (created_by, updated_at) และ Soft delete ซ่อนข้อมูลลูกค้าแทนการลบ
 
 ## 🛠️ Tech Stack
 
@@ -35,7 +37,7 @@
 
 ## 📁 Project Structure
 
-```
+```text
 Beauty_Clinic_Management_System/
 ├── nextjs-app/              # Next.js Full-stack Application
 │   ├── prisma/
@@ -45,17 +47,25 @@ Beauty_Clinic_Management_System/
 │   │   │   ├── (dashboard)/ # Dashboard pages
 │   │   │   │   ├── dashboard/
 │   │   │   │   ├── patients/
+│   │   │   │   ├── appointments/
 │   │   │   │   ├── pos/
 │   │   │   │   ├── inventory/
 │   │   │   │   ├── transactions/
 │   │   │   │   ├── debtors/
 │   │   │   │   ├── service/
 │   │   │   │   ├── reports/
-│   │   │   │   │   ├── consultant-performance/
-│   │   │   │   │   └── daily-sales/
+│   │   │   │   │   ├── commission/
+│   │   │   │   │   ├── sales/
+│   │   │   │   │   ├── daily-sales/
+│   │   │   │   │   ├── debt/
+│   │   │   │   │   └── inventory/
 │   │   │   │   └── settings/
+│   │   │   │       ├── categories/
 │   │   │   │       ├── commission-rates/
-│   │   │   │       └── deposits/
+│   │   │   │       ├── courses/
+│   │   │   │       ├── deposits/
+│   │   │   │       ├── products/
+│   │   │   │       └── staff/
 │   │   │   └── api/         # API Routes
 │   │   ├── components/
 │   │   │   ├── layout/      # Sidebar, Header
@@ -132,7 +142,7 @@ docker compose logs -f app
 | **App** | `3000` | Next.js web application |
 | **MySQL** | `3307` | Database (mapped to 3307 เพื่อไม่ชนกับ MySQL ในเครื่อง) |
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Local Development)
 
 ### Prerequisites
 
@@ -220,6 +230,8 @@ Open browser at `http://localhost:3000`
 | Username | Password | Role |
 |----------|----------|------|
 | `admin` | `admin123` | Admin |
+| `doctor` | `doctor123` | Doctor |
+| `sale` | `sale123` | Sale |
 
 > ⚠️ **Change password in production!**
 
@@ -254,16 +266,18 @@ Open browser at `http://localhost:3000`
 ## ✅ Features Checklist
 
 - [x] 🔐 Authentication (Login/Logout)
-- [x] 👥 Patient Management (CRUD + HN Auto-generation)
-- [x] 📦 Product/Inventory Management
-- [x] 🛒 POS System with Multiple Payment Methods
-- [x] 💉 Course Management (Multi-session)
-- [x] 💰 Transaction & Payment with Debt Tracking
-- [x] 📈 Reports (Sales, Commission, Consultant Performance)
-- [x] 💳 Customer Deposit System
+- [x] 👥 Patient Management & Patient Gallery (Before/After)
+- [x] 📅 Appointments System & Calendar
+- [x] 📦 Product & Inventory Management (Stock In, Transfer, Usage)
+- [x] 🛒 POS System with Multiple Split Payments
+- [x] 💳 Customer Deposit & Debtors Accounting
+- [x] 💉 Course Management (Multi-session OPD Tracking)
+- [x] 💰 Transaction & Payment History
+- [x] 📈 Reports (Sales, Commission, Inventory, Debt)
 - [x] 🧾 Premium Receipt Printing
-- [x] ⚙️ Settings (Commission Rates, Staff Management)
+- [x] ⚙️ Settings (Categories, Commission Rates, Staff, Courses, Products)
 - [x] 🌙 Dark/Light Mode Theme
+- [x] 🕵️‍♂️ Audit Trails & PDPA Support (Soft Deletes, created_by, updated_at)
 
 ## 📄 License
 
@@ -272,5 +286,5 @@ ISC
 ---
 
 **Created:** December 2025  
-**Version:** 2.1.0  
+**Version:** 4.0.0  
 **Repository:** [github.com/Bigzzz0/Beauty_Clinic_Management_System](https://github.com/Bigzzz0/Beauty_Clinic_Management_System)
