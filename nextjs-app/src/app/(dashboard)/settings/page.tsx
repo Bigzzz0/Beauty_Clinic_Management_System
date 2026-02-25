@@ -338,51 +338,54 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Settings className="h-6 w-6 text-primary" />
-                        ตั้งค่าระบบ
-                    </h1>
-                    <p className="text-muted-foreground">จัดการสินค้า, คอร์ส, และพนักงาน</p>
-                </div>
-                <div className="flex gap-2">
-                    <Link href="/settings/categories">
-                        <Button variant="outline" className="gap-2">
-                            <Package className="h-4 w-4" />
-                            หมวดหมู่
-                        </Button>
-                    </Link>
-                    <Link href="/settings/commission-rates">
-                        <Button variant="outline" className="gap-2">
-                            <DollarSign className="h-4 w-4" />
-                            อัตราค่าคอม
-                        </Button>
-                    </Link>
-                    <Link href="/settings/deposits">
-                        <Button variant="outline" className="gap-2">
-                            <Wallet className="h-4 w-4" />
-                            จัดการมัดจำ
-                        </Button>
-                    </Link>
-                </div>
+            <div>
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Settings className="h-6 w-6 text-primary" />
+                    ตั้งค่าระบบ
+                </h1>
+                <p className="text-muted-foreground">จัดการสินค้า, คอร์ส, และพนักงาน</p>
             </div>
 
             <Tabs defaultValue="products" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="products">
-                        <Package className="h-4 w-4 mr-2" />
-                        สินค้า
-                    </TabsTrigger>
-                    <TabsTrigger value="courses">
-                        <GraduationCap className="h-4 w-4 mr-2" />
-                        คอร์ส
-                    </TabsTrigger>
-                    <TabsTrigger value="staff">
-                        <Users className="h-4 w-4 mr-2" />
-                        พนักงาน
-                    </TabsTrigger>
-                </TabsList>
+                <div className="flex items-center justify-between gap-4">
+                    {/* Main content tabs */}
+                    <TabsList>
+                        <TabsTrigger value="products">
+                            <Package className="h-4 w-4 mr-2" />
+                            สินค้า
+                        </TabsTrigger>
+                        <TabsTrigger value="courses">
+                            <GraduationCap className="h-4 w-4 mr-2" />
+                            คอร์ส
+                        </TabsTrigger>
+                        <TabsTrigger value="staff">
+                            <Users className="h-4 w-4 mr-2" />
+                            พนักงาน
+                        </TabsTrigger>
+                    </TabsList>
+
+                    {/* Sub-page navigation links */}
+                    <div className="flex gap-2">
+                        <Link href="/settings/categories">
+                            <Button variant="outline" size="sm" className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+                                <Package className="h-3.5 w-3.5" />
+                                หมวดหมู่
+                            </Button>
+                        </Link>
+                        <Link href="/settings/commission-rates">
+                            <Button variant="outline" size="sm" className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+                                <DollarSign className="h-3.5 w-3.5" />
+                                อัตราค่าคอม
+                            </Button>
+                        </Link>
+                        <Link href="/settings/deposits">
+                            <Button variant="outline" size="sm" className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+                                <Wallet className="h-3.5 w-3.5" />
+                                จัดการมัดจำ
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
 
                 {/* Products Tab */}
                 <TabsContent value="products">
