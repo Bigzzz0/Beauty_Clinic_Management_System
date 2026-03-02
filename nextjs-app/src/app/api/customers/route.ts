@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { shouldMask, maskPhoneNumber } from '@/lib/masking'
+import jwt from 'jsonwebtoken'
 
 const customerSchema = z.object({
     first_name: z.string().min(1, 'ต้องระบุชื่อจริง').max(50, 'ชื่อจริงต้องไม่เกิน 50 ตัวอักษร'),
@@ -16,6 +18,17 @@ const customerSchema = z.object({
 })
 export async function GET(request: NextRequest) {
     try {
+        let userRole = 'General'
+        const authHeader = request.headers.get('authorization')
+        if (authHeader?.startsWith('Bearer ')) {
+            const token = authHeader.substring(7)
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any
+                userRole = decoded.position || decoded.role || 'General'
+            } catch (e) { }
+        }
+        const applyMask = shouldMask(userRole)
+
         const { searchParams } = new URL(request.url)
         const page = parseInt(searchParams.get('page') || '1')
         const limit = parseInt(searchParams.get('limit') || '10')
@@ -98,7 +111,7 @@ export async function GET(request: NextRequest) {
                 last_name: c.last_name,
                 full_name: c.full_name,
                 nickname: c.nickname,
-                phone_number: c.phone_number,
+                phone_number: applyMask ? maskPhoneNumber(c.phone_number) : c.phone_number,
                 member_level: c.member_level,
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,

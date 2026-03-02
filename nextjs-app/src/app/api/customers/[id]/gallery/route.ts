@@ -58,12 +58,13 @@ export async function POST(request: NextRequest, { params }: Params) {
     const customerId = parseInt(id)
     const body = await request.json()
 
-    const { image_data, image_type, notes, taken_date, usage_id } = body as {
+    const { image_data, image_type, notes, taken_date, usage_id, is_marketing_allowed } = body as {
       image_data: string
       image_type: 'Before' | 'After'
       notes?: string
       taken_date?: string
       usage_id?: number
+      is_marketing_allowed?: boolean
     }
 
     if (!image_data) {
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         image_path: `/uploads/gallery/${fileName}`,
         taken_date: taken_date ? new Date(taken_date) : new Date(),
         notes: notes || null,
+        is_marketing_allowed: is_marketing_allowed ?? false,
       },
     })
 

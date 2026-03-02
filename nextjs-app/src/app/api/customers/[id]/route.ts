@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { shouldMask, maskPhoneNumber, maskIdCard } from '@/lib/masking'
+import { logAudit } from '@/lib/audit'
+import jwt from 'jsonwebtoken'
 
 const updateCustomerSchema = z.object({
     first_name: z.string().min(1, 'ต้องระบุชื่อจริง').max(50, 'ชื่อจริงต้องไม่เกิน 50 ตัวอักษร').optional(),
@@ -20,6 +23,19 @@ interface Params {
 // GET /api/customers/[id] - Get full customer details
 export async function GET(request: NextRequest, { params }: Params) {
     try {
+        let userRole = 'General'
+        let staffId: number | undefined = undefined
+        const authHeader = request.headers.get('authorization')
+        if (authHeader?.startsWith('Bearer ')) {
+            const token = authHeader.substring(7)
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { position?: string; role?: string; staff_id?: number; id?: number }
+                userRole = decoded.position || decoded.role || 'General'
+                staffId = decoded.staff_id || decoded.id
+            } catch { }
+        }
+        const applyMask = shouldMask(userRole)
+
         const { id } = await params
         const customerId = parseInt(id)
 
@@ -41,6 +57,7 @@ export async function GET(request: NextRequest, { params }: Params) {
                         course: true,
                     },
                 },
+                customer_consent: true, // PDPA Consent log
             },
         })
 
@@ -50,7 +67,7 @@ export async function GET(request: NextRequest, { params }: Params) {
 
         // Calculate total debt
         const totalDebt = customer.transaction_header.reduce(
-            (sum, t) => sum + Number(t.remaining_balance || 0),
+            (sum: number, t: { remaining_balance: any }) => sum + Number(t.remaining_balance || 0),
             0
         )
 
@@ -66,11 +83,25 @@ export async function GET(request: NextRequest, { params }: Params) {
             }
         }
 
-        return NextResponse.json({
+        const returnCustomer = {
             ...customer,
+            phone_number: applyMask ? maskPhoneNumber(customer.phone_number) : customer.phone_number,
+            id_card_number: applyMask && customer.id_card_number ? maskIdCard(customer.id_card_number) : customer.id_card_number,
+            drug_allergy: applyMask && customer.drug_allergy ? '***ข้อมูลปกปิด***' : customer.drug_allergy,
+            underlying_disease: applyMask && customer.underlying_disease ? '***ข้อมูลปกปิด***' : customer.underlying_disease,
             total_debt: totalDebt,
             age,
+        }
+
+        // Write Audit Log
+        await logAudit({
+            action: 'READ',
+            target_resource: `Customer_${customerId}`,
+            request,
+            staffId
         })
+
+        return NextResponse.json(returnCustomer)
     } catch (error) {
         console.error('Error fetching customer:', error)
         return NextResponse.json(

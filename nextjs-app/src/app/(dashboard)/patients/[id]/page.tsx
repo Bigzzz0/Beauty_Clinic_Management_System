@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
     User, ArrowLeft, Edit, Save, X, AlertTriangle,
     Phone, MapPin, Calendar, Cake, Users2,
-    Clock, Syringe, Camera, Upload, Plus, Trash2
+    Clock, Syringe, Camera, Upload, Plus, Trash2, ShieldCheck
 } from 'lucide-react'
 import {
     AlertDialog,
@@ -17,6 +17,7 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
+    AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -26,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -73,6 +75,13 @@ interface PatientDetail {
         remaining_sessions: number
         course: { course_name: string }
     }>
+    customer_consent?: Array<{
+        id: number
+        consent_type: string
+        is_granted: boolean
+        version: string
+        consent_date: string
+    }>
 }
 
 interface TreatmentHistory {
@@ -96,6 +105,7 @@ interface GalleryImage {
     image_path: string
     taken_date: string
     notes: string | null
+    is_marketing_allowed: boolean
     service_usage?: { service_name: string }
 }
 
@@ -119,7 +129,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
     const [isEditing, setIsEditing] = useState(false)
     const [editForm, setEditForm] = useState<Partial<PatientDetail>>({})
     const [uploadOpen, setUploadOpen] = useState(false)
-    const [uploadData, setUploadData] = useState({ image_data: '', image_type: 'Before' as 'Before' | 'After', notes: '' })
+    const [uploadData, setUploadData] = useState({ image_data: '', image_type: 'Before' as 'Before' | 'After', notes: '', is_marketing_allowed: false })
     const [deleteId, setDeleteId] = useState<number | null>(null)
 
     // Fetch patient details
@@ -198,7 +208,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             toast.success('อัพโหลดรูปสำเร็จ')
             queryClient.invalidateQueries({ queryKey: ['patient-gallery', customerId] })
             setUploadOpen(false)
-            setUploadData({ image_data: '', image_type: 'Before', notes: '' })
+            setUploadData({ image_data: '', image_type: 'Before', notes: '', is_marketing_allowed: false })
         },
         onError: () => toast.error('อัพโหลดไม่สำเร็จ'),
     })
@@ -220,6 +230,53 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         },
         onError: () => toast.error('ลบรูปภาพไม่สำเร็จ'),
     })
+
+    // Consent update mutation
+    const consentMutation = useMutation({
+        mutationFn: async (data: { consent_type: string; is_granted: boolean; version: string }) => {
+            const res = await fetch(`/api/customers/${customerId}/consent`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify(data),
+            })
+            if (!res.ok) throw new Error('Failed to update consent')
+            return res.json()
+        },
+        onSuccess: () => {
+            toast.success('บันทึกความยินยอมสำเร็จ')
+            queryClient.invalidateQueries({ queryKey: ['patient', customerId] })
+        },
+        onError: () => toast.error('บันทึกความยินยอมไม่สำเร็จ'),
+    })
+
+    // Data Anonymize mutation
+    const anonymizeMutation = useMutation({
+        mutationFn: async () => {
+            const res = await fetch(`/api/customers/${customerId}/anonymize`, {
+                method: 'POST',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            })
+            if (!res.ok) throw new Error('Failed to anonymize data')
+            return res.json()
+        },
+        onSuccess: () => {
+            toast.success('ลบข้อมูลและปกปิดตัวตนสำเร็จ (Anonymized)')
+            queryClient.invalidateQueries({ queryKey: ['patient', customerId] })
+            router.push('/patients') // Redirect to list after anonymizing to match soft delete behavior
+        },
+        onError: () => toast.error('ไม่สามารถทำรายการได้'),
+    })
+
+    const getLatestConsent = (type: string) => {
+        if (!patient?.customer_consent) return false
+        const consents = patient.customer_consent.filter(c => c.consent_type === type)
+        if (consents.length === 0) return false
+        return consents.sort((a, b) => new Date(b.consent_date).getTime() - new Date(a.consent_date).getTime())[0].is_granted
+    }
+
 
     const handleEdit = () => {
         if (patient) {
@@ -294,7 +351,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="flex items-center gap-4 text-blue-100">
                                 <span className="font-mono">{patient.hn_code}</span>
-                                {patient.nickname && <span>• "{patient.nickname}"</span>}
+                                {patient.nickname && <span>• &quot;{patient.nickname}&quot;</span>}
                                 {patient.age && <span>• {patient.age} ปี</span>}
                             </div>
                             <div className="flex items-center gap-2 mt-2 text-blue-100">
@@ -389,6 +446,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     <TabsTrigger value="gallery">
                         <Camera className="h-4 w-4 mr-2" />
                         Gallery
+                    </TabsTrigger>
+                    <TabsTrigger value="privacy">
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        PDPA & Consent
                     </TabsTrigger>
                 </TabsList>
 
@@ -623,6 +684,16 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                 placeholder="ระบุหมายเหตุ..."
                                             />
                                         </div>
+                                        <div className="flex items-center space-x-2 pt-2 pb-2">
+                                            <Switch
+                                                id="marketing-consent"
+                                                checked={uploadData.is_marketing_allowed}
+                                                onCheckedChange={(checked) => setUploadData({ ...uploadData, is_marketing_allowed: checked })}
+                                            />
+                                            <Label htmlFor="marketing-consent" className="text-sm font-normal">
+                                                ยินยอมให้นำภาพไปใช้เพื่อการตลาด (Marketing Consent)
+                                            </Label>
+                                        </div>
                                         <Button
                                             className="w-full"
                                             onClick={() => uploadMutation.mutate(uploadData)}
@@ -665,6 +736,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                         >
                                                             {img.image_type}
                                                         </Badge>
+                                                        {!img.is_marketing_allowed && (
+                                                            <div className="absolute bottom-2 left-2 bg-black/60 rounded p-1 text-white" title="ไม่อนุญาตให้ใช้ทำการตลาด">
+                                                                <ShieldCheck className="h-4 w-4" />
+                                                            </div>
+                                                        )}
 
                                                         {/* Delete Button - Only visible on hover */}
                                                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -708,6 +784,98 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                         </CardContent>
                     </Card>
                 </TabsContent>
+
+                {/* Privacy & Consent Tab */}
+                <TabsContent value="privacy">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>การจัดการสิทธิส่วนบุคคล (PDPA & Consent)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                                <div className="space-y-0.5">
+                                    <h4 className="font-semibold text-base">ความยินยอมตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)</h4>
+                                    <p className="text-sm text-slate-500">
+                                        ยินยอมให้คลินิกบันทึกและประมวลผลข้อมูลส่วนบุคคล ข้อมูลสุขภาพ เพื่อใช้ประกอบการรักษาและให้บริการ
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={getLatestConsent('PDPA_PRIVACY')}
+                                    onCheckedChange={(val) => consentMutation.mutate({ consent_type: 'PDPA_PRIVACY', is_granted: val, version: 'v1.0' })}
+                                    disabled={consentMutation.isPending}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                                <div className="space-y-0.5">
+                                    <h4 className="font-semibold text-base">ความยินยอมในการรับข่าวสาร (Marketing Consent)</h4>
+                                    <p className="text-sm text-slate-500">
+                                        ยินยอมให้คลินิกติดต่อเพื่อนำเสนอโปรโมชั่น สิทธิพิเศษ และข่าวสารการตลาดที่เป็นประโยชน์
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={getLatestConsent('MARKETING')}
+                                    onCheckedChange={(val) => consentMutation.mutate({ consent_type: 'MARKETING', is_granted: val, version: 'v1.0' })}
+                                    disabled={consentMutation.isPending}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 rounded-lg border">
+                                <div className="space-y-0.5">
+                                    <h4 className="font-semibold text-base">ความยินยอมในการรักษา (Medical Treatment Consent)</h4>
+                                    <p className="text-sm text-slate-500">
+                                        ผู้เข้ารับบริการยินยอมให้แพทย์ทำการตรวจวินิจฉัยและทำหัตถการทางการแพทย์ รวมถึงรับทราบความเสี่ยงที่อาจเกิดขึ้น
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={getLatestConsent('MEDICAL_TREATMENT')}
+                                    onCheckedChange={(val) => consentMutation.mutate({ consent_type: 'MEDICAL_TREATMENT', is_granted: val, version: 'v1.0' })}
+                                    disabled={consentMutation.isPending}
+                                />
+                            </div>
+
+                            {/* Anonymize Action */}
+                            <div className="pt-6 mt-6 border-t border-red-100">
+                                <div className="bg-red-50 p-4 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div>
+                                        <h4 className="font-semibold text-red-700 text-base">Anonymize Data (ลบข้อมูลเพื่อปกปิดตัวตน)</h4>
+                                        <p className="text-sm text-red-600 mt-1">
+                                            กระบวนการนี้จะแทนที่ชื่อและเบอร์ด้วยข้อมูลสุ่ม แต่คงประวัติการทำธุรกรรมไว้สำหรับบัญชี ตามสิทธิ Right to be Forgotten
+                                        </p>
+                                    </div>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" className="shrink-0">
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Anonymize Data
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle className="text-red-600">ยืนยันการทำ Anonymization</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลที่ระบุตัวตนของลูกค้ารายนี้? <br /><br />
+                                                    การกระทำนี้ <strong>ไม่สามารถย้อนกลับได้</strong> ข้อมูลส่วนตัวจะถูกแทนที่ด้วยข้อมูลสุ่ม และจะตัดสิทธิ์การติดต่อทางการตลาดทันที
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => anonymizeMutation.mutate()}
+                                                    className="bg-red-600 hover:bg-red-700"
+                                                    disabled={anonymizeMutation.isPending}
+                                                >
+                                                    {anonymizeMutation.isPending ? 'กำลังดำเนินการ...' : 'ยืนยัน Anonymize'}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
             </Tabs>
         </div>
     )

@@ -71,6 +71,7 @@ model customer {
   service_usage      service_usage[] // Service usage history
   appointment        appointment[]
   patient_gallery    patient_gallery[]
+  customer_consent   customer_consent[] // PDPA Consent log
 
   @@index([first_name, last_name, phone_number, hn_code])
   @@index([phone_number])
@@ -141,16 +142,17 @@ model inventory_usage {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model patient_gallery {
-  gallery_id    Int                         @id @default(autoincrement())
-  customer_id   Int
-  usage_id      Int?
-  image_type    patient_gallery_image_type? @default(Before)
-  image_path    String                      @db.VarChar(255)
-  taken_date    DateTime                    @db.Date
-  notes         String?                     @db.Text
-  created_at    DateTime?                   @default(now()) @db.Timestamp(0)
-  service_usage service_usage?              @relation(fields: [usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_gallery_ibfk_1")
-  customer      customer                    @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction)
+  gallery_id           Int                         @id @default(autoincrement())
+  customer_id          Int
+  usage_id             Int?
+  image_type           patient_gallery_image_type? @default(Before)
+  image_path           String                      @db.VarChar(255)
+  taken_date           DateTime                    @db.Date
+  notes                String?                     @db.Text
+  is_marketing_allowed Boolean                     @default(false)
+  created_at           DateTime?                   @default(now()) @db.Timestamp(0)
+  service_usage        service_usage?              @relation(fields: [usage_id], references: [usage_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_gallery_ibfk_1")
+  customer             customer                    @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([usage_id], map: "usage_id")
   @@index([customer_id])
@@ -231,6 +233,8 @@ model staff {
   username                String               @unique(map: "username") @db.VarChar(50)
   password_hash           String               @db.VarChar(255)
   is_active               Boolean?             @default(true)
+  login_attempts          Int                  @default(0)
+  locked_until            DateTime?            @db.Timestamp(0)
   created_at              DateTime?            @default(now()) @db.Timestamp(0)
   fee_log                 fee_log[]
   transaction_header      transaction_header[]
@@ -243,6 +247,8 @@ model staff {
   therapist_appointments  appointment[]        @relation("TherapistAppointments")
   appointment_created     appointment[]        @relation("AppointmentCreatedBy")
   customer_deposit        customer_deposit[]
+  audit_log               audit_log[]
+  customer_consent_given  customer_consent[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -450,4 +456,41 @@ model appointment {
   @@index([therapist_id])
   @@index([created_by])
   @@index([customer_course_id])
+}
+
+// ระบบบันทึกการตรวจสอบความปลอดภัย (Audit Logging)
+model audit_log {
+  id               Int      @id @default(autoincrement())
+  user_id          Int?
+  action           String   @db.VarChar(100) // e.g. 'VIEW_PROFILE', 'UPDATE_DEPOSIT', 'LOGIN_FAILED'
+  target_resource  String?  @db.VarChar(50) // e.g. 'customer', 'deposit'
+  target_id        String?  @db.VarChar(50) // ID ของ resources ที่ถูกกระทำ
+  details          String?  @db.Text // ข้อมูลเพิ่มเติม (JSON สตริง หรืออธิบาย)
+  ip_address       String?  @db.VarChar(45)
+  user_agent       String?  @db.Text
+  timestamp        DateTime @default(now()) @db.Timestamp(0)
+
+  staff            staff?   @relation(fields: [user_id], references: [staff_id])
+
+  @@index([user_id])
+  @@index([action])
+  @@index([timestamp])
+}
+
+// ระบบจัดการคำยินยอม (Customer Consent - PDPA & Marketing)
+model customer_consent {
+  id                   Int      @id @default(autoincrement())
+  customer_id          Int
+  consent_type         String   @db.VarChar(50) // e.g. 'PDPA_PRIVACY', 'MARKETING', 'MEDICAL_TREATMENT'
+  is_granted           Boolean  @default(false)
+  version              String   @db.VarChar(20) // e.g. 'v1.0'
+  consent_date         DateTime @default(now()) @db.Timestamp(0)
+  ip_address           String?  @db.VarChar(45)
+  recorded_by_staff_id Int?     // กรณีพนักงานเป็นผู้กรอกแทนจากกระดาษ
+
+  customer   customer @relation(fields: [customer_id], references: [customer_id], onDelete: Cascade)
+  staff      staff?   @relation(fields: [recorded_by_staff_id], references: [staff_id], onDelete: SetNull)
+
+  @@index([customer_id])
+  @@index([consent_type])
 }
