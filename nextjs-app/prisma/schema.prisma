@@ -165,6 +165,7 @@ model payment_log {
   amount_paid        Decimal                    @db.Decimal(10, 2)
   payment_method     payment_log_payment_method
   payment_date       DateTime?                  @default(now()) @db.Timestamp(0)
+  is_cancelled       Boolean?                   @default(false)
   transaction_header transaction_header         @relation(fields: [transaction_id], references: [transaction_id], onDelete: NoAction, onUpdate: NoAction, map: "payment_log_ibfk_1")
   staff              staff                      @relation(fields: [staff_id], references: [staff_id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -290,6 +291,7 @@ model transaction_header {
   remaining_balance Decimal                            @default(0.00) @db.Decimal(10, 2)
   payment_status    transaction_header_payment_status? @default(UNPAID)
   channel           transaction_header_channel?        @default(WALK_IN)
+  is_cancelled      Boolean?                           @default(false)
   updated_at        DateTime?                          @updatedAt
   payment_log       payment_log[]
   customer          customer                           @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_header_ibfk_1")

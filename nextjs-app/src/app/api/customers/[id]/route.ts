@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { shouldMask, maskPhoneNumber, maskIdCard } from '@/lib/masking'
 import { logAudit } from '@/lib/audit'
+import { encryptData, decryptData } from '@/lib/encryption'
 import jwt from 'jsonwebtoken'
 
 const updateCustomerSchema = z.object({
@@ -83,10 +84,16 @@ export async function GET(request: NextRequest, { params }: Params) {
             }
         }
 
+        // Decrypt the raw ID Card Number first before applying any masking rules
+        let rawIdCard = customer.id_card_number
+        if (rawIdCard && rawIdCard.includes(':')) {
+            rawIdCard = decryptData(rawIdCard)
+        }
+
         const returnCustomer = {
             ...customer,
             phone_number: applyMask ? maskPhoneNumber(customer.phone_number) : customer.phone_number,
-            id_card_number: applyMask && customer.id_card_number ? maskIdCard(customer.id_card_number) : customer.id_card_number,
+            id_card_number: applyMask && rawIdCard ? maskIdCard(rawIdCard) : rawIdCard,
             drug_allergy: applyMask && customer.drug_allergy ? '***ข้อมูลปกปิด***' : customer.drug_allergy,
             underlying_disease: applyMask && customer.underlying_disease ? '***ข้อมูลปกปิด***' : customer.underlying_disease,
             total_debt: totalDebt,
@@ -133,6 +140,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
                 last_name: body.last_name,
                 nickname: body.nickname,
                 phone_number: body.phone_number,
+                id_card_number: body.id_card_number ? encryptData(body.id_card_number) : undefined,
                 address: body.address,
                 birth_date: body.birth_date ? new Date(body.birth_date) : undefined,
                 drug_allergy: body.drug_allergy,
@@ -142,10 +150,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
         })
 
         return NextResponse.json(customer)
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating customer:', error)
         return NextResponse.json(
-            { error: error?.message || 'Failed to update customer' },
+            { error: (error as Error)?.message || 'Failed to update customer' },
             { status: 500 }
         )
     }

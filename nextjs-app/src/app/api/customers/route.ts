@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { shouldMask, maskPhoneNumber } from '@/lib/masking'
+import { encryptData } from '@/lib/encryption'
 import jwt from 'jsonwebtoken'
 
 const customerSchema = z.object({
@@ -112,6 +113,7 @@ export async function GET(request: NextRequest) {
                 full_name: c.full_name,
                 nickname: c.nickname,
                 phone_number: applyMask ? maskPhoneNumber(c.phone_number) : c.phone_number,
+                // Note: GET /customers (list view) might not need id_card_number, but if added later, decrypt it here.
                 member_level: c.member_level,
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,
@@ -199,7 +201,7 @@ export async function POST(request: NextRequest) {
                 first_name: body.first_name,
                 last_name: body.last_name,
                 phone_number: body.phone_number,
-                id_card_number: body.id_card_number || null,
+                id_card_number: body.id_card_number ? encryptData(body.id_card_number) : null,
                 nickname: body.nickname || null,
                 address: body.address || null,
                 birth_date: body.birth_date ? new Date(body.birth_date) : null,
