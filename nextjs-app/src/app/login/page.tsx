@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import { useAuthStore } from '@/stores/auth-store'
 import { loginSchema, type LoginInput } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
@@ -56,8 +57,8 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
             <Card className="w-full max-w-md border border-slate-200 bg-white shadow-lg">
                 <CardHeader className="space-y-4 text-center">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-400 shadow-lg shadow-amber-200">
-                        <span className="text-2xl font-bold text-slate-900">BC</span>
+                    <div className="mx-auto flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-amber-200">
+                        <Image src="/JinLogo.png" alt="Jiin Clinic" width={64} height={64} className="w-full h-full object-contain" />
                     </div>
                     <div>
                         <CardTitle className="text-2xl font-bold text-slate-800">

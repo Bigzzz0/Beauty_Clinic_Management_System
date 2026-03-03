@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores/ui-store'
 import { useAuthStore } from '@/stores/auth-store'
+import Image from 'next/image'
 import {
     LayoutDashboard,
     Users,
@@ -127,8 +128,8 @@ export function SidebarContent({ isMobile = false }: { isMobile?: boolean }) {
         <div className="flex flex-col h-full bg-white">
             <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-100 px-4">
                 <div className={cn('flex items-center gap-3', collapsed && 'hidden')}>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-400">
-                        <span className="text-lg font-bold text-slate-900">BC</span>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+                        <Image src="/JinLogo.png" alt="Jiin Clinic" width={40} height={40} className="w-full h-full object-contain" />
                     </div>
                     <div>
                         <h1 className="text-sm font-semibold text-slate-800">Beauty Clinic</h1>
