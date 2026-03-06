@@ -35,7 +35,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                             if (error?.message?.includes('401') || error?.status === 401 || error?.message === 'Unauthorized') return false;
                             return failureCount < 1;
                         },
-                        refetchOnWindowFocus: false,
+                        refetchOnWindowFocus: true,
                     },
                 },
             })

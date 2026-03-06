@@ -185,6 +185,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         onSuccess: () => {
             toast.success('บันทึกข้อมูลสำเร็จ')
             queryClient.invalidateQueries({ queryKey: ['patient', customerId] })
+            queryClient.invalidateQueries({ queryKey: ['patients'] })
+            queryClient.invalidateQueries({ queryKey: ['customers'] })
             setIsEditing(false)
         },
         onError: () => toast.error('เกิดข้อผิดพลาด'),
@@ -265,6 +267,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         onSuccess: () => {
             toast.success('ลบข้อมูลและปกปิดตัวตนสำเร็จ (Anonymized)')
             queryClient.invalidateQueries({ queryKey: ['patient', customerId] })
+            queryClient.invalidateQueries({ queryKey: ['patients'] })
+            queryClient.invalidateQueries({ queryKey: ['customers'] })
             router.push('/patients') // Redirect to list after anonymizing to match soft delete behavior
         },
         onError: () => toast.error('ไม่สามารถทำรายการได้'),

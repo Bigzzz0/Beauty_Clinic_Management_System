@@ -131,6 +131,7 @@ CREATE TABLE `patient_gallery` (
     `image_path` VARCHAR(255) NOT NULL,
     `taken_date` DATE NOT NULL,
     `notes` TEXT NULL,
+    `is_marketing_allowed` BOOLEAN NOT NULL DEFAULT false,
     `created_at` TIMESTAMP(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
 
     INDEX `usage_id`(`usage_id`),
@@ -146,6 +147,7 @@ CREATE TABLE `payment_log` (
     `amount_paid` DECIMAL(10, 2) NOT NULL,
     `payment_method` ENUM('CASH', 'TRANSFER', 'CREDIT', 'DEPOSIT') NOT NULL,
     `payment_date` TIMESTAMP(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `is_cancelled` BOOLEAN NULL DEFAULT false,
 
     INDEX `transaction_id`(`transaction_id`),
     INDEX `payment_log_staff_id_idx`(`staff_id`),
@@ -203,6 +205,8 @@ CREATE TABLE `staff` (
     `username` VARCHAR(50) NOT NULL,
     `password_hash` VARCHAR(255) NOT NULL,
     `is_active` BOOLEAN NULL DEFAULT true,
+    `login_attempts` INTEGER NOT NULL DEFAULT 0,
+    `locked_until` TIMESTAMP(0) NULL,
     `created_at` TIMESTAMP(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
 
     UNIQUE INDEX `username`(`username`),
@@ -245,6 +249,7 @@ CREATE TABLE `transaction_header` (
     `remaining_balance` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     `payment_status` ENUM('PAID', 'PARTIAL', 'UNPAID', 'VOIDED') NULL DEFAULT 'UNPAID',
     `channel` ENUM('WALK_IN', 'BOOKING', 'ONLINE') NULL DEFAULT 'WALK_IN',
+    `is_cancelled` BOOLEAN NULL DEFAULT false,
     `updated_at` DATETIME(3) NULL,
 
     INDEX `customer_id`(`customer_id`),
@@ -293,6 +298,7 @@ CREATE TABLE `customer_deposit` (
     `type` ENUM('ADD', 'DEDUCT', 'REFUND', 'ADJUST') NOT NULL,
     `balance_after` DECIMAL(10, 2) NOT NULL,
     `note` VARCHAR(255) NULL,
+    `is_cancelled` BOOLEAN NULL DEFAULT false,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `created_by` INTEGER NULL,
 
@@ -433,4 +439,47 @@ ALTER TABLE `appointment` ADD CONSTRAINT `fk_appointment_requested_with_therapis
 
 -- AddForeignKey
 ALTER TABLE `appointment` ADD CONSTRAINT `fk_appointment_recorded_by_staff` FOREIGN KEY (`created_by`) REFERENCES `staff`(`staff_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- CreateTable
+CREATE TABLE `audit_log` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NULL,
+    `action` VARCHAR(100) NOT NULL,
+    `target_resource` VARCHAR(50) NULL,
+    `target_id` VARCHAR(50) NULL,
+    `details` TEXT NULL,
+    `ip_address` VARCHAR(45) NULL,
+    `user_agent` TEXT NULL,
+    `timestamp` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+
+    INDEX `audit_log_user_id_idx`(`user_id`),
+    INDEX `audit_log_action_idx`(`action`),
+    INDEX `audit_log_timestamp_idx`(`timestamp`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `customer_consent` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `customer_id` INTEGER NOT NULL,
+    `consent_type` VARCHAR(50) NOT NULL,
+    `is_granted` BOOLEAN NOT NULL DEFAULT false,
+    `version` VARCHAR(20) NOT NULL,
+    `consent_date` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `ip_address` VARCHAR(45) NULL,
+    `recorded_by_staff_id` INTEGER NULL,
+
+    INDEX `customer_consent_customer_id_idx`(`customer_id`),
+    INDEX `customer_consent_consent_type_idx`(`consent_type`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `audit_log` ADD CONSTRAINT `fk_audit_log_recorded_by_staff` FOREIGN KEY (`user_id`) REFERENCES `staff`(`staff_id`) ON DELETE SET NULL ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `customer_consent` ADD CONSTRAINT `fk_consent_belongs_to_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer`(`customer_id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `customer_consent` ADD CONSTRAINT `fk_consent_recorded_by_staff` FOREIGN KEY (`recorded_by_staff_id`) REFERENCES `staff`(`staff_id`) ON DELETE SET NULL ON UPDATE NO ACTION;
 

@@ -1,17 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import {
-    Search, Filter, Plus, Package, ArrowUpDown, MoreHorizontal,
-    History, AlertTriangle, CheckCircle, XCircle, TrendingDown,
+    Search, Package, ArrowUpDown,
+    AlertTriangle, CheckCircle, XCircle, TrendingDown,
     Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe, X
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
-import { formatDateTime } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -121,7 +120,8 @@ const quickActions = [
 ]
 
 export default function InventoryPage() {
-    const [search, setSearch] = useState('')
+    const searchParams = useSearchParams()
+    const [search, setSearch] = useState(searchParams.get('search') || '')
     const [category, setCategory] = useState<string>('all')
     const [sortBy, setSortBy] = useState<string>('product_name')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -130,12 +130,6 @@ export default function InventoryPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
     const token = useAuthStore((s) => s.token)
-    const searchParams = useSearchParams()
-
-    useEffect(() => {
-        const searchQuery = searchParams.get('search')
-        if (searchQuery) setSearch(searchQuery)
-    }, [searchParams])
 
 
     // Fetch dynamic categories
@@ -167,7 +161,7 @@ export default function InventoryPage() {
 
     // Fetch daily usage
     const { data: dailyUsage } = useQuery<DailyUsageData>({
-        queryKey: ['daily-usage', selectedDate],
+        queryKey: ['inventory', 'daily-usage', selectedDate],
         queryFn: async () => {
             const res = await fetch(`/api/inventory/daily-usage?date=${selectedDate}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -179,7 +173,7 @@ export default function InventoryPage() {
 
     // Fetch stock card
     const { data: stockCard } = useQuery<StockCardData>({
-        queryKey: ['stock-card', selectedMonth, selectedYear],
+        queryKey: ['inventory', 'stock-card', selectedMonth, selectedYear],
         queryFn: async () => {
             const res = await fetch(`/api/inventory/stock-card?month=${selectedMonth}&year=${selectedYear}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
