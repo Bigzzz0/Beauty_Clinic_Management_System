@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuthStore } from '@/stores/auth-store'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -136,8 +137,8 @@ export default function DashboardPage() {
         <div className="space-y-6">
             {/* Welcome Header */}
             <div className="rounded-xl bg-white border border-amber-200 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 flex-shrink-0">
-                    <span className="text-xl font-bold text-slate-900">BC</span>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl overflow-hidden">
+                    <Image src="/JinLogo.png" alt="Jiin Clinic" width={48} height={48} className="w-full h-full object-contain" />
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">สวัสดี, {user?.full_name || 'ผู้ใช้'} 👋</h1>
