@@ -153,8 +153,10 @@ export default function NewPatientPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="General">General</SelectItem>
+                                        <SelectItem value="Silver">Silver</SelectItem>
                                         <SelectItem value="Gold">Gold</SelectItem>
                                         <SelectItem value="Platinum">Platinum</SelectItem>
+                                        <SelectItem value="Platinum Gold">Platinum Gold</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
