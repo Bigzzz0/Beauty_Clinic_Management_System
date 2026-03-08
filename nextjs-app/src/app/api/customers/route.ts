@@ -190,14 +190,11 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Generate HN code
-        const timestamp = Date.now().toString(36).toUpperCase()
-        const random = Math.random().toString(36).substring(2, 5).toUpperCase()
-        const hn_code = `HN${timestamp}${random}`
-
-        const customer = await prisma.customer.create({
+        // Step 1: Insert with a temporary unique HN to get the auto-increment customer_id
+        const tempHn = `HN-TEMP-${Date.now()}`
+        const tempCustomer = await prisma.customer.create({
             data: {
-                hn_code,
+                hn_code: tempHn,
                 first_name: body.first_name,
                 last_name: body.last_name,
                 phone_number: body.phone_number,
@@ -209,6 +206,15 @@ export async function POST(request: NextRequest) {
                 underlying_disease: body.underlying_disease || null,
                 member_level: body.member_level || 'General',
             },
+        })
+
+        // Step 2: Use the auto-increment customer_id to generate sequential HN-000001
+        // This is safe from race conditions because customer_id is guaranteed unique by DB
+        const hn_code = `HN-${String(tempCustomer.customer_id).padStart(6, '0')}`
+
+        const customer = await prisma.customer.update({
+            where: { customer_id: tempCustomer.customer_id },
+            data: { hn_code },
         })
 
         return NextResponse.json(customer, { status: 201 })
