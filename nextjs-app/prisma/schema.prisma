@@ -51,7 +51,7 @@ model course_item {
 model customer {
   customer_id        Int                  @id @default(autoincrement())
   hn_code            String               @unique(map: "hn_code") @db.VarChar(20)
-  id_card_number     String?              @db.VarChar(13)
+  id_card_number     String?              @db.Text
   first_name         String               @db.VarChar(100)
   last_name          String               @db.VarChar(100)
   full_name          String?              @db.VarChar(200)

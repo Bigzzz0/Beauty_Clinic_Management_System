@@ -195,7 +195,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 1: Insert with a temporary unique HN to get the auto-increment customer_id
-        const tempHn = `HN-TEMP-${Date.now()}`
+        // HN-T- (5) + Base36 timestamp (~8) = ~13 chars → fits VARCHAR(20)
+        const tempHn = `HN-T-${Date.now().toString(36)}`
         const tempCustomer = await prisma.customer.create({
             data: {
                 hn_code: tempHn,
