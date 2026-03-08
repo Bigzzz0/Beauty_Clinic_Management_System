@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, User, Phone, MapPin, Cake, AlertTriangle, CreditCard } from 'lucide-react'
+import { ArrowLeft, Save, User, Phone, MapPin, Cake, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PhoneInputField } from '@/components/ui/phone-input'
+import { IdCardInputField } from '@/components/ui/id-card-input'
 import { useAuthStore } from '@/stores/auth-store'
 import { toast } from 'sonner'
 
@@ -23,7 +25,7 @@ export default function NewPatientPage() {
         last_name: '',
         nickname: '',
         phone_number: '',
-        id_card_number: '',
+        id_card_number: '',  // always stored as raw 13 digits
         birth_date: '',
         address: '',
         drug_allergy: '',
@@ -121,17 +123,11 @@ export default function NewPatientPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="id_card_number">เลขบัตรประชาชน</Label>
-                                <div className="relative">
-                                    <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="id_card_number"
-                                        className="pl-9"
-                                        value={formData.id_card_number}
-                                        onChange={(e) => setFormData({ ...formData, id_card_number: e.target.value })}
-                                        placeholder="ระบุเลขบัตรประชาชน 13 หลัก"
-                                        maxLength={13}
-                                    />
-                                </div>
+                                <IdCardInputField
+                                    id="id_card_number"
+                                    value={formData.id_card_number}
+                                    onChange={(raw) => setFormData({ ...formData, id_card_number: raw })}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="birth_date">วันเกิด</Label>
@@ -178,21 +174,12 @@ export default function NewPatientPage() {
                                 <Label htmlFor="phone_number" className="after:content-['*'] after:ml-0.5 after:text-red-500">
                                     เบอร์โทรศัพท์
                                 </Label>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="phone_number"
-                                        required
-                                        minLength={9}
-                                        maxLength={15}
-                                        pattern="^[0-9+() -]+$"
-                                        className="pl-9"
-                                        value={formData.phone_number}
-                                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/[^0-9+() -]/g, '') })}
-                                        placeholder="08x-xxx-xxxx"
-                                        title="โปรดกรอกเบอร์โทรศัพท์ที่ถูกต้อง (ตัวเลข และเครื่องหมาย + - ( ) เท่านั้น)"
-                                    />
-                                </div>
+                                <PhoneInputField
+                                    id="phone_number"
+                                    required
+                                    value={formData.phone_number}
+                                    onChange={(val) => setFormData({ ...formData, phone_number: val })}
+                                />
                             </div>
                             <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor="address">ที่อยู่</Label>
@@ -245,7 +232,7 @@ export default function NewPatientPage() {
                         <Button type="button" variant="outline" onClick={() => router.back()}>
                             ยกเลิก
                         </Button>
-                        <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
+                        <Button type="submit" disabled={isLoading || (formData.id_card_number.length > 0 && formData.id_card_number.length < 13)} className="bg-primary hover:bg-primary/90">
                             {isLoading ? (
                                 <>
                                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

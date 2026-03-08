@@ -9,7 +9,11 @@ const customerSchema = z.object({
     first_name: z.string().min(1, 'ต้องระบุชื่อจริง').max(50, 'ชื่อจริงต้องไม่เกิน 50 ตัวอักษร'),
     last_name: z.string().min(1, 'ต้องระบุนามสกุล').max(50, 'นามสกุลต้องไม่เกิน 50 ตัวอักษร'),
     phone_number: z.string().min(9, 'เบอร์โทรศัพท์ต้องมีอย่างน้อย 9 หลัก').max(15, 'เบอร์โทรศัพท์ยาวเกินไป').regex(/^[0-9+() -]+$/, 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง'),
-    id_card_number: z.string().nullable().optional(),
+    id_card_number: z.string()
+        .regex(/^\d{13}$/, 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลักเท่านั้น')
+        .nullable()
+        .optional(),
+
     nickname: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
     birth_date: z.union([z.string(), z.date()]).nullable().optional(),

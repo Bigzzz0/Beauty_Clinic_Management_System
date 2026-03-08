@@ -46,6 +46,7 @@ import {
     DialogDescription,
     DialogTrigger,
 } from '@/components/ui/dialog'
+import { PhoneInputField } from '@/components/ui/phone-input'
 
 interface PatientDetail {
     customer_id: number
@@ -491,9 +492,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                     <div>
                                         <Label>เบอร์โทร</Label>
-                                        <Input
+                                        <PhoneInputField
                                             value={editForm.phone_number || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, phone_number: e.target.value })}
+                                            onChange={(val) => setEditForm({ ...editForm, phone_number: val })}
                                         />
                                     </div>
                                     <div>
