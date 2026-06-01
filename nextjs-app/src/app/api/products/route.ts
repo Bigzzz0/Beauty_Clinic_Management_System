@@ -49,9 +49,25 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
 
+        if (body.main_unit && body.sub_unit && body.main_unit === body.sub_unit) {
+            return NextResponse.json(
+                { error: 'หน่วยใหญ่และหน่วยย่อยต้องไม่เหมือนกัน' },
+                { status: 400 }
+            )
+        }
+
         // Generate product code
+        const prefixMap: Record<string, string> = {
+            'Medicine': 'MED',
+            'Botox': 'BTX',
+            'Filler': 'FIL',
+            'Treatment': 'TRT',
+            'Equipment': 'EQP',
+            'Skin': 'SKN'
+        }
+        const prefix = prefixMap[body.category] || 'PRD'
         const timestamp = Date.now().toString(36).toUpperCase()
-        const product_code = `P${timestamp}`
+        const product_code = `${prefix}-${timestamp}`
 
         const product = await prisma.product.create({
             data: {

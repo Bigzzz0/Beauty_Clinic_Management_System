@@ -126,16 +126,16 @@ export default function DailySalesPage() {
         const rows = data.details.map(d => [
             d.rowNumber,
             d.hnCode,
-            d.customerName,
-            `"${d.items}"`,
+            `"${(d.customerName || '').replace(/"/g, '""')}"`,
+            `"${(d.items || '').replace(/"/g, '""')}"`,
             d.deposit,
             d.transfer,
             d.credit,
             d.cash,
             d.totalAmount,
-            d.personalConsult,
+            `"${(d.personalConsult || '').replace(/"/g, '""')}"`,
             d.paymentChannel,
-            d.note
+            `"${(d.note || '').replace(/"/g, '""')}"`
         ])
 
         const csvContent = [
@@ -161,7 +161,7 @@ export default function DailySalesPage() {
     ) || []
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -181,7 +181,7 @@ export default function DailySalesPage() {
 
                 {/* Date Navigation */}
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={handlePrevDay}>
+                    <Button variant="outline" size="icon" onClick={handlePrevDay} aria-label="เลือกวันก่อนหน้า">
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <Input
@@ -190,7 +190,7 @@ export default function DailySalesPage() {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         className="w-40"
                     />
-                    <Button variant="outline" size="icon" onClick={handleNextDay}>
+                    <Button variant="outline" size="icon" onClick={handleNextDay} aria-label="เลือกวันถัดไป">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
@@ -270,6 +270,7 @@ export default function DailySalesPage() {
                                 placeholder="ค้นหา HN, ชื่อลูกค้า, รายการ..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
+                                aria-label="ค้นหาข้อมูลยอดขายรายวัน"
                                 className="pl-10"
                             />
                         </div>
@@ -277,6 +278,7 @@ export default function DailySalesPage() {
                             <Button
                                 variant="outline"
                                 onClick={handleExportCSV}
+                                aria-label="ส่งออกรายงานเป็น CSV"
                             >
                                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                                 Export CSV
@@ -306,8 +308,9 @@ export default function DailySalesPage() {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                        <div className="flex flex-col items-center justify-center gap-3 py-12" role="status" aria-label="กำลังโหลดข้อมูลยอดขาย">
+                            <div className="h-8 w-8 rounded-full border-2 border-t-amber-500 border-amber-200 animate-spin"></div>
+                            <p className="text-sm text-slate-400">กำลังโหลดข้อมูล...</p>
                         </div>
                     ) : filteredDetails.length === 0 ? (
                         <div className="text-center py-12">
@@ -400,41 +403,56 @@ export default function DailySalesPage() {
             {data?.summary?.commissionSummary && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>
+                        <CardTitle className="flex items-center gap-2">
                             สรุปค่าดำเนินการ
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            <div className="text-center p-4 bg-muted/50 rounded-lg">
-                                <p className="text-sm text-muted-foreground">ค่าดำเนินการ</p>
-                                <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                                    {formatCurrency(data.summary.commissionSummary.operationFee)}
-                                </p>
+                            <div className="flex items-center gap-3 rounded-xl border p-3 bg-white shadow-sm">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-100">
+                                    <DollarSign className="h-4 w-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">ค่าดำเนินการ</p>
+                                    <p className="text-lg font-bold text-emerald-600">{formatCurrency(data.summary.commissionSummary.operationFee)}</p>
+                                </div>
                             </div>
-                            <div className="text-center p-4 bg-muted/50 rounded-lg">
-                                <p className="text-sm text-muted-foreground">ค่าผู้ช่วยแพทย์</p>
-                                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                    {formatCurrency(data.summary.commissionSummary.assistantFee)}
-                                </p>
+                            <div className="flex items-center gap-3 rounded-xl border p-3 bg-white shadow-sm">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 shadow-sm shadow-blue-100">
+                                    <Users className="h-4 w-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">ผู้ช่วยแพทย์</p>
+                                    <p className="text-lg font-bold text-blue-600">{formatCurrency(data.summary.commissionSummary.assistantFee)}</p>
+                                </div>
                             </div>
-                            <div className="text-center p-4 bg-muted/50 rounded-lg">
-                                <p className="text-sm text-muted-foreground">ค่าพนักงาน</p>
-                                <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                                    {formatCurrency(data.summary.commissionSummary.staffFee)}
-                                </p>
+                            <div className="flex items-center gap-3 rounded-xl border p-3 bg-white shadow-sm">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 shadow-sm shadow-purple-100">
+                                    <CreditCard className="h-4 w-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">ค่าพนักงาน</p>
+                                    <p className="text-lg font-bold text-purple-600">{formatCurrency(data.summary.commissionSummary.staffFee)}</p>
+                                </div>
                             </div>
-                            <div className="text-center p-4 bg-muted/50 rounded-lg">
-                                <p className="text-sm text-muted-foreground">พตร.ทรีทเมนต์</p>
-                                <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
-                                    {formatCurrency(data.summary.commissionSummary.treatmentFee)}
-                                </p>
+                            <div className="flex items-center gap-3 rounded-xl border p-3 bg-white shadow-sm">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-100">
+                                    <Banknote className="h-4 w-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">พตร.ทรีทเมนต์</p>
+                                    <p className="text-lg font-bold text-amber-600">{formatCurrency(data.summary.commissionSummary.treatmentFee)}</p>
+                                </div>
                             </div>
-                            <div className="text-center p-4 bg-muted/50 rounded-lg">
-                                <p className="text-sm text-muted-foreground">ค่าหัดการทำ</p>
-                                <p className="text-xl font-bold text-pink-600 dark:text-pink-400">
-                                    {formatCurrency(data.summary.commissionSummary.handFee)}
-                                </p>
+                            <div className="flex items-center gap-3 rounded-xl border p-3 bg-white shadow-sm">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-pink-400 to-rose-500 shadow-sm shadow-pink-100">
+                                    <Download className="h-4 w-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">ค่าหัตถการ</p>
+                                    <p className="text-lg font-bold text-pink-600">{formatCurrency(data.summary.commissionSummary.handFee)}</p>
+                                </div>
                             </div>
                         </div>
                     </CardContent>

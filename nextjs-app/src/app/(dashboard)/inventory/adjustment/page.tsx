@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ClipboardEdit, Upload, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
@@ -40,8 +41,8 @@ export default function AdjustmentPage() {
     const token = useAuthStore((s) => s.token)
 
     const [productId, setProductId] = useState<number | null>(null)
-    const [qtyMain, setQtyMain] = useState(0)
-    const [qtySub, setQtySub] = useState(0)
+    const [qtyMain, setQtyMain] = useState<number | ''>('')
+    const [qtySub, setQtySub] = useState<number | ''>('')
     const [reason, setReason] = useState('')
     const [note, setNote] = useState('')
     const [evidenceImage, setEvidenceImage] = useState<string | null>(null)
@@ -98,15 +99,15 @@ export default function AdjustmentPage() {
             toast.error('กรุณากรอกข้อมูลให้ครบ')
             return
         }
-        if (qtyMain === 0 && qtySub === 0) {
+        if ((qtyMain === '' || qtyMain === 0) && (qtySub === '' || qtySub === 0)) {
             toast.error('กรุณาระบุจำนวน')
             return
         }
 
         adjustMutation.mutate({
             product_id: productId,
-            qty_main: qtyMain,
-            qty_sub: qtySub,
+            qty_main: Number(qtyMain) || 0,
+            qty_sub: Number(qtySub) || 0,
             reason,
             note,
             evidence_image: evidenceImage || undefined,
@@ -155,8 +156,11 @@ export default function AdjustmentPage() {
                             <Input
                                 type="number"
                                 min={0}
-                                value={qtyMain}
-                                onChange={(e) => setQtyMain(parseInt(e.target.value) || 0)}
+                                value={qtyMain || ''}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setQtyMain(val === '' ? '' : parseInt(val, 10));
+                                }}
                             />
                         </div>
                         <div>
@@ -164,8 +168,11 @@ export default function AdjustmentPage() {
                             <Input
                                 type="number"
                                 min={0}
-                                value={qtySub}
-                                onChange={(e) => setQtySub(parseInt(e.target.value) || 0)}
+                                value={qtySub || ''}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setQtySub(val === '' ? '' : parseInt(val, 10));
+                                }}
                             />
                         </div>
                     </div>
@@ -173,7 +180,7 @@ export default function AdjustmentPage() {
                     {/* Reason */}
                     <div>
                         <Label>สาเหตุ *</Label>
-                        <Select value={reason} onValueChange={setReason}>
+                        <Select value={reason || undefined} onValueChange={setReason}>
                             <SelectTrigger>
                                 <SelectValue placeholder="เลือกสาเหตุ" />
                             </SelectTrigger>
@@ -213,10 +220,12 @@ export default function AdjustmentPage() {
                                 />
                             </label>
                             {imagePreview && (
-                                <img
+                                <Image
                                     src={imagePreview}
                                     alt="Preview"
-                                    className="h-20 w-20 object-cover rounded-lg border"
+                                    width={80}
+                                    height={80}
+                                    className="object-cover rounded-lg border"
                                 />
                             )}
                         </div>

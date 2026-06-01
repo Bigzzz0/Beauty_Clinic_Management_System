@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { logAudit } from '@/lib/audit'
 
 // GET /api/deposits - Get all deposit transactions or by customer
 export async function GET(request: NextRequest) {
@@ -118,6 +119,14 @@ export async function POST(request: NextRequest) {
                     },
                 },
             },
+        })
+
+        // Log deposit transaction
+        await logAudit({
+            action: 'UPDATE',
+            target_resource: `CustomerDeposit_${customer_id}`,
+            request,
+            details: { amount, type, old_balance: currentBalance, new_balance: newBalance, created_by }
         })
 
         return NextResponse.json({

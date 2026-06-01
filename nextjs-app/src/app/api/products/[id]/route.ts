@@ -39,6 +39,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
         const productId = parseInt(id)
         const body = await request.json()
 
+        if (body.main_unit && body.sub_unit && body.main_unit === body.sub_unit) {
+            return NextResponse.json(
+                { error: 'หน่วยใหญ่และหน่วยย่อยต้องไม่เหมือนกัน' },
+                { status: 400 }
+            )
+        }
+
         const product = await prisma.product.update({
             where: { product_id: productId },
             data: {
@@ -71,10 +78,22 @@ export async function DELETE(request: NextRequest, { params }: Params) {
         const { id } = await params
         const productId = parseInt(id)
 
-        await prisma.product.update({
-            where: { product_id: productId },
-            data: { is_active: false },
-        })
+        // Check if there are critical relations
+        const hasTx = await prisma.transaction_item.findFirst({ where: { product_id: productId } })
+        const hasUsage = await prisma.inventory_usage.findFirst({ where: { product_id: productId } })
+
+        if (hasTx || hasUsage) {
+            // Fallback to soft delete
+            await prisma.product.update({
+                where: { product_id: productId },
+                data: { is_active: false },
+            })
+        } else {
+            // Hard delete
+            await prisma.inventory.deleteMany({ where: { product_id: productId } })
+            await prisma.stock_movement.deleteMany({ where: { product_id: productId } })
+            await prisma.product.delete({ where: { product_id: productId } })
+        }
 
         return NextResponse.json({ success: true })
     } catch (error) {

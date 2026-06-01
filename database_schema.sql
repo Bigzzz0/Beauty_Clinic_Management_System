@@ -59,7 +59,6 @@ CREATE TABLE Customer (
     birth_date DATE,
     drug_allergy TEXT COMMENT 'Alert สีแดง',
     underlying_disease TEXT COMMENT 'โรคประจำตัว',
-    personal_consult VARCHAR(100),
     member_level VARCHAR(50) DEFAULT 'General',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

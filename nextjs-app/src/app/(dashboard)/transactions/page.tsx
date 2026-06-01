@@ -3,10 +3,15 @@
 import { useState } from 'react'
 import {
     FileText, Search, Eye, Printer, Ban, ChevronLeft, ChevronRight,
-    CheckCircle, Clock, XCircle
+    CheckCircle, Clock, XCircle, User, Phone
 } from 'lucide-react'
 import Link from 'next/link'
 import { EmptyState } from '@/components/ui/empty-state'
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
@@ -28,6 +33,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog'
 import {
     Select,
@@ -155,14 +161,16 @@ export default function TransactionsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-primary" />
+                <h1 className="text-2xl font-bold flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-200">
+                        <FileText className="h-5 w-5 text-white" />
+                    </div>
                     ประวัติบิล
                 </h1>
-                <p className="text-muted-foreground">รายการธุรกรรมทั้งหมด</p>
+                <p className="text-muted-foreground text-sm mt-1 ml-0.5">รายการธุรกรรมทั้งหมด</p>
             </div>
 
             {/* Filters */}
@@ -174,6 +182,7 @@ export default function TransactionsPage() {
                             <Input
                                 placeholder="ค้นหาเลขบิล / ชื่อลูกค้า / HN..."
                                 value={search}
+                                aria-label="Search transactions"
                                 onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                                 className="pl-10"
                             />
@@ -200,15 +209,15 @@ export default function TransactionsPage() {
                     <CardTitle>รายการบิล ({data?.meta?.total || 0})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-lg border overflow-hidden">
+                    <div className="rounded-xl border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-muted/50">
-                                    <TableHead>เลขบิล</TableHead>
-                                    <TableHead>วันที่</TableHead>
-                                    <TableHead>ลูกค้า</TableHead>
-                                    <TableHead className="text-right">ยอดรวม</TableHead>
-                                    <TableHead>สถานะ</TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">เลขบิล</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">วันที่</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">ลูกค้า</TableHead>
+                                    <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">ยอดรวม</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">สถานะ</TableHead>
                                     <TableHead className="w-32"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -240,18 +249,43 @@ export default function TransactionsPage() {
                                     </TableRow>
                                 ) : (
                                     transactions.map((tx) => (
-                                        <TableRow key={tx.transaction_id}>
+                                        <TableRow key={tx.transaction_id} className="hover:bg-amber-50/30 transition-colors">
                                             <TableCell>
-                                                <span className="font-mono font-medium">#{tx.transaction_id}</span>
+                                                <span className="font-mono font-medium text-slate-700">#{tx.transaction_id}</span>
                                             </TableCell>
                                             <TableCell>
                                                 <span className="text-sm">{formatDateTime(tx.transaction_date)}</span>
                                             </TableCell>
                                             <TableCell>
-                                                <div>
-                                                    <p className="font-medium">{tx.customer.first_name} {tx.customer.last_name}</p>
-                                                    <p className="text-xs text-muted-foreground">{tx.customer.hn_code}</p>
-                                                </div>
+                                                <HoverCard openDelay={200}>
+                                                    <HoverCardTrigger asChild>
+                                                        <div className="cursor-pointer hover:bg-slate-50 p-1 -ml-1 rounded transition-colors inline-block w-full">
+                                                            <p className="font-medium text-primary decoration-primary/30 hover:underline underline-offset-4">{tx.customer.first_name} {tx.customer.last_name}</p>
+                                                            <p className="text-xs text-muted-foreground">{tx.customer.hn_code}</p>
+                                                        </div>
+                                                    </HoverCardTrigger>
+                                                    <HoverCardContent className="w-80 p-4" align="start">
+                                                        <div className="flex justify-between space-x-4">
+                                                            <div className="space-y-1">
+                                                                <h4 className="text-sm font-semibold flex items-center gap-1">
+                                                                    <User className="w-4 h-4 text-primary" />
+                                                                    {tx.customer.first_name} {tx.customer.last_name}
+                                                                </h4>
+                                                                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                                                    <span>HN:</span> <span className="font-mono">{tx.customer.hn_code}</span>
+                                                                </p>
+                                                                {tx.customer.phone_number && (
+                                                                    <div className="flex items-center pt-2">
+                                                                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                                                            <Phone className="w-3 h-3" />
+                                                                            {tx.customer.phone_number}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </HoverCardContent>
+                                                </HoverCard>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="font-medium">{formatCurrency(Number(tx.net_amount))}</span>
@@ -264,6 +298,7 @@ export default function TransactionsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
+                                                        aria-label="ดูรายละเอียดบิล"
                                                         onClick={() => setSelectedTx(tx)}
                                                     >
                                                         <Eye className="h-4 w-4" />
@@ -271,6 +306,7 @@ export default function TransactionsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
+                                                        aria-label="พิมพ์ใบเสร็จ"
                                                         onClick={() => handlePrint(tx)}
                                                     >
                                                         <Printer className="h-4 w-4" />
@@ -280,6 +316,7 @@ export default function TransactionsPage() {
                                                             variant="ghost"
                                                             size="icon"
                                                             className="text-red-500"
+                                                            aria-label="ยกเลิกบิล"
                                                             onClick={() => setVoidTxId(tx.transaction_id)}
                                                         >
                                                             <Ban className="h-4 w-4" />
@@ -306,6 +343,7 @@ export default function TransactionsPage() {
                                     size="sm"
                                     disabled={page <= 1}
                                     onClick={() => setPage(page - 1)}
+                                    aria-label="หน้าก่อน"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
@@ -314,6 +352,7 @@ export default function TransactionsPage() {
                                     size="sm"
                                     disabled={page >= totalPages}
                                     onClick={() => setPage(page + 1)}
+                                    aria-label="หน้าถัดไป"
                                 >
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
@@ -328,14 +367,22 @@ export default function TransactionsPage() {
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>รายละเอียดบิล #{selectedTx?.transaction_id}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            รายละเอียดเต็มของบิลสำหรับ{selectedTx?.customer.first_name} {selectedTx?.customer.last_name}
+                        </DialogDescription>
                     </DialogHeader>
 
                     {selectedTx && (
                         <div className="space-y-4">
-                            {/* Customer */}
-                            <div className="p-3 rounded-lg bg-muted">
-                                <p className="font-medium">{selectedTx.customer.first_name} {selectedTx.customer.last_name}</p>
-                                <p className="text-sm text-muted-foreground">{selectedTx.customer.hn_code}</p>
+                            {/* Customer Card */}
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-200 text-sm font-bold text-amber-800">
+                                    {selectedTx.customer.first_name.charAt(0)}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-slate-800">{selectedTx.customer.first_name} {selectedTx.customer.last_name}</p>
+                                    <p className="text-xs text-amber-700 font-mono">{selectedTx.customer.hn_code}</p>
+                                </div>
                             </div>
 
                             {/* Items */}
@@ -393,8 +440,14 @@ export default function TransactionsPage() {
                             </div>
 
                             {Number(selectedTx.remaining_balance) > 0 && (
-                                <div className="p-3 rounded-lg bg-destructive/10 text-destructive">
-                                    <p className="text-sm">ยอดค้างชำระ: <strong>{formatCurrency(Number(selectedTx.remaining_balance))}</strong></p>
+                                <div className="flex items-center gap-3 p-3 rounded-xl border-l-4 border-red-400 bg-red-50">
+                                    <div className="shrink-0 text-red-500">
+                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-red-500">ยอดค้างชำระ</p>
+                                        <p className="text-lg font-bold text-red-600">{formatCurrency(Number(selectedTx.remaining_balance))}</p>
+                                    </div>
                                 </div>
                             )}
                         </div>

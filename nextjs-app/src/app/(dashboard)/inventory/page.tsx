@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-    Search, Filter, Plus, Package, ArrowUpDown, MoreHorizontal,
-    History, AlertTriangle, CheckCircle, XCircle, TrendingDown,
-    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe
+    Search, Package, ArrowUpDown,
+    AlertTriangle, CheckCircle, XCircle, TrendingDown,
+    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe, X
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth-store'
-import { formatDateTime } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -96,7 +96,7 @@ interface StockCardData {
     }>
 }
 
-const categories = ['Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin']
+// categories will be fetched dynamically
 const months = [
     { value: 1, label: 'มกราคม' },
     { value: 2, label: 'กุมภาพันธ์' },
@@ -120,8 +120,9 @@ const quickActions = [
 ]
 
 export default function InventoryPage() {
-    const [search, setSearch] = useState('')
-    const [category, setCategory] = useState<string>('')
+    const searchParams = useSearchParams()
+    const [search, setSearch] = useState(searchParams.get('search') || '')
+    const [category, setCategory] = useState<string>('all')
     const [sortBy, setSortBy] = useState<string>('product_name')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -129,6 +130,16 @@ export default function InventoryPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
     const token = useAuthStore((s) => s.token)
+
+
+    // Fetch dynamic categories
+    const { data: dynamicCategories = [] } = useQuery<{ id: number, code: string, name: string }[]>({
+        queryKey: ['categories-product'],
+        queryFn: async () => {
+            const res = await fetch(`/api/categories?type=PRODUCT`)
+            return res.json()
+        },
+    })
 
     // Fetch inventory data
     const { data: inventory = [], isLoading } = useQuery<InventoryItem[]>({
@@ -150,7 +161,7 @@ export default function InventoryPage() {
 
     // Fetch daily usage
     const { data: dailyUsage } = useQuery<DailyUsageData>({
-        queryKey: ['daily-usage', selectedDate],
+        queryKey: ['inventory', 'daily-usage', selectedDate],
         queryFn: async () => {
             const res = await fetch(`/api/inventory/daily-usage?date=${selectedDate}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -162,7 +173,7 @@ export default function InventoryPage() {
 
     // Fetch stock card
     const { data: stockCard } = useQuery<StockCardData>({
-        queryKey: ['stock-card', selectedMonth, selectedYear],
+        queryKey: ['inventory', 'stock-card', selectedMonth, selectedYear],
         queryFn: async () => {
             const res = await fetch(`/api/inventory/stock-card?month=${selectedMonth}&year=${selectedYear}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -192,28 +203,32 @@ export default function InventoryPage() {
         return 'normal'
     }
 
-    const getCategoryColor = (cat: string) => {
+    const getCategoryBadgeClass = (cat: string) => {
         const colors: Record<string, string> = {
-            Botox: 'text-primary',
-            Filler: 'text-accent',
-            Treatment: 'text-blue-500',
-            Medicine: 'text-success',
-            Equipment: 'text-muted-foreground',
-            Skin: 'text-amber-500',
+            Botox: 'bg-purple-100 text-purple-700 border-purple-200',
+            Filler: 'bg-pink-100 text-pink-700 border-pink-200',
+            Treatment: 'bg-sky-100 text-sky-700 border-sky-200',
+            Medicine: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            Equipment: 'bg-amber-100 text-amber-700 border-amber-200',
+            Skin: 'bg-rose-100 text-rose-700 border-rose-200',
+            Service: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            Other: 'bg-slate-100 text-slate-600 border-slate-200',
         }
-        return colors[cat] || 'text-muted-foreground'
+        return colors[cat] || 'bg-slate-100 text-slate-600 border-slate-200'
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Package className="h-6 w-6 text-primary" />
+                    <h1 className="text-2xl font-bold flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-200">
+                            <Package className="h-5 w-5 text-white" />
+                        </div>
                         รายงานคลังสินค้า
                     </h1>
-                    <p className="text-muted-foreground">ติดตามสต๊อกและการเคลื่อนไหวของสินค้า</p>
+                    <p className="text-muted-foreground text-sm mt-1 ml-0.5">ติดตามสต๊อกและการเคลื่อนไหวของสินค้า</p>
                 </div>
             </div>
 
@@ -244,37 +259,48 @@ export default function InventoryPage() {
                 <TabsContent value="stock" className="space-y-6">
                     {/* Summary Stats */}
                     <div className="grid gap-4 sm:grid-cols-4">
-                        <Card>
-                            <CardContent className="p-4">
-                                <p className="text-sm text-muted-foreground">สินค้าทั้งหมด</p>
-                                <p className="text-3xl font-bold">{inventory.length}</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-400 to-slate-600 shadow-sm">
+                                    <Package className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">สินค้าทั้งหมด</p>
+                                    <p className="text-2xl font-bold">{inventory.length}</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-success" />
-                                    <p className="text-sm text-muted-foreground">สต๊อกปกติ</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-100">
+                                    <CheckCircle className="h-5 w-5 text-white" />
                                 </div>
-                                <p className="text-3xl font-bold text-success">{normalStock}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">สต๊อกปกติ</p>
+                                    <p className="text-2xl font-bold text-emerald-600">{normalStock}</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    <AlertTriangle className="h-4 w-4 text-warning" />
-                                    <p className="text-sm text-muted-foreground">สต๊อกต่ำ</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 shadow-sm shadow-amber-100">
+                                    <AlertTriangle className="h-5 w-5 text-white" />
                                 </div>
-                                <p className="text-3xl font-bold text-warning">{lowStock}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">สต๊อกต่ำ</p>
+                                    <p className="text-2xl font-bold text-amber-600">{lowStock}</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    <XCircle className="h-4 w-4 text-destructive" />
-                                    <p className="text-sm text-muted-foreground">หมด</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-400 to-red-600 shadow-sm shadow-red-100">
+                                    <XCircle className="h-5 w-5 text-white" />
                                 </div>
-                                <p className="text-3xl font-bold text-destructive">{outOfStock}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">หมด</p>
+                                    <p className="text-2xl font-bold text-red-600">{outOfStock}</p>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -294,7 +320,11 @@ export default function InventoryPage() {
                     {/* Quick Actions */}
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {quickActions.map((action) => (
-                            <Link key={action.href} href={action.href}>
+                            <Link
+                                key={action.href}
+                                href={action.href}
+                                className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            >
                                 <Card className="hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
                                     <CardContent className="flex items-center gap-3 p-4">
                                         <div className={`p-2 rounded-lg bg-gradient-to-br ${action.color} text-white`}>
@@ -315,8 +345,20 @@ export default function InventoryPage() {
                                 placeholder="ค้นหาสินค้า..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 pr-8"
+                                aria-label="Search inventory"
+                                autoFocus
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                                    aria-label="ล้างคำค้นหา"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
                         <Select value={category} onValueChange={setCategory}>
                             <SelectTrigger className="w-full md:w-48">
@@ -324,8 +366,8 @@ export default function InventoryPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">ทั้งหมด</SelectItem>
-                                {categories.map((cat) => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                {dynamicCategories.map((cat) => (
+                                    <SelectItem key={cat.code} value={cat.name}>{cat.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -333,27 +375,33 @@ export default function InventoryPage() {
 
                     {/* Inventory Table */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle>รายการสต๊อกคงเหลือ</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                รายการสต๊อกคงเหลือ
+                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{inventory.length}</span>
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="rounded-lg border overflow-hidden">
+                        <CardContent className="p-0 sm:p-6 sm:pt-0">
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block rounded-xl border overflow-hidden">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-muted/50">
-                                            <TableHead className="w-16">สถานะ</TableHead>
-                                            <TableHead>รหัส</TableHead>
-                                            <TableHead
-                                                className="cursor-pointer hover:text-primary transition-colors"
-                                                onClick={() => handleSort('product_name')}
-                                            >
-                                                <div className="flex items-center gap-1">
+                                        <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                            <TableHead className="w-16 text-xs font-semibold uppercase tracking-wide text-slate-500">สถานะ</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">รหัส</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSort('product_name')}
+                                                    className="flex items-center gap-1 hover:text-amber-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded px-1 -ml-1"
+                                                    aria-sort={sortBy === 'product_name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+                                                >
                                                     สินค้า
                                                     <ArrowUpDown className="h-3 w-3" />
-                                                </div>
+                                                </button>
                                             </TableHead>
-                                            <TableHead>หมวด</TableHead>
-                                            <TableHead className="text-right">สต๊อกคงเหลือ</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">หมวด</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">สต๊อกคงเหลือ</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -386,11 +434,24 @@ export default function InventoryPage() {
                                             inventory.map((item) => {
                                                 const status = getStockStatus(item)
                                                 return (
-                                                    <TableRow key={item.product_id} className="hover:bg-muted/50">
+                                                    <TableRow
+                                                        key={item.product_id}
+                                                        className={`transition-colors ${
+                                                            status === 'out' ? 'bg-red-50/60 border-l-2 border-l-red-400 hover:bg-red-50' :
+                                                            status === 'low' ? 'border-l-2 border-l-amber-300 hover:bg-amber-50/30' :
+                                                            'hover:bg-slate-50/60'
+                                                        }`}
+                                                    >
                                                         <TableCell>
-                                                            {status === 'normal' && <CheckCircle className="h-5 w-5 text-success" />}
-                                                            {status === 'low' && <AlertTriangle className="h-5 w-5 text-warning" />}
-                                                            {status === 'out' && <XCircle className="h-5 w-5 text-destructive" />}
+                                                            {status === 'normal' && (
+                                                                <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">ปกติ</span>
+                                                            )}
+                                                            {status === 'low' && (
+                                                                <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">ใกล้หมด</span>
+                                                            )}
+                                                            {status === 'out' && (
+                                                                <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">หมด</span>
+                                                            )}
                                                         </TableCell>
                                                         <TableCell className="font-mono text-sm text-muted-foreground">
                                                             {item.product_code}
@@ -398,8 +459,10 @@ export default function InventoryPage() {
                                                         <TableCell className="font-medium">
                                                             {item.product_name}
                                                         </TableCell>
-                                                        <TableCell className={getCategoryColor(item.category)}>
-                                                            {item.category}
+                                                        <TableCell>
+                                                            <Badge className={getCategoryBadgeClass(item.category)}>
+                                                                {item.category}
+                                                            </Badge>
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             <span className="font-medium">{item.full_qty}</span>
@@ -414,6 +477,71 @@ export default function InventoryPage() {
                                         )}
                                     </TableBody>
                                 </Table>
+                            </div>
+
+                            {/* Mobile Card View */}
+                            <div className="grid grid-cols-1 gap-4 md:hidden">
+                                {isLoading ? (
+                                    [...Array(5)].map((_, i) => (
+                                        <div key={i} className="flex animate-pulse flex-col gap-3 rounded-xl border p-4">
+                                            <div className="flex justify-between">
+                                                <div className="h-5 w-1/2 rounded bg-slate-100" />
+                                                <div className="h-5 w-16 rounded bg-slate-100" />
+                                            </div>
+                                            <div className="h-4 w-1/3 rounded bg-slate-100" />
+                                            <div className="mt-2 border-t pt-2">
+                                                <div className="h-6 w-24 rounded bg-slate-100 ml-auto" />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : inventory.length === 0 ? (
+                                    <div className="py-8">
+                                        <EmptyState
+                                            icon={Package}
+                                            title="ไม่พบข้อมูลสินค้า"
+                                            description={search ? `ไม่พบสินค้าที่ตรงกับ "${search}"` : "ยังไม่มีสินค้าในคลัง เริ่มต้นด้วยการเพิ่มสินค้าใหม่"}
+                                            action={
+                                                <Link href="/inventory/stock-in">
+                                                    <Button variant="outline" className="mt-4">
+                                                        รับสินค้าเข้า
+                                                    </Button>
+                                                </Link>
+                                            }
+                                        />
+                                    </div>
+                                ) : (
+                                    inventory.map((item) => {
+                                        const status = getStockStatus(item)
+                                        return (
+                                            <div key={item.product_id} className="flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-sm">
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <div className="font-medium text-slate-900">{item.product_name}</div>
+                                                        <div className="mt-0.5 font-mono text-xs text-muted-foreground">{item.product_code}</div>
+                                                    </div>
+                                                    <Badge className={getCategoryBadgeClass(item.category)}>{item.category}</Badge>
+                                                </div>
+                                                <div className="mt-2 flex items-end justify-between border-t pt-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        {status === 'normal' && <CheckCircle className="h-4 w-4 text-success" />}
+                                                        {status === 'low' && <AlertTriangle className="h-4 w-4 text-warning" />}
+                                                        {status === 'out' && <XCircle className="h-4 w-4 text-destructive" />}
+                                                        <span className={`text-sm font-medium ${status === 'normal' ? 'text-success' : status === 'low' ? 'text-warning' : 'text-destructive'}`}>
+                                                            {status === 'normal' ? 'ปกติ' : status === 'low' ? 'ใกล้หมด' : 'หมด'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-xl font-bold">{item.full_qty}</span>
+                                                        <span className="ml-1 text-sm text-muted-foreground">{item.main_unit}</span>
+                                                        {item.opened_qty > 0 && (
+                                                            <span className="ml-1 text-sm text-primary">(+{item.opened_qty} {item.sub_unit})</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -474,8 +602,8 @@ export default function InventoryPage() {
                                 <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
                                     {Object.entries(dailyUsage.by_category).map(([cat, units]) => (
                                         <div key={cat} className="p-3 rounded-lg bg-muted/50">
-                                            <p className={`text-sm ${getCategoryColor(cat)}`}>{cat}</p>
-                                            <p className="text-xl font-bold">{units} <span className="text-sm text-muted-foreground">units</span></p>
+                                            <Badge className={getCategoryBadgeClass(cat)}>{cat}</Badge>
+                                            <p className="text-xl font-bold mt-1">{units} <span className="text-sm text-muted-foreground">units</span></p>
                                         </div>
                                     ))}
                                 </div>
@@ -514,7 +642,11 @@ export default function InventoryPage() {
                                                         {item.product_code}
                                                     </TableCell>
                                                     <TableCell>{item.product_name}</TableCell>
-                                                    <TableCell className={getCategoryColor(item.category)}>{item.category}</TableCell>
+                                                    <TableCell>
+                                                        <Badge className={getCategoryBadgeClass(item.category)}>
+                                                            {item.category}
+                                                        </Badge>
+                                                    </TableCell>
                                                     <TableCell className="text-center">{item.times}</TableCell>
                                                     <TableCell className="text-right">
                                                         <span className="text-primary font-bold">{item.total_used}</span>
@@ -577,7 +709,7 @@ export default function InventoryPage() {
                         <CardContent className="p-4">
                             <div className="flex items-center gap-4">
                                 <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                                    <SelectTrigger className="w-48">
+                                    <SelectTrigger className="w-48" aria-label="เลือกเดือน">
                                         <SelectValue placeholder="เลือกเดือน" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -589,7 +721,7 @@ export default function InventoryPage() {
                                     </SelectContent>
                                 </Select>
                                 <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                                    <SelectTrigger className="w-32">
+                                    <SelectTrigger className="w-32" aria-label="เลือกปี">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -668,7 +800,11 @@ export default function InventoryPage() {
                                                         {item.product_code}
                                                     </TableCell>
                                                     <TableCell>{item.product_name}</TableCell>
-                                                    <TableCell className={getCategoryColor(item.category)}>{item.category}</TableCell>
+                                                    <TableCell>
+                                                        <Badge className={getCategoryBadgeClass(item.category)}>
+                                                            {item.category}
+                                                        </Badge>
+                                                    </TableCell>
                                                     <TableCell className="text-right">{item.begin_balance}</TableCell>
                                                     <TableCell className="text-right">
                                                         {item.stock_in > 0 ? (
@@ -705,6 +841,7 @@ export default function InventoryPage() {
                             </div>
                         </CardContent>
                     </Card>
+
                 </TabsContent>
             </Tabs>
         </div>

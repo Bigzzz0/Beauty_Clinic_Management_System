@@ -1,5 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+import { logAudit } from '@/lib/audit'
+
+const AUTO_FEE_TYPES = ['DF', 'HAND_FEE'] as const
+
+function resolveFeeAmount(
+    rates: Array<{ fee_type: string | null; position_type: string | null; rate_amount: unknown }>,
+    feeType: 'DF' | 'HAND_FEE',
+    preferredPosition: 'Doctor' | 'Therapist'
+): number | null {
+    const candidateRates = rates.filter((rate) => rate.fee_type === feeType)
+
+    const exactByPosition = candidateRates.find((rate) => rate.position_type === preferredPosition)
+    if (exactByPosition) {
+        return Number(exactByPosition.rate_amount)
+    }
+
+    const fallbackAllPositions = candidateRates.find((rate) => rate.position_type === null)
+    if (fallbackAllPositions) {
+        return Number(fallbackAllPositions.rate_amount)
+    }
+
+    return candidateRates.length > 0 ? Number(candidateRates[0].rate_amount) : null
+}
+
+// Validation schema for service-usage POST
+const ProductUsedSchema = z.object({
+    product_id: z.number().int().positive(),
+    qty_used: z.number().positive(),
+    lot_number: z.string().optional().nullable(),
+})
+
+const StaffIdsSchema = z.array(z.number().int().positive()).optional().nullable()
+
+const ServiceUsageSchema = z.object({
+    customer_id: z.number().int().positive({ message: 'customer_id is required' }),
+    customer_course_id: z.number().int().positive().optional().nullable(),
+    service_name: z.string().min(1).optional(),
+    doctor_id: z.number().int().positive().optional().nullable(),
+    therapist_id: z.number().int().positive().optional().nullable(),
+    doctor_ids: StaffIdsSchema,
+    therapist_ids: StaffIdsSchema,
+    doctor_fee: z.number().nonnegative().optional().nullable(),
+    therapist_fee: z.number().nonnegative().optional().nullable(),
+    products_used: z.array(ProductUsedSchema).optional().nullable(),
+    note: z.string().optional().nullable(),
+})
 
 // GET /api/service-usage - List service usage records
 export async function GET(request: NextRequest) {
@@ -72,18 +119,40 @@ export async function GET(request: NextRequest) {
 // POST /api/service-usage - Record a service session
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json()
+        const rawBody = await request.json()
+
+        // Validate request body with Zod
+        const parseResult = ServiceUsageSchema.safeParse(rawBody)
+        if (!parseResult.success) {
+            return NextResponse.json(
+                { error: 'Validation failed', details: parseResult.error.issues },
+                { status: 400 }
+            )
+        }
+
         const {
             customer_id,
             customer_course_id,
             service_name,
             doctor_id,
             therapist_id,
+            doctor_ids,
+            therapist_ids,
             doctor_fee,
             therapist_fee,
             products_used,
             note,
-        } = body
+        } = parseResult.data
+
+        const normalizedDoctorIds = Array.from(new Set([
+            ...(doctor_id ? [doctor_id] : []),
+            ...((doctor_ids || []).filter((id) => !!id)),
+        ]))
+
+        const normalizedTherapistIds = Array.from(new Set([
+            ...(therapist_id ? [therapist_id] : []),
+            ...((therapist_ids || []).filter((id) => !!id)),
+        ]))
 
         if (!customer_id) {
             return NextResponse.json(
@@ -122,6 +191,33 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        let autoDoctorFee: number | null = null
+        let autoTherapistFee: number | null = null
+        if (customerCourse?.course_id) {
+            const linkedRates = await prisma.commission_rate.findMany({
+                where: {
+                    is_active: true,
+                    course_id: customerCourse.course_id,
+                    fee_type: {
+                        in: [...AUTO_FEE_TYPES],
+                    },
+                },
+                select: {
+                    fee_type: true,
+                    position_type: true,
+                    rate_amount: true,
+                },
+            })
+
+            autoDoctorFee = resolveFeeAmount(linkedRates, 'DF', 'Doctor')
+            autoTherapistFee = resolveFeeAmount(linkedRates, 'HAND_FEE', 'Therapist')
+        }
+
+        const resolvedDoctorFee = autoDoctorFee ?? doctor_fee ?? 0
+        const resolvedTherapistFee = autoTherapistFee ?? therapist_fee ?? 0
+        const doctorFeeSource = autoDoctorFee !== null ? 'COURSE_RATE' : (doctor_fee ? 'MANUAL' : 'NONE')
+        const therapistFeeSource = autoTherapistFee !== null ? 'COURSE_RATE' : (therapist_fee ? 'MANUAL' : 'NONE')
+
         // Create service usage with related records in a transaction
         const result = await prisma.$transaction(async (tx) => {
             // 1. Create service_usage
@@ -129,8 +225,8 @@ export async function POST(request: NextRequest) {
                 data: {
                     customer_id,
                     customer_course_id: customer_course_id || null,
-                    doctor_id: doctor_id || null,
-                    therapist_id: therapist_id || null,
+                    doctor_id: normalizedDoctorIds[0] || null,
+                    therapist_id: normalizedTherapistIds[0] || null,
                     service_name: service_name || customerCourse?.course?.course_name || 'Service',
                     note: note || null,
                 },
@@ -143,32 +239,32 @@ export async function POST(request: NextRequest) {
                     where: { id: customer_course_id },
                     data: {
                         remaining_sessions: newRemaining,
-                        status: newRemaining === 0 ? 'COMPLETED' as const : 'ACTIVE' as const,
+                        status: newRemaining === 0 ? 'USED_UP' as const : 'ACTIVE' as const,
                     },
                 })
             }
 
-            // 3. Create fee_log for doctor if provided
-            if (doctor_id && doctor_fee && doctor_fee > 0) {
-                await tx.fee_log.create({
-                    data: {
+            // 3. Create fee_log for all selected doctors
+            if (normalizedDoctorIds.length > 0 && resolvedDoctorFee > 0) {
+                await tx.fee_log.createMany({
+                    data: normalizedDoctorIds.map((staffId) => ({
                         usage_id: serviceUsage.usage_id,
-                        staff_id: doctor_id,
+                        staff_id: staffId,
                         fee_type: 'DF',
-                        amount: doctor_fee,
-                    },
+                        amount: resolvedDoctorFee,
+                    })),
                 })
             }
 
-            // 4. Create fee_log for therapist if provided
-            if (therapist_id && therapist_fee && therapist_fee > 0) {
-                await tx.fee_log.create({
-                    data: {
+            // 4. Create fee_log for all selected assistants
+            if (normalizedTherapistIds.length > 0 && resolvedTherapistFee > 0) {
+                await tx.fee_log.createMany({
+                    data: normalizedTherapistIds.map((staffId) => ({
                         usage_id: serviceUsage.usage_id,
-                        staff_id: therapist_id,
+                        staff_id: staffId,
                         fee_type: 'HAND_FEE',
-                        amount: therapist_fee,
-                    },
+                        amount: resolvedTherapistFee,
+                    })),
                 })
             }
 
@@ -225,6 +321,10 @@ export async function POST(request: NextRequest) {
             },
         })
 
+        if (!completeUsage) {
+            throw new Error('Failed to retrieve newly created service usage record')
+        }
+
         // Calculate session number (which session this was)
         let session_number = null
         let total_sessions = null
@@ -234,10 +334,32 @@ export async function POST(request: NextRequest) {
             session_number = total_sessions - completeUsage.customer_course.remaining_sessions
         }
 
+        // Audit Log
+        await logAudit({
+            action: 'CREATE',
+            target_resource: `ServiceUsage_${completeUsage.usage_id}`,
+            details: {
+                customer_id: completeUsage.customer_id,
+                service_name: completeUsage.service_name,
+                session_number,
+                doctor_fee_source: doctorFeeSource,
+                therapist_fee_source: therapistFeeSource,
+            },
+            request
+        });
+
         return NextResponse.json({
             ...completeUsage,
             session_number,
             total_sessions,
+            fee_source: {
+                doctor: doctorFeeSource,
+                therapist: therapistFeeSource,
+            },
+            auto_fee: {
+                doctor: resolvedDoctorFee,
+                therapist: resolvedTherapistFee,
+            },
         }, { status: 201 })
     } catch (error) {
         console.error('Error creating service usage:', error)

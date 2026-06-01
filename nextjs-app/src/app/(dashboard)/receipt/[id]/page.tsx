@@ -11,7 +11,7 @@ interface TransactionDetail {
     transaction_id: number
     transaction_date: string
     total_amount: number
-    discount_amount: number
+    discount: number
     net_amount: number
     customer: {
         full_name: string | null
@@ -49,6 +49,23 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
         window.print()
     }
 
+    const handleBack = () => {
+        // Since receipts are often opened in a new tab via window.open,
+        // router.back() won't work because there is no history.
+        // We first try to close the window.
+        window.close()
+        
+        // If the window didn't close (e.g. user navigated directly in the same tab),
+        // we fallback to going back in history or returning to POS.
+        setTimeout(() => {
+            if (window.history.length > 2) {
+                router.back()
+            } else {
+                router.push('/pos')
+            }
+        }, 100)
+    }
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -61,7 +78,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
         return (
             <div className="flex flex-col items-center justify-center min-h-screen gap-4">
                 <p className="text-red-500">ไม่พบข้อมูลใบเสร็จ</p>
-                <Button variant="outline" onClick={() => router.back()}>
+                <Button variant="outline" onClick={handleBack}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     กลับ
                 </Button>
@@ -78,6 +95,17 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
         : Number(transaction.net_amount || 0)
     const remaining = Number(transaction.net_amount || 0) - totalPaid
 
+    const paymentMethods = paymentLogs.map(p => {
+        const method = p.payment_method
+        if (method === 'CASH') return 'เงินสด'
+        if (method === 'TRANSFER') return 'โอนเงิน/PromptPay'
+        if (method === 'CREDIT') return 'บัตรเครดิต'
+        if (method === 'DEPOSIT') return 'บัญชีมัดจำ'
+        return method
+    })
+    const uniqueMethods = Array.from(new Set(paymentMethods))
+    const paymentMethodStr = uniqueMethods.length > 0 ? uniqueMethods.join(', ') : 'เงินสด'
+
     const receiptData = {
         transactionId: transaction.transaction_id,
         billNumber: String(transaction.transaction_id).padStart(5, '0'),
@@ -90,24 +118,27 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
         },
         items: details.map(d => ({
             name: d.product?.product_name || d.course?.course_name || 'สินค้า',
+            qty: d.qty,
+            unitPrice: Number(d.unit_price || 0),
             price: Number(d.subtotal || 0),
             remaining: 0,
             paid: Number(d.subtotal || 0),
         })),
         subtotal: Number(transaction.total_amount || 0),
-        discount: Number(transaction.discount_amount || 0),
+        discount: Number(transaction.discount || 0),
         total: Number(transaction.net_amount || 0),
         paid: totalPaid,
         remaining: remaining > 0 ? remaining : 0,
+        paymentMethod: paymentMethodStr,
     }
 
     return (
         <div className="min-h-screen bg-gray-100 py-8">
             {/* Action buttons - hidden when printing */}
             <div className="print:hidden max-w-[210mm] mx-auto mb-4 flex gap-2 px-4">
-                <Button variant="outline" onClick={() => router.back()}>
+                <Button variant="outline" onClick={handleBack}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    กลับ
+                    กลับ / ปิด
                 </Button>
                 <Button onClick={handlePrint} className="bg-blue-500 hover:bg-blue-600">
                     <Printer className="h-4 w-4 mr-2" />

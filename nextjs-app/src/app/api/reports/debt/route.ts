@@ -31,7 +31,7 @@ export async function GET() {
             full_name: string
             phone_number: string
             total_debt: number
-            oldest_date: Date
+            oldest_date: Date | null
             transaction_count: number
         }> = {}
 
@@ -51,7 +51,7 @@ export async function GET() {
 
             byCustomer[cid].total_debt += Number(t.remaining_balance)
             byCustomer[cid].transaction_count += 1
-            if (t.transaction_date < byCustomer[cid].oldest_date) {
+            if (t.transaction_date && (!byCustomer[cid].oldest_date || t.transaction_date < byCustomer[cid].oldest_date)) {
                 byCustomer[cid].oldest_date = t.transaction_date
             }
         })
@@ -69,7 +69,8 @@ export async function GET() {
         }
 
         customers.forEach((c) => {
-            const days = Math.floor((now.getTime() - c.oldest_date.getTime()) / (1000 * 60 * 60 * 24))
+            const oldest = c.oldest_date ?? now
+            const days = Math.floor((now.getTime() - oldest.getTime()) / (1000 * 60 * 60 * 24))
             if (days < 30) ageGroups.current += c.total_debt
             else if (days < 60) ageGroups.days30 += c.total_debt
             else if (days < 90) ageGroups.days60 += c.total_debt

@@ -74,6 +74,8 @@ export function useCreateCustomer() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['customers'] })
+            queryClient.invalidateQueries({ queryKey: ['patients'] })
+            queryClient.invalidateQueries({ queryKey: ['patient'] })
         },
     })
 }
@@ -96,6 +98,8 @@ export function useUpdateCustomer() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['customers'] })
+            queryClient.invalidateQueries({ queryKey: ['patients'] })
+            queryClient.invalidateQueries({ queryKey: ['patient'] })
         },
     })
 }

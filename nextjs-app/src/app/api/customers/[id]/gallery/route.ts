@@ -56,17 +56,18 @@ export async function POST(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     const customerId = parseInt(id)
-    const body = await request.json()
+    
+    const formData = await request.formData()
+    
+    const image_file = formData.get('image_file') as File | null
+    const image_data = formData.get('image_data') as string | null
+    const image_type = formData.get('image_type') as 'Before' | 'After'
+    const notes = formData.get('notes') as string | null
+    const taken_date = formData.get('taken_date') as string | null
+    const usage_id = formData.get('usage_id') as string | null
+    const is_marketing_allowed = formData.get('is_marketing_allowed') === 'true'
 
-    const { image_data, image_type, notes, taken_date, usage_id } = body as {
-      image_data: string
-      image_type: 'Before' | 'After'
-      notes?: string
-      taken_date?: string
-      usage_id?: number
-    }
-
-    if (!image_data) {
+    if (!image_file && !image_data) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 })
     }
 
@@ -75,22 +76,39 @@ export async function POST(request: NextRequest, { params }: Params) {
     await fs.mkdir(uploadsDir, { recursive: true })
 
     const timestamp = Date.now()
-    const fileName = `gallery_${customerId}_${timestamp}.jpg`
-    const filePath = path.join(uploadsDir, fileName)
+    let filePath = ''
+    let fileName = ''
 
-    // Extract base64 data and save
-    const base64Data = image_data.replace(/^data:image\/\w+;base64,/, '')
-    await fs.writeFile(filePath, base64Data, 'base64')
+    if (image_file) {
+        // Binary FormData Path (Scalable)
+        const ext = image_file.name.split('.').pop() || 'jpg'
+        fileName = `gallery_${customerId}_${timestamp}.${ext}`
+        filePath = path.join(uploadsDir, fileName)
+        
+        const arrayBuffer = await image_file.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        await fs.writeFile(filePath, buffer)
+    } else if (image_data) {
+        // Fallback Base64 JSON mechanism
+        const match = image_data.match(/^data:image\/(\w+);base64,/)
+        const ext = match ? match[1] : 'jpg'
+        fileName = `gallery_${customerId}_${timestamp}.${ext}`
+        filePath = path.join(uploadsDir, fileName)
+
+        const base64Data = image_data.replace(/^data:image\/\w+;base64,/, '')
+        await fs.writeFile(filePath, base64Data, 'base64')
+    }
 
     // Save to database
     const gallery = await prisma.patient_gallery.create({
       data: {
         customer_id: customerId,
-        usage_id: usage_id || null,
-        image_type: image_type,
+        usage_id: usage_id ? parseInt(usage_id) : null,
+        image_type: image_type || 'Before',
         image_path: `/uploads/gallery/${fileName}`,
         taken_date: taken_date ? new Date(taken_date) : new Date(),
         notes: notes || null,
+        is_marketing_allowed: is_marketing_allowed ?? false,
       },
     })
 

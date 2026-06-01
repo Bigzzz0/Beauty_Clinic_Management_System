@@ -1,27 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
-
-function getStaffIdFromRequest(request: NextRequest): number | null {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) return null
-    try {
-        const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { staff_id: number }
-        return decoded.staff_id
-    } catch {
-        return null
-    }
-}
+import { authenticateStaffRequest } from '@/lib/staff-auth'
+import { logAudit } from '@/lib/audit'
 
 type AdjustmentReason = 'ADJUST_DAMAGED' | 'ADJUST_EXPIRED' | 'ADJUST_LOST'
 
 export async function POST(request: NextRequest) {
     try {
-        const staffId = getStaffIdFromRequest(request)
-        if (!staffId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const authResult = await authenticateStaffRequest(request)
+        if (!authResult.ok) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status })
         }
+        const staff = authResult.staff
+        const staffId = staff.staff_id
 
         const body = await request.json()
         const { product_id, qty_main, qty_sub, reason, note, evidence_image } = body as {
@@ -75,6 +66,14 @@ export async function POST(request: NextRequest) {
                 last_updated: new Date(),
             },
         })
+
+        await logAudit({
+            action: 'UPDATE',
+            target_resource: `Inventory_${inventory.inventory_id}`,
+            details: { action_type: reason, product_id, qty_main, qty_sub, note },
+            request,
+            staffId
+        });
 
         return NextResponse.json({ success: true, movement }, { status: 201 })
     } catch (error) {

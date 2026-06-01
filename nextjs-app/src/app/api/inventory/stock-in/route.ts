@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
-
-function getStaffIdFromRequest(request: NextRequest): number | null {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) return null
-    try {
-        const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { staff_id: number }
-        return decoded.staff_id
-    } catch {
-        return null
-    }
-}
+import { authenticateStaffRequest } from '@/lib/staff-auth'
 
 interface StockInItem {
     product_id: number
@@ -21,10 +9,12 @@ interface StockInItem {
 
 export async function POST(request: NextRequest) {
     try {
-        const staffId = getStaffIdFromRequest(request)
-        if (!staffId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const authResult = await authenticateStaffRequest(request)
+        if (!authResult.ok) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status })
         }
+        const staff = authResult.staff
+        const staffId = staff.staff_id
 
         const body = await request.json()
         const { items, evidence_image, note } = body as {

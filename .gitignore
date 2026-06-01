@@ -53,3 +53,5 @@ coverage/
 *.pem
 .vercel
 *.log
+uploads/
+

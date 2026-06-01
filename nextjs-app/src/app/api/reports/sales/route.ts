@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAuth } from '@/lib/auth-rbac'
 
 // GET /api/reports/sales - Sales report by date range and payment method
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const startDate = searchParams.get('startDate') || new Date(new Date().setDate(1)).toISOString().split('T')[0]
@@ -50,8 +51,8 @@ export async function GET(request: NextRequest) {
 
         transactions.forEach((t) => {
             const dateKey = groupBy === 'monthly'
-                ? t.transaction_date.toISOString().substring(0, 7)
-                : t.transaction_date.toISOString().split('T')[0]
+                ? (t.transaction_date?.toISOString().substring(0, 7) ?? 'unknown')
+                : (t.transaction_date?.toISOString().split('T')[0] ?? 'unknown')
 
             if (!dailyData[dateKey]) {
                 dailyData[dateKey] = { date: dateKey, sales: 0, paid: 0, count: 0 }
@@ -84,4 +85,4 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         )
     }
-}
+}, ['Admin', 'Manager', 'Sale', 'Cashier'])

@@ -54,8 +54,11 @@ export async function GET(request: NextRequest, { params }: Params) {
 
         // Format response
         const formatted = history.map((h) => {
-            // Find doctor from fee_log (DF fee type usually means doctor)
-            const doctorFee = h.fee_log.find((f) => f.fee_type === 'DF')
+            const doctorNames = h.fee_log
+                .filter((f) => f.fee_type === 'DF')
+                .map((f) => f.staff?.full_name)
+                .filter(Boolean)
+                .join(', ')
 
             return {
                 usage_id: h.usage_id,
@@ -63,7 +66,7 @@ export async function GET(request: NextRequest, { params }: Params) {
                 service_name: h.service_name,
                 note: h.note,
                 course_name: h.customer_course?.course?.course_name || null,
-                doctor: doctorFee?.staff?.full_name || null,
+                doctor: doctorNames || null,
                 products: h.inventory_usage.map((iu) => ({
                     product_name: iu.product.product_name,
                     qty_used: iu.qty_used,
