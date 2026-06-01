@@ -499,7 +499,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-start gap-3">
                             <AlertTriangle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" />
                             <div className="space-y-2">
-                                <h3 className="font-bold text-red-800">⚠️ ข้อควรระวังทางการแพทย์</h3>
+                                <h3 className="font-bold text-red-800">ข้อควรระวังทางการแพทย์</h3>
                                 {patient.drug_allergy && (
                                     <p className="text-red-700">
                                         <strong>แพ้ยา:</strong> {patient.drug_allergy}
@@ -779,7 +779,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                 </div>
                                             )}
                                             {item.note && (
-                                                <p className="mt-2 text-sm text-slate-600">📝 {item.note}</p>
+                                                <p className="mt-2 text-sm text-slate-600"><span className="font-semibold">หมายเหตุ:</span> {item.note}</p>
                                             )}
                                         </div>
                                     ))}
@@ -1194,7 +1194,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                         </div>
 
                                                         {log.note && (
-                                                            <p className="mt-2 text-xs text-slate-600 font-medium">📝 หมายเหตุ: {log.note}</p>
+                                                             <p className="mt-2 text-xs text-slate-600 font-medium"><span className="font-semibold">หมายเหตุ:</span> {log.note}</p>
                                                         )}
 
                                                         <div className="mt-3 pt-2.5 border-t border-dashed flex flex-wrap items-center justify-between text-[10px] text-slate-400 font-semibold">

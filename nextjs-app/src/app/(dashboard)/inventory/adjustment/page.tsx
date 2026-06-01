@@ -31,9 +31,9 @@ interface Product {
 }
 
 const reasons = [
-    { value: 'ADJUST_DAMAGED', label: '🔨 ของเสีย / แตกหัก' },
-    { value: 'ADJUST_EXPIRED', label: '📅 หมดอายุ' },
-    { value: 'ADJUST_LOST', label: '❓ สูญหาย' },
+    { value: 'ADJUST_DAMAGED', label: 'ของเสีย / แตกหัก' },
+    { value: 'ADJUST_EXPIRED', label: 'หมดอายุ' },
+    { value: 'ADJUST_LOST', label: 'สูญหาย' },
 ]
 
 export default function AdjustmentPage() {

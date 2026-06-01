@@ -359,12 +359,12 @@ export default function POSPage() {
                                         <AlertTriangle className="h-5 w-5 text-red-600 animate-pulse" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-red-800 text-sm">⚠️ ข้อควรระวัง</p>
+                                        <p className="font-bold text-red-800 text-sm">ข้อควรระวัง</p>
                                         {customerAlerts.drug_allergy && (
-                                            <p className="text-sm text-red-700 mt-0.5">💊 แพ้ยา: {customerAlerts.drug_allergy}</p>
+                                            <p className="text-sm text-red-700 mt-0.5">แพ้ยา: {customerAlerts.drug_allergy}</p>
                                         )}
                                         {customerAlerts.underlying_disease && (
-                                            <p className="text-sm text-red-700 mt-0.5">🏥 โรคประจำตัว: {customerAlerts.underlying_disease}</p>
+                                            <p className="text-sm text-red-700 mt-0.5">โรคประจำตัว: {customerAlerts.underlying_disease}</p>
                                         )}
                                     </div>
                                 </div>
@@ -416,7 +416,7 @@ export default function POSPage() {
                                         </p>
                                         <p className="text-sm text-muted-foreground">{customer.hn_code} • {customer.phone_number}</p>
                                         {(customer.drug_allergy || customer.underlying_disease) && (
-                                            <Badge className="mt-1 bg-red-100 text-red-700 text-xs">⚠️ มีข้อควรระวัง</Badge>
+                                            <Badge className="mt-1 bg-red-100 text-red-700 text-xs flex items-center gap-1 w-max"><AlertTriangle className="h-3 w-3" /> มีข้อควรระวัง</Badge>
                                         )}
                                     </button>
                                 ))}
@@ -538,7 +538,7 @@ export default function POSPage() {
                                         <AlertTriangle className="h-4 w-4 text-red-600" />
                                     </div>
                                     <p className="text-sm font-medium text-red-700">
-                                        ⚠️ {customerName} — ข้อควรระวัง
+                                        {customerName} — ข้อควรระวัง
                                     </p>
                                 </div>
                             )}

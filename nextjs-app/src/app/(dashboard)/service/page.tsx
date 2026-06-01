@@ -607,10 +607,10 @@ export default function ServicePage() {
                                                 <p className="font-medium">{usage.service_name}</p>
                                                 <div className="flex flex-col gap-0.5 mt-1 text-[11px] text-muted-foreground">
                                                     {usage.fee_log?.filter((f) => f.fee_type === 'DF').map((f) => f.staff?.full_name).filter(Boolean).length > 0 && (
-                                                        <span>🩺 แพทย์: {usage.fee_log.filter((f) => f.fee_type === 'DF').map((f) => f.staff?.full_name).filter(Boolean).join(', ')}</span>
+                                                        <span className="flex items-center gap-1"><Stethoscope className="h-3 w-3 shrink-0 text-slate-400" /> แพทย์: {usage.fee_log.filter((f) => f.fee_type === 'DF').map((f) => f.staff?.full_name).filter(Boolean).join(', ')}</span>
                                                     )}
                                                     {usage.fee_log?.filter((f) => f.fee_type === 'HAND_FEE').map((f) => f.staff?.full_name).filter(Boolean).length > 0 && (
-                                                        <span>👤 ผู้ช่วย: {usage.fee_log.filter((f) => f.fee_type === 'HAND_FEE').map((f) => f.staff?.full_name).filter(Boolean).join(', ')}</span>
+                                                        <span className="flex items-center gap-1"><UserCog className="h-3 w-3 shrink-0 text-slate-400" /> ผู้ช่วย: {usage.fee_log.filter((f) => f.fee_type === 'HAND_FEE').map((f) => f.staff?.full_name).filter(Boolean).join(', ')}</span>
                                                     )}
                                                 </div>
                                             </TableCell>

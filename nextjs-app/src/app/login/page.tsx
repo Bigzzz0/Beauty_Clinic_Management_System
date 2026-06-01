@@ -136,9 +136,10 @@ export default function LoginPage() {
                 <div className="w-full max-w-sm animate-fade-in-up">
                     {/* Heading */}
                     <div className="mb-8 space-y-1">
-                        <h2 className="text-2xl font-bold text-slate-800">ยินดีต้อนรับ 👋</h2>
+                        <h2 className="text-2xl font-bold text-slate-800">ยินดีต้อนรับ</h2>
                         <p className="text-slate-500 text-sm">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
                     </div>
+
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                         {/* Username */}

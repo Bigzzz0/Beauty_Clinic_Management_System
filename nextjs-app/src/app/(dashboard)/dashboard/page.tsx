@@ -185,8 +185,9 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <p className="text-amber-200/80 text-xs font-medium mb-0.5">{currentDate}</p>
-                            <h1 className="text-xl font-bold text-white">สวัสดี, {user?.full_name || 'ผู้ใช้'} 👋</h1>
+                            <h1 className="text-xl font-bold text-white">สวัสดี, {user?.full_name || 'ผู้ใช้'}</h1>
                             <p className="text-amber-100/80 text-sm mt-0.5">ยินดีต้อนรับเข้าสู่ระบบบริหารจัดการคลินิกความงาม</p>
+
                         </div>
                     </div>
                     <div className="hidden sm:flex flex-col items-end gap-1">

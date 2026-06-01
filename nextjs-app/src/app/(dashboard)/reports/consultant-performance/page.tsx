@@ -209,7 +209,7 @@ export default function ConsultantPerformancePage() {
                                 <Award className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
                             </div>
                             <div className="flex-1">
-                                <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">🏆 Top Performer เดือนนี้</p>
+                                <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Top Performer เดือนนี้</p>
                                 <p className="text-xl font-bold text-foreground">{topPerformer.full_name}</p>
                             </div>
                             <div className="text-right">
@@ -272,13 +272,13 @@ export default function ConsultantPerformancePage() {
                                         <TableRow key={consultant.staff_id}>
                                             <TableCell className="text-center">
                                                 {index === 0 ? (
-                                                    <span className="text-xl">🥇</span>
+                                                    <Badge className="bg-yellow-500 hover:bg-yellow-500 text-white rounded-full h-6 w-6 flex items-center justify-center p-0 mx-auto font-bold">1</Badge>
                                                 ) : index === 1 ? (
-                                                    <span className="text-xl">🥈</span>
+                                                    <Badge className="bg-slate-400 hover:bg-slate-400 text-white rounded-full h-6 w-6 flex items-center justify-center p-0 mx-auto font-bold">2</Badge>
                                                 ) : index === 2 ? (
-                                                    <span className="text-xl">🥉</span>
+                                                    <Badge className="bg-amber-600 hover:bg-amber-600 text-white rounded-full h-6 w-6 flex items-center justify-center p-0 mx-auto font-bold">3</Badge>
                                                 ) : (
-                                                    <span className="text-muted-foreground">{index + 1}</span>
+                                                    <span className="text-muted-foreground font-semibold">{index + 1}</span>
                                                 )}
                                             </TableCell>
                                             <TableCell className="font-medium">
