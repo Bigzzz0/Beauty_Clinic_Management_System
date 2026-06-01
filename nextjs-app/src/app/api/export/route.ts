@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAuth } from '@/lib/auth-rbac'
 
 // GET /api/export?type=customers|transactions|service-history
 // Exports data as CSV for use in accounting or reporting software
 // Optional query params: startDate, endDate (ISO date strings)
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async function GET(request) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') || 'customers'
     const startDate = searchParams.get('startDate')
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
         console.error('Export error:', error)
         return NextResponse.json({ error: 'Export failed' }, { status: 500 })
     }
-}
+}, ['Admin'])
 
 function formatDateForFilename(date: Date): string {
     return date.toISOString().split('T')[0]
