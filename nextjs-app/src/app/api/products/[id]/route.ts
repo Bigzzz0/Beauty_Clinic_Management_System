@@ -39,6 +39,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
         const productId = parseInt(id)
         const body = await request.json()
 
+        if (body.main_unit && body.sub_unit && body.main_unit === body.sub_unit) {
+            return NextResponse.json(
+                { error: 'หน่วยใหญ่และหน่วยย่อยต้องไม่เหมือนกัน' },
+                { status: 400 }
+            )
+        }
+
         const product = await prisma.product.update({
             where: { product_id: productId },
             data: {

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
     ClipboardCheck, Search, User, Package, Plus, Check,
-    Calendar, Clock, UserCog, Stethoscope, ArrowLeft
+    Calendar, Clock, UserCog, Stethoscope, ArrowLeft, ExternalLink, ChevronDown
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -42,6 +42,11 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
 
 interface Customer {
     customer_id: number
@@ -99,6 +104,14 @@ interface CommissionRate {
     item_name: string
     rate_amount: number
     position_type: string | null
+    fee_type?: 'DF' | 'HAND_FEE' | null
+    course_id?: number | null
+    is_active?: boolean
+    course?: {
+        course_id: number
+        course_name: string
+        course_code?: string | null
+    } | null
 }
 
 interface CustomerWithCourses {
@@ -120,11 +133,14 @@ export default function ServicePage() {
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
     const [selectedCourse, setSelectedCourse] = useState<CustomerCourse | null>(null)
     const [showServiceDialog, setShowServiceDialog] = useState(false)
+    const [showRatesDialog, setShowRatesDialog] = useState(false)
+    const [doctorSearchText, setDoctorSearchText] = useState('')
+    const [therapistSearchText, setTherapistSearchText] = useState('')
 
     // Form state
     const [formData, setFormData] = useState({
-        doctor_id: '',
-        therapist_id: '',
+        doctor_ids: [] as string[],
+        therapist_ids: [] as string[],
         doctor_fee: 0,
         therapist_fee: 0,
         note: '',
@@ -199,8 +215,8 @@ export default function ServicePage() {
             customer_id: number
             customer_course_id: number
             service_name: string
-            doctor_id?: number
-            therapist_id?: number
+            doctor_ids?: number[]
+            therapist_ids?: number[]
             doctor_fee?: number
             therapist_fee?: number
             note?: string
@@ -247,28 +263,51 @@ export default function ServicePage() {
     const handleSelectCourse = (course: CustomerCourse) => {
         setSelectedCourse(course)
 
-        // Find matching commission rates for this course
-        const rates = commissionData?.rates || []
+        // Prefer explicit course-linked rates (course_id + fee_type) for reliable auto fee
+        const rates = (commissionData?.rates || []).filter((rate) => rate.is_active !== false)
+        const courseId = course.course.course_id
+        const courseLinkedRates = rates.filter((rate) => rate.course_id === courseId)
+
+        const resolveLinkedFee = (
+            feeType: 'DF' | 'HAND_FEE',
+            preferredPosition: 'Doctor' | 'Therapist'
+        ) => {
+            const candidates = courseLinkedRates.filter((rate) => rate.fee_type === feeType)
+            const exactByPosition = candidates.find((rate) => rate.position_type === preferredPosition)
+            if (exactByPosition) return Number(exactByPosition.rate_amount)
+
+            const allPositions = candidates.find((rate) => !rate.position_type)
+            if (allPositions) return Number(allPositions.rate_amount)
+
+            return candidates.length > 0 ? Number(candidates[0].rate_amount) : null
+        }
+
+        const linkedDoctorFee = resolveLinkedFee('DF', 'Doctor')
+        const linkedTherapistFee = resolveLinkedFee('HAND_FEE', 'Therapist')
+
+        // Backward compatibility for older rate records that are still text-matched
         const courseName = course.course.course_name.toLowerCase()
-
-        // Find DF rate for doctor (TREATMENT_COVER category)
-        const dfRate = rates.find(r =>
-            courseName.includes(r.item_name.toLowerCase()) ||
-            r.item_name.toLowerCase().includes(courseName.split(' ')[0])
+        const legacyDfRate = rates.find((rate) =>
+            !rate.course_id && (
+                courseName.includes(rate.item_name.toLowerCase()) ||
+                rate.item_name.toLowerCase().includes(courseName.split(' ')[0])
+            )
         )
 
-        // Find HAND_FEE rate for therapist
-        const handFeeRate = rates.find(r =>
-            r.category === 'STAFF_ASSIST' &&
-            (courseName.includes(r.item_name.toLowerCase()) ||
-                r.item_name.toLowerCase().includes(courseName.split(' ')[0]))
+        const legacyHandFeeRate = rates.find((rate) =>
+            !rate.course_id &&
+            rate.category === 'STAFF_ASSIST' &&
+            (courseName.includes(rate.item_name.toLowerCase()) ||
+                rate.item_name.toLowerCase().includes(courseName.split(' ')[0]))
         )
 
+        setDoctorSearchText('')
+        setTherapistSearchText('')
         setFormData({
-            doctor_id: '',
-            therapist_id: '',
-            doctor_fee: dfRate ? Number(dfRate.rate_amount) : 0,
-            therapist_fee: handFeeRate ? Number(handFeeRate.rate_amount) : 0,
+            doctor_ids: [],
+            therapist_ids: [],
+            doctor_fee: linkedDoctorFee ?? (legacyDfRate ? Number(legacyDfRate.rate_amount) : 0),
+            therapist_fee: linkedTherapistFee ?? (legacyHandFeeRate ? Number(legacyHandFeeRate.rate_amount) : 0),
             note: '',
         })
 
@@ -278,9 +317,11 @@ export default function ServicePage() {
     const handleCloseDialog = () => {
         setShowServiceDialog(false)
         setSelectedCourse(null)
+        setDoctorSearchText('')
+        setTherapistSearchText('')
         setFormData({
-            doctor_id: '',
-            therapist_id: '',
+            doctor_ids: [],
+            therapist_ids: [],
             doctor_fee: 0,
             therapist_fee: 0,
             note: '',
@@ -290,20 +331,50 @@ export default function ServicePage() {
     const handleSubmitService = () => {
         if (!selectedCustomer || !selectedCourse) return
 
+        const doctorIds = formData.doctor_ids
+            .map((id) => parseInt(id, 10))
+            .filter((id) => Number.isInteger(id) && id > 0)
+
+        const therapistIds = formData.therapist_ids
+            .map((id) => parseInt(id, 10))
+            .filter((id) => Number.isInteger(id) && id > 0)
+
         createUsage.mutate({
             customer_id: selectedCustomer.customer_id,
             customer_course_id: selectedCourse.id,
             service_name: selectedCourse.course.course_name,
-            doctor_id: formData.doctor_id ? parseInt(formData.doctor_id) : undefined,
-            therapist_id: formData.therapist_id ? parseInt(formData.therapist_id) : undefined,
+            doctor_ids: doctorIds.length > 0 ? doctorIds : undefined,
+            therapist_ids: therapistIds.length > 0 ? therapistIds : undefined,
             doctor_fee: formData.doctor_fee || undefined,
             therapist_fee: formData.therapist_fee || undefined,
             note: formData.note || undefined,
         })
     }
 
+    const toggleStaffSelection = (field: 'doctor_ids' | 'therapist_ids', staffId: string) => {
+        setFormData((prev) => {
+            const currentIds = prev[field]
+            const exists = currentIds.includes(staffId)
+            return {
+                ...prev,
+                [field]: exists
+                    ? currentIds.filter((id) => id !== staffId)
+                    : [...currentIds, staffId],
+            }
+        })
+    }
+
+    const removeStaffSelection = (field: 'doctor_ids' | 'therapist_ids', staffId: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: prev[field].filter((id) => id !== staffId),
+        }))
+    }
+
     const doctors = staffList.filter(s => s.position === 'Doctor')
     const therapists = staffList.filter(s => s.position === 'Therapist' || s.position === 'Admin')
+    const selectedDoctors = doctors.filter((d) => formData.doctor_ids.includes(d.staff_id.toString()))
+    const selectedTherapists = therapists.filter((t) => formData.therapist_ids.includes(t.staff_id.toString()))
 
     return (
         <div className="space-y-6">
@@ -532,7 +603,17 @@ export default function ServicePage() {
                                                 <p className="font-medium">{usage.customer?.full_name}</p>
                                                 <p className="text-xs text-slate-500">{usage.customer?.hn_code}</p>
                                             </TableCell>
-                                            <TableCell>{usage.service_name}</TableCell>
+                                            <TableCell>
+                                                <p className="font-medium">{usage.service_name}</p>
+                                                <div className="flex flex-col gap-0.5 mt-1 text-[11px] text-muted-foreground">
+                                                    {usage.fee_log?.filter((f) => f.fee_type === 'DF').map((f) => f.staff?.full_name).filter(Boolean).length > 0 && (
+                                                        <span>🩺 แพทย์: {usage.fee_log.filter((f) => f.fee_type === 'DF').map((f) => f.staff?.full_name).filter(Boolean).join(', ')}</span>
+                                                    )}
+                                                    {usage.fee_log?.filter((f) => f.fee_type === 'HAND_FEE').map((f) => f.staff?.full_name).filter(Boolean).length > 0 && (
+                                                        <span>👤 ผู้ช่วย: {usage.fee_log.filter((f) => f.fee_type === 'HAND_FEE').map((f) => f.staff?.full_name).filter(Boolean).join(', ')}</span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
                                             <TableCell className="text-right">
                                                 {usage.fee_log?.reduce((sum, f) => sum + Number(f.amount), 0).toLocaleString() || 0}
                                             </TableCell>
@@ -573,29 +654,93 @@ export default function ServicePage() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label className="flex items-center gap-1">
+                            <div className="space-y-2 flex flex-col">
+                                <Label className="flex items-center gap-1 mb-1">
                                     <Stethoscope className="h-4 w-4" />
-                                    หมอ
+                                    หมอ (เลือกได้หลายคน)
                                 </Label>
-                                <Select
-                                    value={formData.doctor_id}
-                                    onValueChange={(v) => setFormData({ ...formData, doctor_id: v })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="เลือกหมอ" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {doctors.map((d) => (
-                                            <SelectItem key={d.staff_id} value={d.staff_id.toString()}>
-                                                {d.full_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className="w-full justify-between font-normal text-left text-sm"
+                                        >
+                                            <span className="truncate">
+                                                {selectedDoctors.length > 0
+                                                    ? `เลือกแล้ว ${selectedDoctors.length} คน`
+                                                    : "เลือกหมอ..."}
+                                            </span>
+                                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-2" align="start">
+                                        <div className="space-y-2">
+                                            <Input
+                                                placeholder="ค้นหาหมอ..."
+                                                value={doctorSearchText}
+                                                onChange={(e) => setDoctorSearchText(e.target.value)}
+                                                className="h-8 text-xs"
+                                            />
+                                            <div className="max-h-48 overflow-y-auto space-y-1">
+                                                {doctors
+                                                    .filter((d) =>
+                                                        d.full_name.toLowerCase().includes(doctorSearchText.toLowerCase())
+                                                    )
+                                                    .map((d) => {
+                                                        const isSelected = formData.doctor_ids.includes(d.staff_id.toString())
+                                                        return (
+                                                            <button
+                                                                key={d.staff_id}
+                                                                type="button"
+                                                                onClick={() => toggleStaffSelection('doctor_ids', d.staff_id.toString())}
+                                                                className={cn(
+                                                                    "flex items-center justify-between w-full px-2 py-1.5 text-xs rounded-sm transition-colors text-left hover:bg-slate-100",
+                                                                    isSelected && "bg-slate-50 font-medium text-primary"
+                                                                )}
+                                                            >
+                                                                <span>{d.full_name}</span>
+                                                                {isSelected && <Check className="h-3 w-3 text-primary" />}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                {doctors.filter((d) =>
+                                                    d.full_name.toLowerCase().includes(doctorSearchText.toLowerCase())
+                                                ).length === 0 && (
+                                                    <p className="text-center py-2 text-xs text-muted-foreground">ไม่พบข้อมูลหมอ</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {selectedDoctors.length > 0 ? (
+                                        selectedDoctors.map((doctor) => (
+                                            <Badge key={doctor.staff_id} variant="secondary" className="pr-1 text-xs">
+                                                {doctor.full_name}
+                                                <button
+                                                    type="button"
+                                                    className="ml-1 text-[10px] leading-none text-muted-foreground hover:text-foreground"
+                                                    onClick={() => removeStaffSelection('doctor_ids', doctor.staff_id.toString())}
+                                                    aria-label={`ลบหมอ ${doctor.full_name}`}
+                                                >
+                                                    x
+                                                </button>
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground">ยังไม่ได้เลือกหมอ</p>
+                                    )}
+                                </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="doctor-fee">ค่า DF (บาท)</Label>
+                                <div className="flex justify-between items-center">
+                                    <Label htmlFor="doctor-fee">ค่า DF (บาท)</Label>
+                                    <Button type="button" variant="link" className="h-0 p-0 text-xs text-amber-600 hover:text-amber-700" onClick={() => setShowRatesDialog(true)}>
+                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        เทียบเรทค่ามือ
+                                    </Button>
+                                </div>
                                 <Input
                                     id="doctor-fee"
                                     type="number"
@@ -608,29 +753,93 @@ export default function ServicePage() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label className="flex items-center gap-1">
+                            <div className="space-y-2 flex flex-col">
+                                <Label className="flex items-center gap-1 mb-1">
                                     <UserCog className="h-4 w-4" />
-                                    ผู้ช่วย
+                                    ผู้ช่วย (เลือกได้หลายคน)
                                 </Label>
-                                <Select
-                                    value={formData.therapist_id}
-                                    onValueChange={(v) => setFormData({ ...formData, therapist_id: v })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="เลือกผู้ช่วย" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {therapists.map((t) => (
-                                            <SelectItem key={t.staff_id} value={t.staff_id.toString()}>
-                                                {t.full_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className="w-full justify-between font-normal text-left text-sm"
+                                        >
+                                            <span className="truncate">
+                                                {selectedTherapists.length > 0
+                                                    ? `เลือกแล้ว ${selectedTherapists.length} คน`
+                                                    : "เลือกผู้ช่วย..."}
+                                            </span>
+                                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-2" align="start">
+                                        <div className="space-y-2">
+                                            <Input
+                                                placeholder="ค้นหาผู้ช่วย..."
+                                                value={therapistSearchText}
+                                                onChange={(e) => setTherapistSearchText(e.target.value)}
+                                                className="h-8 text-xs"
+                                            />
+                                            <div className="max-h-48 overflow-y-auto space-y-1">
+                                                {therapists
+                                                    .filter((t) =>
+                                                        t.full_name.toLowerCase().includes(therapistSearchText.toLowerCase())
+                                                    )
+                                                    .map((t) => {
+                                                        const isSelected = formData.therapist_ids.includes(t.staff_id.toString())
+                                                        return (
+                                                            <button
+                                                                key={t.staff_id}
+                                                                type="button"
+                                                                onClick={() => toggleStaffSelection('therapist_ids', t.staff_id.toString())}
+                                                                className={cn(
+                                                                    "flex items-center justify-between w-full px-2 py-1.5 text-xs rounded-sm transition-colors text-left hover:bg-slate-100",
+                                                                    isSelected && "bg-slate-50 font-medium text-primary"
+                                                                )}
+                                                            >
+                                                                <span>{t.full_name}</span>
+                                                                {isSelected && <Check className="h-3 w-3 text-primary" />}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                {therapists.filter((t) =>
+                                                    t.full_name.toLowerCase().includes(therapistSearchText.toLowerCase())
+                                                ).length === 0 && (
+                                                    <p className="text-center py-2 text-xs text-muted-foreground">ไม่พบข้อมูลผู้ช่วย</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {selectedTherapists.length > 0 ? (
+                                        selectedTherapists.map((therapist) => (
+                                            <Badge key={therapist.staff_id} variant="secondary" className="pr-1 text-xs">
+                                                {therapist.full_name}
+                                                <button
+                                                    type="button"
+                                                    className="ml-1 text-[10px] leading-none text-muted-foreground hover:text-foreground"
+                                                    onClick={() => removeStaffSelection('therapist_ids', therapist.staff_id.toString())}
+                                                    aria-label={`ลบผู้ช่วย ${therapist.full_name}`}
+                                                >
+                                                    x
+                                                </button>
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground">ยังไม่ได้เลือกผู้ช่วย</p>
+                                    )}
+                                </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="therapist-fee">ค่ามือ (บาท)</Label>
+                                <div className="flex justify-between items-center">
+                                    <Label htmlFor="therapist-fee">ค่ามือ (บาท)</Label>
+                                    <Button type="button" variant="link" className="h-0 p-0 text-xs text-amber-600 hover:text-amber-700" onClick={() => setShowRatesDialog(true)}>
+                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        เทียบเรทค่ามือ
+                                    </Button>
+                                </div>
                                 <Input
                                     id="therapist-fee"
                                     type="number"
@@ -667,6 +876,66 @@ export default function ServicePage() {
                                 {createUsage.isPending ? 'กำลังบันทึก...' : 'บันทึกการรับบริการ'}
                             </Button>
                         </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Rates Reference Dialog */}
+            <Dialog open={showRatesDialog} onOpenChange={setShowRatesDialog}>
+                <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>ฐานข้อมูลเรทค่ามือ</DialogTitle>
+                        <DialogDescription>
+                            ใช้อ้างอิงสำหรับการกรอกค่าตอบแทนแพทย์และผู้ช่วย
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                        {commissionData?.rates ? (
+                            <div className="grid gap-6">
+                                {['Doctor', 'Therapist'].map(positionType => {
+                                    const rates = commissionData.rates.filter((r: any) => {
+                                        if (r.is_active === false) return false
+
+                                        if (positionType === 'Doctor') {
+                                            return r.fee_type === 'DF' || (!r.fee_type && r.position_type === 'Doctor')
+                                        }
+
+                                        return r.fee_type === 'HAND_FEE' || (!r.fee_type && r.position_type === 'Therapist')
+                                    })
+                                    if (rates.length === 0) return null
+
+                                    return (
+                                        <div key={positionType} className="space-y-2">
+                                            <h4 className="font-semibold text-lg text-primary border-b pb-1">
+                                                {positionType === 'Doctor' ? 'แพทย์ (DF)' : 'ผู้ช่วย (Therapist)'}
+                                            </h4>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>รายการ</TableHead>
+                                                        <TableHead>คอร์สที่ผูก</TableHead>
+                                                        <TableHead className="text-right w-32">เรท (บาท)</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {rates.map((rate: any) => (
+                                                        <TableRow key={rate.id}>
+                                                            <TableCell className="font-medium">{rate.item_name}</TableCell>
+                                                            <TableCell>{rate.course?.course_name || '-'}</TableCell>
+                                                            <TableCell className="text-right text-amber-600 font-medium">
+                                                                {formatCurrency(Number(rate.rate_amount) || 0)}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-muted-foreground text-center py-4">กำลังโหลดข้อมูล...</p>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

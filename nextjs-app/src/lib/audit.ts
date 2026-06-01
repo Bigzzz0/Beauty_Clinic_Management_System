@@ -30,14 +30,15 @@ export async function logAudit({ action, target_resource, details, request, staf
                     token = request.cookies.get('auth_token')?.value
                 }
 
-                if (token) {
+                if (token && process.env.JWT_SECRET) {
                     try {
-                        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key') as { staff_id?: number; id?: number }
+                        const decoded = jwt.verify(token, process.env.JWT_SECRET) as { staff_id?: number; id?: number }
                         finalStaffId = decoded.staff_id || decoded.id
                     } catch {
                         // ignore token errors for audit logging
                     }
                 }
+
             }
         }
 

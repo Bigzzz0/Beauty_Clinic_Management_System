@@ -45,8 +45,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-pink-500 border-t-transparent" />
-                    <p className="text-sm text-slate-500">กำลังโหลด...</p>
+                    <div className="relative flex h-16 w-16 items-center justify-center">
+                        <div className="absolute inset-0 animate-spin rounded-full border-4 border-amber-200 border-t-amber-500" />
+                        <div className="h-3 w-3 rounded-full bg-amber-500 animate-pulse" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        {[0, 1, 2].map((i) => (
+                            <div
+                                key={i}
+                                className="h-1.5 w-1.5 rounded-full bg-amber-400"
+                                style={{ animation: `pulseGlow 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                            />
+                        ))}
+                    </div>
+                    <div className="flex flex-col items-center gap-1 text-center mt-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            Loading System
+                        </span>
+                        <span className="text-sm font-medium text-slate-600">
+                            กำลังโหลดข้อมูลระบบ กรุณารอสักครู่
+                        </span>
+                    </div>
                 </div>
             </div>
         )
@@ -72,7 +91,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
             >
                 <Header />
-                <main id="main-content" tabIndex={-1} className="p-4 lg:p-6 outline-none">
+                <main id="main-content" tabIndex={-1} className="p-4 lg:p-6 outline-none animate-fade-in">
                     <Breadcrumbs />
                     {children}
                 </main>

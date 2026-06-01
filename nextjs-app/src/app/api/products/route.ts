@@ -49,6 +49,13 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
 
+        if (body.main_unit && body.sub_unit && body.main_unit === body.sub_unit) {
+            return NextResponse.json(
+                { error: 'หน่วยใหญ่และหน่วยย่อยต้องไม่เหมือนกัน' },
+                { status: 400 }
+            )
+        }
+
         // Generate product code
         const prefixMap: Record<string, string> = {
             'Medicine': 'MED',

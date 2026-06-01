@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
     DollarSign, Plus, Search, Edit, Trash2, Save, X,
-    Settings, ArrowLeft, RefreshCw
+    ArrowLeft, RefreshCw
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge'
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card'
@@ -59,7 +58,29 @@ interface CommissionRate {
     item_name: string
     rate_amount: number
     position_type: string | null
+    fee_type: 'DF' | 'HAND_FEE' | null
+    course_id: number | null
+    course?: {
+        course_id: number
+        course_name: string
+        course_code?: string | null
+    } | null
     is_active: boolean
+}
+
+interface CourseOption {
+    course_id: number
+    course_name: string
+    course_code?: string | null
+}
+
+interface FormDataType {
+    category: string
+    itemName: string
+    rateAmount: number
+    positionType: string
+    courseId: string
+    feeType: 'NONE' | 'DF' | 'HAND_FEE'
 }
 
 // ... (previous imports)
@@ -75,6 +96,11 @@ const POSITIONS = [
     { value: 'Sale', label: 'ฝ่ายขาย' },
     { value: 'Cashier', label: 'แคชเชียร์' },
 ]
+
+const FEE_TYPES = [
+    { value: 'DF', label: 'DF (แพทย์)' },
+    { value: 'HAND_FEE', label: 'HAND_FEE (ผู้ช่วย)' },
+] as const
 
 function getCategoryColor(category: string) {
     switch (category) {
@@ -100,11 +126,13 @@ export default function CommissionRatesPage() {
     const [deleteId, setDeleteId] = useState<number | null>(null)
 
     // Form state
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormDataType>({
         category: '',
         itemName: '',
         rateAmount: 30,
         positionType: '',
+        courseId: 'NONE',
+        feeType: 'NONE',
     })
 
     // Fetch dynamic categories
@@ -116,6 +144,22 @@ export default function CommissionRatesPage() {
         },
     })
 
+    // Fetch active courses for direct mapping
+    const { data: courses = [] } = useQuery<CourseOption[]>({
+        queryKey: ['courses-for-commission'],
+        queryFn: async () => {
+            const res = await fetch('/api/courses')
+            if (!res.ok) throw new Error('Failed to fetch courses')
+            const payload = await res.json()
+            return Array.isArray(payload)
+                ? payload.map((course) => ({
+                    course_id: course.course_id,
+                    course_name: course.course_name,
+                    course_code: course.course_code,
+                }))
+                : []
+        },
+    })
 
     // ... (keep logic same)
     // Fetch commission rates
@@ -130,7 +174,15 @@ export default function CommissionRatesPage() {
 
     // Create/Update mutation
     const saveMutation = useMutation({
-        mutationFn: async (data: Partial<CommissionRate> & { itemName?: string; rateAmount?: number; positionType?: string }) => {
+        mutationFn: async (
+            data: Partial<CommissionRate> & {
+                itemName?: string
+                rateAmount?: number
+                positionType?: string
+                courseId?: number | null
+                feeType?: 'DF' | 'HAND_FEE' | null
+            }
+        ) => {
             const url = editingRate
                 ? `/api/commission-rates/${editingRate.id}`
                 : '/api/commission-rates'
@@ -141,7 +193,10 @@ export default function CommissionRatesPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             })
-            if (!res.ok) throw new Error('Failed to save rate')
+            if (!res.ok) {
+                const errPayload = await res.json().catch(() => null)
+                throw new Error(errPayload?.error || 'Failed to save rate')
+            }
             return res.json()
         },
         onSuccess: () => {
@@ -149,7 +204,7 @@ export default function CommissionRatesPage() {
             toast.success(editingRate ? 'อัปเดตค่ามือสำเร็จ' : 'เพิ่มค่ามือสำเร็จ')
             handleCloseDialog()
         },
-        onError: () => toast.error('เกิดข้อผิดพลาด'),
+        onError: (error: Error) => toast.error(error.message || 'เกิดข้อผิดพลาด'),
     })
 
     // Delete mutation
@@ -177,6 +232,8 @@ export default function CommissionRatesPage() {
                 itemName: rate.item_name,
                 rateAmount: Number(rate.rate_amount),
                 positionType: rate.position_type || '',
+                courseId: rate.course_id ? String(rate.course_id) : 'NONE',
+                feeType: rate.fee_type || 'NONE',
             })
         } else {
             setEditingRate(null)
@@ -185,6 +242,8 @@ export default function CommissionRatesPage() {
                 itemName: '',
                 rateAmount: 30,
                 positionType: '',
+                courseId: 'NONE',
+                feeType: 'NONE',
             })
         }
         setIsDialogOpen(true)
@@ -193,7 +252,14 @@ export default function CommissionRatesPage() {
     const handleCloseDialog = () => {
         setIsDialogOpen(false)
         setEditingRate(null)
-        setFormData(prev => ({ ...prev, itemName: '' })) // Keep category, position, etc.
+        setFormData({
+            category: dynamicCategories.length > 0 ? dynamicCategories[0].code : '',
+            itemName: '',
+            rateAmount: 30,
+            positionType: '',
+            courseId: 'NONE',
+            feeType: 'NONE',
+        })
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -202,25 +268,31 @@ export default function CommissionRatesPage() {
             toast.error('กรุณากรอกชื่อรายการ')
             return
         }
+
+        if (formData.courseId !== 'NONE' && formData.feeType === 'NONE') {
+            toast.error('หากผูกกับคอร์ส กรุณาเลือกประเภทค่ามือ (DF/HAND_FEE)')
+            return
+        }
+
         saveMutation.mutate({
             category: formData.category,
             itemName: formData.itemName,
             rateAmount: formData.rateAmount,
             positionType: formData.positionType || undefined,
+            courseId: formData.courseId === 'NONE' ? null : Number(formData.courseId),
+            feeType: formData.feeType === 'NONE' ? null : formData.feeType,
         })
     }
 
     // Filter rates
     const filteredRates = data?.rates?.filter(rate => {
-        const matchesSearch = rate.item_name.toLowerCase().includes(search.toLowerCase())
+        const query = search.toLowerCase()
+        const matchesSearch =
+            rate.item_name.toLowerCase().includes(query) ||
+            (rate.course?.course_name || '').toLowerCase().includes(query)
         const matchesCategory = selectedCategory === 'ALL' || rate.category === selectedCategory
         return matchesSearch && matchesCategory
     }) || []
-
-    // Helper to get category label
-    const getCategoryLabel = (categoryCode: string) => {
-        return dynamicCategories.find(c => c.code === categoryCode)?.name || categoryCode
-    }
 
     // Group by category for display
     const groupedRates = dynamicCategories.map(cat => ({
@@ -306,6 +378,44 @@ export default function CommissionRatesPage() {
                                         value={formData.rateAmount}
                                         onChange={(e) => setFormData({ ...formData, rateAmount: Number(e.target.value) })}
                                     />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>ผูกกับคอร์ส (สำหรับค่ามืออัตโนมัติ)</Label>
+                                    <Select
+                                        value={formData.courseId}
+                                        onValueChange={(v) => setFormData({ ...formData, courseId: v })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="ไม่ผูกคอร์ส" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="NONE">ไม่ผูกคอร์ส</SelectItem>
+                                            {courses.map((course) => (
+                                                <SelectItem key={course.course_id} value={String(course.course_id)}>
+                                                    {course.course_name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>ประเภทค่ามือ</Label>
+                                    <Select
+                                        value={formData.feeType}
+                                        onValueChange={(v) => setFormData({ ...formData, feeType: v as FormDataType['feeType'] })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="ไม่ระบุ" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="NONE">ไม่ระบุ</SelectItem>
+                                            {FEE_TYPES.map((type) => (
+                                                <SelectItem key={type.value} value={type.value}>
+                                                    {type.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="space-y-2">
                                     <Label>ตำแหน่งที่ใช้ (ไม่บังคับ)</Label>
@@ -416,6 +526,8 @@ export default function CommissionRatesPage() {
                                 <TableHeader>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                                         <TableHead>ชื่อรายการ</TableHead>
+                                        <TableHead>คอร์สที่ผูก</TableHead>
+                                        <TableHead>ประเภทค่ามือ</TableHead>
                                         <TableHead className="text-right">ค่ามือ (บาท)</TableHead>
                                         <TableHead>ตำแหน่ง</TableHead>
                                         <TableHead className="text-right">จัดการ</TableHead>
@@ -426,6 +538,14 @@ export default function CommissionRatesPage() {
                                         <TableRow key={rate.id}>
                                             <TableCell className="font-medium">
                                                 {rate.item_name}
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {rate.course?.course_name || '-'}
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {rate.fee_type
+                                                    ? FEE_TYPES.find((type) => type.value === rate.fee_type)?.label || rate.fee_type
+                                                    : '-'}
                                             </TableCell>
                                             <TableCell className="text-right text-green-600 dark:text-green-400 font-semibold">
                                                 {Number(rate.rate_amount).toLocaleString()}

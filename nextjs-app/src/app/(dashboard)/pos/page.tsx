@@ -72,6 +72,7 @@ import {
 } from '@/components/ui/sheet'
 import ProductCard from '@/components/pos/product-card'
 import CartItem from '@/components/pos/cart-item'
+import { Switch } from '@/components/ui/switch'
 
 interface Staff {
     staff_id: number
@@ -98,6 +99,11 @@ export default function POSPage() {
     const [customerDepositBalance, setCustomerDepositBalance] = useState(0)
     const [lastTransactionId, setLastTransactionId] = useState<number | null>(null)
     const [showReceiptPrompt, setShowReceiptPrompt] = useState(false)
+    const [showTopUpDialog, setShowTopUpDialog] = useState(false)
+    const [topUpAmount, setTopUpAmount] = useState('')
+    const [topUpMethod, setTopUpMethod] = useState<'CASH' | 'TRANSFER' | 'CREDIT'>('CASH')
+    const [topUpNote, setTopUpNote] = useState('')
+    const [autoApplyDeposit, setAutoApplyDeposit] = useState(true)
 
     const { data: products = [] } = useProducts({ search: searchProduct })
     const { data: courses = [] } = useCourses()
@@ -133,6 +139,7 @@ export default function POSPage() {
         customerName,
         customerAlerts,
         discount,
+        discountType,
         addProduct,
         addCourse,
         updateQuantity,
@@ -140,8 +147,10 @@ export default function POSPage() {
         clearCart,
         setCustomer,
         setDiscount,
+        setDiscountType,
         setItemStaff,
         getSubtotal,
+        getDiscountAmount,
         getTotal,
     } = useCartStore()
 
@@ -209,7 +218,7 @@ export default function POSPage() {
         try {
             const transaction = await createTransaction.mutateAsync({
                 customer_id: customerId,
-                discount,
+                discount: getDiscountAmount(),
                 items: items.map((item) => ({
                     product_id: item.product?.product_id || null,
                     course_id: item.course?.course_id || null,
@@ -223,9 +232,14 @@ export default function POSPage() {
             const payments: Promise<unknown>[] = []
 
             if (parseFloat(cashAmount) > 0) {
+                const totalPaid = getTotalPayment()
+                const change = totalPaid > getTotal() ? (totalPaid - getTotal()) : 0
+                const cashPaidValue = parseFloat(cashAmount) || 0
+                const actualCashPaid = change > 0 ? Math.max(0, cashPaidValue - change) : cashPaidValue
+
                 payments.push(addPayment.mutateAsync({
                     transaction_id: transaction.transaction_id,
-                    amount_paid: parseFloat(cashAmount),
+                    amount_paid: actualCashPaid,
                     payment_method: 'CASH',
                 }))
             }
@@ -281,12 +295,23 @@ export default function POSPage() {
     // Reset payment amounts when dialog opens
     useEffect(() => {
         if (showPaymentDialog) {
-            setCashAmount(getTotal().toString())
-            setTransferAmount('')
-            setCreditAmount('')
-            setDepositAmount('')
+            const billTotal = getTotal()
+            if (autoApplyDeposit && customerDepositBalance > 0) {
+                const usableDeposit = Math.min(billTotal, customerDepositBalance)
+                const remaining = billTotal - usableDeposit
+                
+                setDepositAmount(usableDeposit.toString())
+                setCashAmount(remaining > 0 ? remaining.toString() : '')
+                setTransferAmount('')
+                setCreditAmount('')
+            } else {
+                setCashAmount(billTotal.toString())
+                setTransferAmount('')
+                setCreditAmount('')
+                setDepositAmount('')
+            }
         }
-    }, [showPaymentDialog])
+    }, [showPaymentDialog, autoApplyDeposit, customerDepositBalance])
 
     // Extracted Cart Content for reuse in Desktop and Mobile views
     const renderCartContent = () => (
@@ -310,19 +335,39 @@ export default function POSPage() {
                             </Button>
                         </div>
 
+                        {/* Deposit wallet balance box with Top-up button */}
+                        <div className="flex items-center justify-between rounded-lg bg-emerald-50 border border-emerald-100 p-2.5 mt-1.5 animate-fade-in shadow-xs">
+                            <div className="flex items-center gap-2">
+                                <Wallet className="h-4.5 w-4.5 text-emerald-600" />
+                                <span className="text-xs font-semibold text-emerald-700">ยอดมัดจำ: ฿{customerDepositBalance.toLocaleString()}</span>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="xs"
+                                className="text-emerald-700 hover:bg-emerald-100/50 hover:text-emerald-800 text-xs px-2.5 py-1 font-semibold rounded-md border border-emerald-200/40 bg-white shadow-xs cursor-pointer flex items-center gap-1"
+                                onClick={() => setShowTopUpDialog(true)}
+                            >
+                                <Plus className="h-3 w-3" /> ฝากเงินเพิ่ม
+                            </Button>
+                        </div>
+
                         {/* Medical Alert Banner */}
                         {(customerAlerts?.drug_allergy || customerAlerts?.underlying_disease) && (
-                            <div className="animate-pulse rounded-lg bg-red-500 p-3 text-white">
-                                <div className="flex items-center gap-2 font-bold">
-                                    <AlertTriangle className="h-5 w-5" />
-                                    ⚠️ ข้อควรระวัง
+                            <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-3">
+                                <div className="flex items-start gap-2">
+                                    <div className="mt-0.5 shrink-0">
+                                        <AlertTriangle className="h-5 w-5 text-red-600 animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-red-800 text-sm">⚠️ ข้อควรระวัง</p>
+                                        {customerAlerts.drug_allergy && (
+                                            <p className="text-sm text-red-700 mt-0.5">💊 แพ้ยา: {customerAlerts.drug_allergy}</p>
+                                        )}
+                                        {customerAlerts.underlying_disease && (
+                                            <p className="text-sm text-red-700 mt-0.5">🏥 โรคประจำตัว: {customerAlerts.underlying_disease}</p>
+                                        )}
+                                    </div>
                                 </div>
-                                {customerAlerts.drug_allergy && (
-                                    <p className="text-sm mt-1">💊 แพ้ยา: {customerAlerts.drug_allergy}</p>
-                                )}
-                                {customerAlerts.underlying_disease && (
-                                    <p className="text-sm mt-1">🏥 โรคประจำตัว: {customerAlerts.underlying_disease}</p>
-                                )}
                             </div>
                         )}
                     </div>
@@ -406,34 +451,68 @@ export default function POSPage() {
 
             {/* Summary */}
             <div className="border-t bg-card pt-4 pb-4 sticky bottom-0 mt-auto z-10 w-full md:shadow-[0_-15px_15px_-15px_rgba(0,0,0,0.05)]">
-                <div className="mb-2 flex justify-between">
+                <div className="mb-1.5 flex justify-between text-sm text-slate-500">
                     <span>ยอดรวม</span>
                     <span>{formatCurrency(getSubtotal())}</span>
                 </div>
-                <div className="mb-2 flex items-center justify-between">
-                    <span>ส่วนลด</span>
-                    <div className="flex items-center gap-1">
-                        <span className="text-muted-foreground">฿</span>
-                        <Input
-                            type="number"
-                            min={0}
-                            value={discount || ''}
-                            onChange={(e) => setDiscount(parseFloat(e.target.value.replace(/-/g, '')) || 0)}
-                            className="w-24 text-right"
-                            disabled={!isAdmin}
-                            title={!isAdmin ? "เฉพาะผู้ดูแลระบบเท่านั้น" : "ส่วนลด"}
-                        />
+                <div className="mb-3 flex items-center justify-between text-sm">
+                    <span className="text-slate-500 font-medium">ส่วนลด</span>
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                            <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setDiscountType('fixed')}
+                                    className={`px-2.5 py-0.5 text-xs font-semibold rounded-md transition-all ${
+                                        discountType === 'fixed'
+                                            ? 'bg-white text-amber-600 shadow-xs border border-slate-200/50'
+                                            : 'text-slate-400 hover:text-slate-700'
+                                    }`}
+                                    disabled={!isAdmin}
+                                >
+                                    ฿
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setDiscountType('percentage')}
+                                    className={`px-2.5 py-0.5 text-xs font-semibold rounded-md transition-all ${
+                                        discountType === 'percentage'
+                                            ? 'bg-white text-amber-600 shadow-xs border border-slate-200/50'
+                                            : 'text-slate-400 hover:text-slate-700'
+                                    }`}
+                                    disabled={!isAdmin}
+                                >
+                                    %
+                                </button>
+                            </div>
+                            <Input
+                                type="number"
+                                min={0}
+                                max={discountType === 'percentage' ? 100 : undefined}
+                                value={discount || ''}
+                                onChange={(e) => setDiscount(parseFloat(e.target.value.replace(/-/g, '')) || 0)}
+                                className={`w-20 text-right ${discount > 0 ? 'border-red-200 text-red-600 font-semibold' : ''}`}
+                                disabled={!isAdmin}
+                                title={!isAdmin ? "เฉพาะผู้ดูแลระบบเท่านั้น" : "ส่วนลด"}
+                            />
+                        </div>
+                        {discountType === 'percentage' && discount > 0 && (
+                            <span className="text-[11px] text-red-500 font-medium animate-fade-in">
+                                (ลด {formatCurrency(getDiscountAmount())})
+                            </span>
+                        )}
                     </div>
                 </div>
-                <div className="mb-4 flex justify-between text-lg font-bold">
-                    <span>สุทธิ</span>
-                    <span className="text-amber-600">{formatCurrency(getTotal())}</span>
+                <div className="mb-4 flex justify-between items-center rounded-xl bg-amber-50 px-3 py-2.5 border border-amber-200">
+                    <span className="font-semibold text-amber-800">ยอดสุทธิ</span>
+                    <span className="text-xl font-bold text-amber-600">{formatCurrency(getTotal())}</span>
                 </div>
 
                 <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
                     <DialogTrigger asChild>
                         <Button
-                            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold"
+                            className="w-full gap-2 rounded-xl shadow-lg shadow-amber-200/60 transition-all hover:-translate-y-0.5 hover:shadow-xl font-semibold"
+                            style={{ background: items.length === 0 || !customerId ? undefined : 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white' }}
                             disabled={items.length === 0 || !customerId}
                         >
                             ชำระเงิน
@@ -464,16 +543,30 @@ export default function POSPage() {
                                 </div>
                             )}
 
+                            {/* Auto-apply deposit first switch toggle */}
+                            {customerDepositBalance > 0 && (
+                                <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3 animate-fade-in shadow-xs">
+                                    <div className="space-y-0.5">
+                                        <h4 className="font-semibold text-emerald-800 text-xs">หักเงินมัดจำที่มีก่อนอัตโนมัติ</h4>
+                                        <p className="text-[10px] text-emerald-600 font-medium">ใช้วงเงินมัดจำจ่ายแทนเงินสด/โอน</p>
+                                    </div>
+                                    <Switch
+                                        checked={autoApplyDeposit}
+                                        onCheckedChange={(checked: boolean) => setAutoApplyDeposit(checked)}
+                                    />
+                                </div>
+                            )}
+
                             {/* Payment Method Rows */}
                             <div className="space-y-3">
                                 {/* Cash */}
-                                <div className="rounded-xl border border-green-200 bg-green-50">
-                                    <div className="flex items-center gap-3 px-4 py-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 shrink-0">
+                                <div className="rounded-xl border border-green-200 bg-green-50/70 p-3 animate-fade-in">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 shrink-0 shadow-xs">
                                             <Banknote className="h-4 w-4 text-green-600" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-xs font-semibold text-green-700 mb-1.5">เงินสด</p>
+                                            <p className="text-xs font-bold text-green-800 mb-1.5">เงินสด</p>
                                             <div className="relative">
                                                 <Input
                                                     type="number"
@@ -482,7 +575,7 @@ export default function POSPage() {
                                                     value={cashAmount}
                                                     onChange={(e) => setCashAmount(e.target.value.replace(/-/g, ''))}
                                                     placeholder="0.00"
-                                                    className="h-10 pr-24 bg-white border-green-200 focus-visible:ring-green-400"
+                                                    className="h-10 pr-24 bg-white border-green-200 focus-visible:ring-amber-500 focus-visible:border-amber-500 transition-all"
                                                 />
                                                 <button
                                                     type="button"
@@ -497,18 +590,64 @@ export default function POSPage() {
                                                     เหลือทั้งหมด
                                                 </button>
                                             </div>
+
+                                            {/* Quick Cash Buttons */}
+                                            <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const remaining = getRemainingBalance()
+                                                        if (remaining > 0) {
+                                                            setCashAmount(((parseFloat(cashAmount) || 0) + remaining).toString())
+                                                        } else {
+                                                            setCashAmount(getTotal().toString())
+                                                        }
+                                                    }}
+                                                    className="px-2.5 py-1 text-xs font-semibold text-green-700 bg-white border border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition-all shadow-xs"
+                                                >
+                                                    จ่ายพอดี
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCashAmount(((parseFloat(cashAmount) || 0) + 100).toString())}
+                                                    className="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all shadow-xs"
+                                                >
+                                                    +100
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCashAmount(((parseFloat(cashAmount) || 0) + 500).toString())}
+                                                    className="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all shadow-xs"
+                                                >
+                                                    +500
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCashAmount(((parseFloat(cashAmount) || 0) + 1000).toString())}
+                                                    className="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all shadow-xs"
+                                                >
+                                                    +1,000
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCashAmount('')}
+                                                    className="px-2 py-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-all ml-auto"
+                                                >
+                                                    ล้าง
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Transfer */}
-                                <div className="rounded-xl border border-blue-200 bg-blue-50">
-                                    <div className="flex items-center gap-3 px-4 py-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 shrink-0">
+                                <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3 animate-fade-in">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 shrink-0 shadow-xs">
                                             <QrCode className="h-4 w-4 text-blue-600" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-xs font-semibold text-blue-700 mb-1.5">โอนเงิน</p>
+                                            <p className="text-xs font-bold text-blue-800 mb-1.5">โอนเงิน</p>
                                             <div className="relative">
                                                 <Input
                                                     type="number"
@@ -517,7 +656,7 @@ export default function POSPage() {
                                                     value={transferAmount}
                                                     onChange={(e) => setTransferAmount(e.target.value.replace(/-/g, ''))}
                                                     placeholder="0.00"
-                                                    className="h-10 pr-24 bg-white border-blue-200 focus-visible:ring-blue-400"
+                                                    className="h-10 pr-24 bg-white border-blue-200 focus-visible:ring-amber-500 focus-visible:border-amber-500 transition-all"
                                                 />
                                                 <button
                                                     type="button"
@@ -537,13 +676,13 @@ export default function POSPage() {
                                 </div>
 
                                 {/* Credit Card */}
-                                <div className="rounded-xl border border-purple-200 bg-purple-50">
-                                    <div className="flex items-center gap-3 px-4 py-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 shrink-0">
+                                <div className="rounded-xl border border-purple-200 bg-purple-50/70 p-3 animate-fade-in">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 shrink-0 shadow-xs">
                                             <CreditCard className="h-4 w-4 text-purple-600" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-xs font-semibold text-purple-700 mb-1.5">บัตรเครดิต</p>
+                                            <p className="text-xs font-bold text-purple-800 mb-1.5">บัตรเครดิต</p>
                                             <div className="relative">
                                                 <Input
                                                     type="number"
@@ -552,7 +691,7 @@ export default function POSPage() {
                                                     value={creditAmount}
                                                     onChange={(e) => setCreditAmount(e.target.value.replace(/-/g, ''))}
                                                     placeholder="0.00"
-                                                    className="h-10 pr-24 bg-white border-purple-200 focus-visible:ring-purple-400"
+                                                    className="h-10 pr-24 bg-white border-purple-200 focus-visible:ring-amber-500 focus-visible:border-amber-500 transition-all"
                                                 />
                                                 <button
                                                     type="button"
@@ -573,15 +712,15 @@ export default function POSPage() {
 
                                 {/* Deposit */}
                                 {customerDepositBalance > 0 && (
-                                    <div className="rounded-xl border border-emerald-200 bg-emerald-50">
-                                        <div className="flex items-center gap-3 px-4 py-3">
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 shrink-0">
+                                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 animate-fade-in">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 shrink-0 shadow-xs">
                                                 <Wallet className="h-4 w-4 text-emerald-600" />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between mb-1.5">
-                                                    <p className="text-xs font-semibold text-emerald-700">เงินมัดจำ</p>
-                                                    <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-medium">
+                                                    <p className="text-xs font-bold text-emerald-800">เงินมัดจำ</p>
+                                                    <span className="text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
                                                         คงเหลือ ฿{customerDepositBalance.toLocaleString()}
                                                     </span>
                                                 </div>
@@ -601,7 +740,7 @@ export default function POSPage() {
                                                         }}
                                                         placeholder="0.00"
                                                         max={customerDepositBalance}
-                                                        className="h-10 pr-20 bg-white border-emerald-200 focus-visible:ring-emerald-400"
+                                                        className="h-10 pr-20 bg-white border-emerald-200 focus-visible:ring-amber-500 focus-visible:border-amber-500 transition-all"
                                                     />
                                                     <button
                                                         onClick={() => setDepositAmount(customerDepositBalance.toString())}
@@ -617,23 +756,31 @@ export default function POSPage() {
                             </div>
 
                             {/* Payment Summary */}
-                            <div className="rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+                            <div className="rounded-xl bg-slate-50 border border-slate-200 overflow-hidden shadow-xs">
                                 <div className="px-4 py-3 flex items-center justify-between">
-                                    <span className="text-sm text-slate-500">รวมที่ชำระ</span>
-                                    <span className="text-lg font-bold text-emerald-600">{formatCurrency(getTotalPayment())}</span>
+                                    <span className="text-sm font-medium text-slate-500">รวมที่ชำระ</span>
+                                    <span className="text-lg font-bold text-slate-700">{formatCurrency(getTotalPayment())}</span>
                                 </div>
                                 {getRemainingBalance() > 0 && (
-                                    <div className="px-4 py-2 flex items-center justify-between bg-red-50 border-t border-red-100">
-                                        <span className="text-sm text-red-600">ยังขาดอีก</span>
-                                        <span className="text-sm font-bold text-red-600">{formatCurrency(getRemainingBalance())}</span>
+                                    <div className="px-4 py-2.5 flex items-center justify-between bg-red-50 border-t border-red-100 text-red-700">
+                                        <span className="text-sm font-bold">ยังขาดอีก</span>
+                                        <span className="text-sm font-extrabold">{formatCurrency(getRemainingBalance())}</span>
                                     </div>
                                 )}
-                                {getTotalPayment() > getTotal() && (
-                                    <div className="px-4 py-2 flex items-center justify-between bg-blue-50 border-t border-blue-100">
-                                        <span className="text-sm text-blue-600">เงินทอน</span>
-                                        <span className="text-sm font-bold text-blue-600">{formatCurrency(getTotalPayment() - getTotal())}</span>
-                                    </div>
-                                )}
+                                <div className={`px-4 py-3 flex items-center justify-between border-t transition-all duration-300 ${
+                                    getTotalPayment() > getTotal()
+                                        ? 'bg-blue-50 border-blue-100 text-blue-700'
+                                        : 'bg-slate-50 border-slate-100 text-slate-400'
+                                }`}>
+                                    <span className="text-sm font-bold">เงินทอน</span>
+                                    <span className={`font-extrabold transition-all duration-300 ${
+                                        getTotalPayment() > getTotal()
+                                            ? 'text-xl text-blue-600 scale-105'
+                                            : 'text-sm text-slate-400'
+                                    }`}>
+                                        {formatCurrency(Math.max(0, getTotalPayment() - getTotal()))}
+                                    </span>
+                                </div>
                             </div>
 
                             {/* Partial Payment Notice */}
@@ -656,6 +803,108 @@ export default function POSPage() {
                                     : getRemainingBalance() > 0
                                         ? `ยืนยัน (ค้างชำระ ${formatCurrency(getRemainingBalance())})`
                                         : 'ยืนยันชำระเงิน'}
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Quick POS Top-up Dialog */}
+                <Dialog open={showTopUpDialog} onOpenChange={setShowTopUpDialog}>
+                    <DialogContent className="max-w-md rounded-2xl w-[95vw] mx-auto z-[100] sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-lg font-bold text-slate-800">ฝากเงินมัดจำล่วงหน้า (Top-Up)</DialogTitle>
+                            <DialogDescription className="text-slate-500 text-xs mt-1">
+                                เติมเงินมัดจำเข้าระบบให้คนไข้รายนี้เพื่อใช้ในการซื้อหรือหักชำระเงิน
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 pt-2">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="topup-amt-input" className="text-xs font-semibold text-slate-500">จำนวนเงินที่ฝาก (฿)</Label>
+                                <Input
+                                    id="topup-amt-input"
+                                    type="number"
+                                    min={1}
+                                    value={topUpAmount}
+                                    onChange={(e) => setTopUpAmount(e.target.value.replace(/-/g, ''))}
+                                    placeholder="0.00"
+                                    className="h-10 font-mono font-bold text-lg text-emerald-600"
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-semibold text-slate-500">ช่องทางการรับชำระเงิน</Label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { id: 'CASH', label: 'เงินสด', icon: Banknote, color: 'text-green-600 bg-green-50 border-green-200' },
+                                        { id: 'TRANSFER', label: 'โอนเงิน', icon: QrCode, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+                                        { id: 'CREDIT', label: 'บัตรเครดิต', icon: CreditCard, color: 'text-purple-600 bg-purple-50 border-purple-200' },
+                                    ].map((m) => (
+                                        <button
+                                            type="button"
+                                            key={m.id}
+                                            onClick={() => setTopUpMethod(m.id as any)}
+                                            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                                                topUpMethod === m.id
+                                                    ? `${m.color} ring-2 ring-amber-500 ring-offset-1`
+                                                    : 'bg-white text-slate-500 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <m.icon className="h-4 w-4 mb-1" />
+                                            {m.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="topup-note-input" className="text-xs font-semibold text-slate-500">หมายเหตุ</Label>
+                                <Input
+                                    id="topup-note-input"
+                                    value={topUpNote}
+                                    onChange={(e) => setTopUpNote(e.target.value)}
+                                    placeholder="ฝากเงินมัดจำล่วงหน้า..."
+                                    className="h-10 text-xs"
+                                />
+                            </div>
+
+                            <Button
+                                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl mt-2 cursor-pointer"
+                                onClick={async () => {
+                                    const amt = parseFloat(topUpAmount)
+                                    if (isNaN(amt) || amt <= 0) {
+                                        toast.error('กรุณาระบุจำนวนเงินที่ถูกต้อง')
+                                        return
+                                    }
+
+                                    try {
+                                        const res = await fetch('/api/deposits', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                customer_id: customerId,
+                                                amount: amt,
+                                                type: 'ADD',
+                                                note: topUpNote || `ฝากเงินมัดจำล่วงหน้า ผ่านช่องทาง ${topUpMethod}`
+                                            })
+                                        })
+
+                                        if (res.ok) {
+                                            const data = await res.json()
+                                            toast.success('เติมเงินมัดจำด่วนสำเร็จ')
+                                            setCustomerDepositBalance(data.balance_after)
+                                            setShowTopUpDialog(false)
+                                            setTopUpAmount('')
+                                            setTopUpNote('')
+                                        } else {
+                                            const err = await res.json()
+                                            toast.error(err.error || 'ฝากเงินมัดจำไม่สำเร็จ')
+                                        }
+                                    } catch {
+                                        toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ')
+                                    }
+                                }}
+                            >
+                                ยืนยันการฝากเงินมัดจำ
                             </Button>
                         </div>
                     </DialogContent>

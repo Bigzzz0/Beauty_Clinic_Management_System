@@ -19,25 +19,30 @@ export function Breadcrumbs() {
                 <li>
                     <Link
                         href="/dashboard"
-                        className="flex items-center hover:text-foreground transition-colors"
+                        className="flex items-center text-amber-600 hover:text-amber-700 transition-colors"
                         aria-label="Home"
                     >
                         <Home className="h-4 w-4" />
                     </Link>
                 </li>
                 {segments.map((segment, index) => {
-                    const href = `/${segments.slice(0, index + 1).join('/')}`
+                    let href = `/${segments.slice(0, index + 1).join('/')}`
                     const isLast = index === segments.length - 1
                     const title = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
+
+                    // Override empty parent routes like /receipt -> /transactions
+                    if (segment === 'receipt') {
+                        href = '/transactions'
+                    }
 
                     // Skip "dashboard" segment in display if it's the first one (since we have the Home icon)
                     if (segment === 'dashboard') return null
 
                     return (
                         <li key={segment} className="flex items-center gap-2">
-                            <ChevronRight className="h-4 w-4 text-slate-400" />
+                            <ChevronRight className="h-4 w-4 text-slate-300" />
                             {isLast ? (
-                                <span className="font-medium text-foreground" aria-current="page">
+                                <span className="font-bold text-amber-600" aria-current="page">
                                     {title}
                                 </span>
                             ) : (

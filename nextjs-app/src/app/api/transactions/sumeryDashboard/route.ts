@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAuth } from '@/lib/auth-rbac'
 import { startOfDay, endOfDay, startOfMonth, subMonths, subDays } from 'date-fns'
 
 // ฟังก์ชันคำนวณข้อมูลสถิติ
@@ -126,7 +127,7 @@ async function getDashboardStats() {
 }
 
 // Main API Handler
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async function GET(request: NextRequest) {
     try {
         const dashboardStats = await getDashboardStats()
         return NextResponse.json(dashboardStats)
@@ -137,4 +138,4 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         )
     }
-}
+}, ['Admin', 'Manager', 'Sale', 'Cashier'])

@@ -128,22 +128,28 @@ export default function DebtorPage() {
     const totalDebt = debtors.reduce((sum, d) => sum + d.total_debt, 0)
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Wallet className="h-6 w-6 text-destructive" />
+                        <Wallet className="h-6 w-6 text-red-500" />
                         ติดตามหนี้
                     </h1>
-                    <p className="text-muted-foreground">ลูกค้าที่ค้างชำระ</p>
+                    <p className="text-muted-foreground text-sm mt-0.5">ลูกค้าที่ค้างชำระ</p>
                 </div>
-                <Card className="bg-destructive/10 border-destructive/20">
-                    <CardContent className="p-4">
-                        <p className="text-sm text-destructive">ยอดหนี้รวม</p>
-                        <p className="text-2xl font-bold text-destructive">{formatCurrency(totalDebt)}</p>
-                    </CardContent>
-                </Card>
+                <div
+                    className="flex items-center gap-4 rounded-2xl px-5 py-4 shadow-md shadow-red-100"
+                    style={{ background: 'linear-gradient(135deg, #fef2f2, #fee2e2)' }}
+                >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 animate-pulse-glow">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium text-red-400 uppercase tracking-wide">ยอดหนี้รวม</p>
+                        <p className="text-2xl font-bold text-red-600">{formatCurrency(totalDebt)}</p>
+                    </div>
+                </div>
             </div>
 
             {/* Search */}
@@ -164,18 +170,23 @@ export default function DebtorPage() {
 
             {/* Debtors Table */}
             <Card>
-                <CardHeader>
-                    <CardTitle>รายชื่อลูกหนี้ ({filteredDebtors.length} คน)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-lg border overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                            รายชื่อลูกหนี้
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                                {filteredDebtors.length} คน
+                            </span>
+                        </CardTitle>
+                    </CardHeader>
+                <CardContent className="p-0 sm:p-6 sm:pt-0">
+                    <div className="rounded-xl border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-muted/50">
-                                    <TableHead>ลูกค้า</TableHead>
-                                    <TableHead>เบอร์โทร</TableHead>
-                                    <TableHead>จำนวนบิล</TableHead>
-                                    <TableHead className="text-right">ยอดค้าง</TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">ลูกค้า</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">เบอร์โทร</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">จำนวนบิล</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">ยอดค้าง</TableHead>
                                     <TableHead className="w-32"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -200,31 +211,37 @@ export default function DebtorPage() {
                                     </TableRow>
                                 ) : (
                                     filteredDebtors.map((debtor) => (
-                                        <TableRow key={debtor.customer_id}>
+                                        <TableRow key={debtor.customer_id} className="hover:bg-red-50/40 transition-colors border-l-4 border-l-transparent hover:border-l-red-200">
                                             <TableCell>
-                                                <div>
-                                                    <p className="font-medium max-w-[200px] truncate" title={debtor.full_name}>{debtor.full_name}</p>
-                                                    <p className="text-xs text-slate-500 font-mono">{debtor.hn_code}</p>
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-400 to-red-500 text-xs font-bold text-white shadow-sm">
+                                                        {debtor.full_name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold max-w-[180px] truncate text-sm" title={debtor.full_name}>{debtor.full_name}</p>
+                                                        <p className="text-xs text-slate-400 font-mono">{debtor.hn_code}</p>
+                                                    </div>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex items-center gap-2 text-sm">
-                                                    <Phone className="h-4 w-4 text-slate-400" />
+                                                <div className="flex items-center gap-1.5 text-sm">
+                                                    <Phone className="h-3.5 w-3.5 text-slate-400" />
                                                     {debtor.phone_number}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant="secondary">{debtor.transactions.length} บิล</Badge>
+                                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{debtor.transactions.length} บิล</span>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="text-lg font-bold text-red-600">
+                                                <span className="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-sm font-bold text-red-600 ring-1 ring-red-200">
                                                     {formatCurrency(debtor.total_debt)}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
                                                 <Button
                                                     size="sm"
-                                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                                    className="rounded-lg gap-1.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                                                    style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)', color: 'white' }}
                                                     aria-label={`ชำระหนี้ของ ${debtor.full_name}`}
                                                     onClick={() => {
                                                         setSelectedDebtor(debtor)
@@ -233,7 +250,7 @@ export default function DebtorPage() {
                                                         setPayMethod('CASH')
                                                     }}
                                                 >
-                                                    <DollarSign className="h-4 w-4 mr-1" />
+                                                    <DollarSign className="h-3.5 w-3.5" />
                                                     ชำระ
                                                 </Button>
                                             </TableCell>

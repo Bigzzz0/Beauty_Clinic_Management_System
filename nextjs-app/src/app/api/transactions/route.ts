@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
-
-function getStaffFromRequest(request: NextRequest): { staff_id: number; position: string } | null {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) return null
-    try {
-        const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { staff_id: number; position: string }
-        return decoded
-    } catch {
-        return null
-    }
-}
+import { authenticateStaffRequest } from '@/lib/staff-auth'
 
 // GET /api/transactions - List transactions with pagination
 export async function GET(request: NextRequest) {
     try {
+        const authResult = await authenticateStaffRequest(request)
+        if (!authResult.ok) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+        }
+
         const { searchParams } = new URL(request.url)
         const page = parseInt(searchParams.get('page') || '1')
         const limit = parseInt(searchParams.get('limit') || '20')
@@ -88,10 +81,11 @@ export async function GET(request: NextRequest) {
 // POST /api/transactions - Create new transaction (existing)
 export async function POST(request: NextRequest) {
     try {
-        const staff = getStaffFromRequest(request)
-        if (!staff) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const authResult = await authenticateStaffRequest(request)
+        if (!authResult.ok) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status })
         }
+        const staff = authResult.staff
 
         const body = await request.json()
         const { customer_id, discount, items } = body

@@ -7,6 +7,7 @@ export interface Staff {
     position: StaffPosition
     username: string
     is_active: boolean
+    must_change_password?: boolean
     created_at: string
 }
 

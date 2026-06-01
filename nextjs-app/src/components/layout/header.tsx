@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
@@ -32,36 +32,43 @@ import Link from 'next/link'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { SidebarContent } from './sidebar'
 
-export function Header() {
-    const { isSidebarOpen, setSidebarOpen, isMobile } = useUIStore()
-    const { user, logout } = useAuthStore()
+/** Separate component so Sheet open state is fully self-contained (no store dependency) */
+function MobileDrawer() {
+    const [open, setOpen] = useState(false)
     const pathname = usePathname()
 
-    // Auto-close mobile sidebar when pathname changes
+    // Close drawer on navigation
     useEffect(() => {
-        if (isMobile && isSidebarOpen) {
-            setSidebarOpen(false)
-        }
-    }, [pathname, isMobile, isSidebarOpen, setSidebarOpen])
+        setOpen(false)
+    }, [pathname])
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4 lg:px-6 shadow-sm">
+        <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Toggle sidebar">
+                    <Menu className="h-5 w-5" />
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] p-0 border-r-0 flex flex-col gap-0">
+                <SheetHeader className="sr-only">
+                    <SheetTitle>Navigation Menu</SheetTitle>
+                </SheetHeader>
+                <SidebarContent isMobile={true} />
+            </SheetContent>
+        </Sheet>
+    )
+}
+
+export function Header() {
+    const { user, logout } = useAuthStore()
+
+    return (
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white/95 backdrop-blur-sm px-4 lg:px-6 shadow-sm">
             <div className="flex items-center gap-4">
-                {isMobile && (
-                    <Sheet open={isSidebarOpen} onOpenChange={setSidebarOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label="Toggle sidebar">
-                                <Menu className="h-5 w-5" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-[280px] p-0 border-r-0 [&>button]:hidden sm:[&>button]:flex flex-col gap-0">
-                            <SheetHeader className="sr-only">
-                                <SheetTitle>Navigation Menu</SheetTitle>
-                            </SheetHeader>
-                            <SidebarContent isMobile={true} />
-                        </SheetContent>
-                    </Sheet>
-                )}
+                {/* Mobile hamburger — hidden on desktop via CSS, uses own local state */}
+                <div className="lg:hidden">
+                    <MobileDrawer />
+                </div>
                 <GlobalSearch />
             </div>
 
@@ -70,9 +77,9 @@ export function Header() {
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="flex items-center gap-2 pl-2 sm:pl-3" aria-label="User menu">
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-amber-400 text-slate-900 font-semibold border border-amber-500/20">
+                        <Button variant="ghost" className="flex items-center gap-2 pl-2 sm:pl-3 hover:bg-amber-50 rounded-xl transition-colors" aria-label="User menu">
+                            <Avatar className="h-8 w-8 ring-2 ring-amber-200 ring-offset-1">
+                                <AvatarFallback className="bg-gradient-to-br from-amber-400 to-amber-500 text-white font-bold text-sm">
                                     {user?.full_name?.charAt(0) || 'U'}
                                 </AvatarFallback>
                             </Avatar>
@@ -116,4 +123,3 @@ export function Header() {
         </header>
     )
 }
-

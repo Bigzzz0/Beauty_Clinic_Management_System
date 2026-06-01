@@ -60,9 +60,12 @@ const PREDEFINED_CATEGORIES = [
     'Botox', 'Filler', 'Treatment', 'Medicine', 'Equipment', 'Skin', 'Service', 'Other'
 ]
 
-const PREDEFINED_UNITS = [
-    'ขวด', 'กล่อง', 'หลอด', 'ชิ้น', 'ซีซี', 'ครั้ง', 'เซ็ต', 'แผง', 'เม็ด', 'แคปซูล', 'กรัม', 'มิลลิลิตร', 'ลิตร',
-    'Unit', 'ML', 'CC', 'Amp', 'ซอง', 'เส้น'
+const PREDEFINED_MAIN_UNITS = [
+    'ลัง', 'กล่อง', 'ขวด', 'หลอด', 'แพ็ค', 'ซอง', 'แผง', 'เซ็ต', 'กระปุก', 'แท่ง', 'ถุง', 'ม้วน'
+]
+
+const PREDEFINED_SUB_UNITS = [
+    'ชิ้น', 'ซีซี', 'มิลลิลิตร', 'ลิตร', 'กรัม', 'เม็ด', 'แคปซูล', 'ครั้ง', 'โดส', 'หยด', 'เส้น', 'ยูนิต'
 ]
 
 export default function CategoriesPage() {
@@ -95,8 +98,20 @@ export default function CategoriesPage() {
                 isSystem: true
             }))
         }
-        if (type === 'MAIN_UNIT' || type === 'SUB_UNIT') {
-            return PREDEFINED_UNITS.map((name, i) => ({
+        if (type === 'MAIN_UNIT') {
+            return PREDEFINED_MAIN_UNITS.map((name, i) => ({
+                id: `system-${name}` as any,
+                type: type,
+                name,
+                code: `${type}_${i + 1}`,
+                description: 'ค่าพื้นฐานของระบบ',
+                is_active: true,
+                sort_order: 900 + i,
+                isSystem: true
+            }))
+        }
+        if (type === 'SUB_UNIT') {
+            return PREDEFINED_SUB_UNITS.map((name, i) => ({
                 id: `system-${name}` as any,
                 type: type,
                 name,

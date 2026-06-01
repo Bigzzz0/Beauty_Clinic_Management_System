@@ -21,6 +21,7 @@ interface CartState {
         underlying_disease: string | null
     } | null
     discount: number
+    discountType: 'fixed' | 'percentage'
 
     // Actions
     addProduct: (product: Product, qty?: number) => void
@@ -31,10 +32,12 @@ interface CartState {
     setCustomer: (customerId: number, customerName: string, alerts?: { drug_allergy: string | null; underlying_disease: string | null }) => void
     clearCustomer: () => void
     setDiscount: (discount: number) => void
+    setDiscountType: (discountType: 'fixed' | 'percentage') => void
     setItemStaff: (itemId: string, staff: StaffAssignment) => void
 
     // Computed
     getSubtotal: () => number
+    getDiscountAmount: () => number
     getTotal: () => number
     getItemCount: () => number
 }
@@ -45,6 +48,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     customerName: null,
     customerAlerts: null,
     discount: 0,
+    discountType: 'fixed',
 
     addProduct: (product, qty = 1) => {
         const items = get().items
@@ -108,20 +112,20 @@ export const useCartStore = create<CartState>((set, get) => ({
                 : item
         )
         set({ items })
-        if (get().discount > get().getSubtotal()) {
+        if (get().discountType === 'fixed' && get().discount > get().getSubtotal()) {
             set({ discount: get().getSubtotal() })
         }
     },
 
     removeItem: (itemId) => {
         set({ items: get().items.filter((item) => item.id !== itemId) })
-        if (get().discount > get().getSubtotal()) {
+        if (get().discountType === 'fixed' && get().discount > get().getSubtotal()) {
             set({ discount: get().getSubtotal() })
         }
     },
 
     clearCart: () => {
-        set({ items: [], discount: 0 })
+        set({ items: [], discount: 0, discountType: 'fixed' })
     },
 
     setCustomer: (customerId, customerName, alerts) => {
@@ -138,7 +142,15 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     setDiscount: (discount) => {
         const d = Math.max(0, discount)
-        set({ discount: Math.min(d, get().getSubtotal()) })
+        if (get().discountType === 'percentage') {
+            set({ discount: Math.min(d, 100) })
+        } else {
+            set({ discount: Math.min(d, get().getSubtotal()) })
+        }
+    },
+
+    setDiscountType: (discountType) => {
+        set({ discountType, discount: 0 })
     },
 
     setItemStaff: (itemId, staff) => {
@@ -152,8 +164,15 @@ export const useCartStore = create<CartState>((set, get) => ({
         return get().items.reduce((sum, item) => sum + item.subtotal, 0)
     },
 
+    getDiscountAmount: () => {
+        if (get().discountType === 'percentage') {
+            return (get().getSubtotal() * get().discount) / 100
+        }
+        return get().discount
+    },
+
     getTotal: () => {
-        return Math.max(0, get().getSubtotal() - get().discount)
+        return Math.max(0, get().getSubtotal() - get().getDiscountAmount())
     },
 
     getItemCount: () => {

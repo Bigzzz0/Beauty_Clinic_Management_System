@@ -37,8 +37,9 @@ export default function PasswordSettingsPage() {
             return
         }
 
-        if (newPassword.length < 6) {
-            toast.error('รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
+        const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,72}$/
+        if (!strongPassword.test(newPassword)) {
+            toast.error('รหัสผ่านใหม่ต้องมี 8-72 ตัว และมีพิมพ์เล็ก/พิมพ์ใหญ่/ตัวเลข/อักขระพิเศษ')
             return
         }
 
@@ -69,8 +70,9 @@ export default function PasswordSettingsPage() {
 
             setTimeout(() => router.push('/settings'), 1500)
 
-        } catch (error: any) {
-            toast.error(error.message)
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'เกิดข้อผิดพลาด'
+            toast.error(errorMessage)
         } finally {
             setIsLoading(false)
         }
@@ -90,7 +92,7 @@ export default function PasswordSettingsPage() {
                 <CardHeader>
                     <CardTitle>ตั้งค่ารหัสผ่านใหม่</CardTitle>
                     <CardDescription>
-                        รหัสผ่านควรมีความยาวอย่างน้อย 6 ตัวอักษร
+                        รหัสผ่านต้องมี 8-72 ตัว และประกอบด้วยพิมพ์เล็ก, พิมพ์ใหญ่, ตัวเลข, และอักขระพิเศษ
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

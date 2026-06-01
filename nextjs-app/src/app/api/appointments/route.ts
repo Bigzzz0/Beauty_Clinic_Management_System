@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { logAudit } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
@@ -20,43 +21,40 @@ export async function GET(request: Request) {
         const dateStr = searchParams.get('date')
         const view = searchParams.get('view') || 'day'
 
-        let dateFilter = {}
-        if (dateStr) {
-            const date = new Date(dateStr)
-            let startOfRange = new Date(date)
-            let endOfRange = new Date(date)
+        // SECURITY: Always enforce a date boundary to prevent fetching 30,000+ appointments
+        const date = dateStr ? new Date(dateStr) : new Date()
+        const startOfRange = new Date(date)
+        let endOfRange = new Date(date)
 
-            if (view === 'month') {
-                startOfRange.setDate(1)
-                startOfRange.setHours(0, 0, 0, 0)
+        if (view === 'month') {
+            startOfRange.setDate(1)
+            startOfRange.setHours(0, 0, 0, 0)
 
-                endOfRange.setMonth(startOfRange.getMonth() + 1)
-                endOfRange.setDate(0)
-                endOfRange.setHours(23, 59, 59, 999)
-            } else if (view === 'week') {
-                // start of week (Sunday)
-                const day = startOfRange.getDay()
-                startOfRange.setDate(startOfRange.getDate() - day)
-                startOfRange.setHours(0, 0, 0, 0)
+            endOfRange.setMonth(startOfRange.getMonth() + 1)
+            endOfRange.setDate(0)
+            endOfRange.setHours(23, 59, 59, 999)
+        } else if (view === 'week') {
+            // start of week (Sunday)
+            const day = startOfRange.getDay()
+            startOfRange.setDate(startOfRange.getDate() - day)
+            startOfRange.setHours(0, 0, 0, 0)
 
-                endOfRange = new Date(startOfRange)
-                endOfRange.setDate(startOfRange.getDate() + 6)
-                endOfRange.setHours(23, 59, 59, 999)
-            } else {
-                // day view
-                startOfRange.setHours(0, 0, 0, 0)
-                endOfRange.setHours(23, 59, 59, 999)
-            }
+            endOfRange = new Date(startOfRange)
+            endOfRange.setDate(startOfRange.getDate() + 6)
+            endOfRange.setHours(23, 59, 59, 999)
+        } else {
+            // day view
+            startOfRange.setHours(0, 0, 0, 0)
+            endOfRange.setHours(23, 59, 59, 999)
+        }
 
-            dateFilter = {
-                appointment_date: {
-                    gte: startOfRange,
-                    lte: endOfRange
-                }
+        const dateFilter = {
+            appointment_date: {
+                gte: startOfRange,
+                lte: endOfRange
             }
         }
 
-        // @ts-ignore
         const appointments = await prisma.appointment.findMany({
             where: {
                 ...dateFilter
@@ -91,14 +89,14 @@ export async function GET(request: Request) {
             select: { staff_id: true, full_name: true, position: true }
         })
 
-        const mappedAppointments = appointments.map((app: any) => ({
+        const mappedAppointments = appointments.map((app) => ({
             ...app,
-            doctor: app.doctor_id ? staffList.find(s => s.staff_id === app.doctor_id) || null : null,
-            therapist: app.therapist_id ? staffList.find(s => s.staff_id === app.therapist_id) || null : null,
+            doctor: app.doctor_id ? staffList.find(s => s.staff_id === app.doctor_id) ?? null : null,
+            therapist: app.therapist_id ? staffList.find(s => s.staff_id === app.therapist_id) ?? null : null,
         }))
 
         return NextResponse.json({ appointments: mappedAppointments })
-    } catch (error: any) {
+    } catch (error) {
         console.error('Fetch appointments error:', error)
         return NextResponse.json(
             { error: 'Failed to fetch appointments' },
@@ -107,12 +105,11 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const json = await request.json()
         const body = appointmentSchema.parse(json)
 
-        // @ts-ignore
         const newAppointment = await prisma.appointment.create({
             data: {
                 customer_id: body.customer_id,
@@ -126,15 +123,22 @@ export async function POST(request: Request) {
             }
         })
 
+        await logAudit({
+            action: 'CREATE',
+            target_resource: `Appointment_${newAppointment.id}`,
+            details: { customer_id: body.customer_id, date: body.appointment_date },
+            request
+        });
+
         return NextResponse.json({ appointment: newAppointment }, { status: 201 })
-    } catch (error: any) {
+    } catch (error) {
         console.error('Create appointment error:', error)
         if (error instanceof z.ZodError) {
             console.error('Zod Validation Issues:', JSON.stringify(error.issues, null, 2))
             return NextResponse.json({ error: error.issues }, { status: 400 })
         }
         return NextResponse.json(
-            { error: 'Failed to create appointment', details: error.message },
+            { error: 'Failed to create appointment', details: error instanceof Error ? error.message : 'Unknown error' },
             { status: 500 }
         )
     }

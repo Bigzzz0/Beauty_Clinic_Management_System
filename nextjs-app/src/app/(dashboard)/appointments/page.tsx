@@ -101,25 +101,36 @@ export default function AppointmentsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <CalendarCheck className="h-6 w-6 text-primary" />
-                        ตารางนัดหมาย
-                    </h2>
-                    <p className="text-muted-foreground">จัดการและติดตามการนัดหมายของลูกค้าในแต่ละวัน</p>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                            <CalendarCheck className="h-6 w-6 text-amber-500" />
+                            ตารางนัดหมาย
+                        </h2>
+                        {appointments.length > 0 && (
+                            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                                {appointments.length} รายการ
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-muted-foreground text-sm mt-0.5">จัดการและติดตามการนัดหมายของลูกค้าในแต่ละวัน</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" aria-label="ตัวกรอง">
+                    <Button variant="outline" size="icon" aria-label="ตัวกรอง" className="rounded-xl">
                         <Filter className="h-4 w-4" />
                     </Button>
-                    <Button variant="secondary" onClick={() => window.location.href = '/patients'}>
-                        <User className="h-4 w-4 mr-2" />
+                    <Button variant="outline" onClick={() => window.location.href = '/patients'} className="rounded-xl gap-2">
+                        <User className="h-4 w-4" />
                         รายชื่อคนไข้ทั้งหมด
                     </Button>
-                    <Button onClick={() => handleTimeSlotClick(currentDate)}>
-                        <Plus className="h-4 w-4 mr-2" />
+                    <Button
+                        onClick={() => handleTimeSlotClick(currentDate)}
+                        className="rounded-xl gap-2 shadow-md shadow-amber-200/60 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                        style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}
+                    >
+                        <Plus className="h-4 w-4" />
                         เพิ่มนัดหมาย
                     </Button>
                 </div>

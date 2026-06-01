@@ -52,6 +52,24 @@ const ACTION_LABELS: Record<string, string> = {
     VOID_RETURN: 'คืนสต๊อก',
 }
 
+function getActionBadgeClass(actionType: string): string {
+    if (actionType === 'IN') return 'bg-emerald-100 text-emerald-700 border-emerald-200'
+    if (actionType === 'VOID_RETURN') return 'bg-emerald-50 text-emerald-600 border-emerald-200'
+    if (actionType === 'OUT') return 'bg-red-100 text-red-700 border-red-200'
+    if (actionType === 'USAGE') return 'bg-blue-100 text-blue-700 border-blue-200'
+    if (actionType === 'TRANSFER') return 'bg-purple-100 text-purple-700 border-purple-200'
+    if (actionType.startsWith('ADJUST')) return 'bg-orange-100 text-orange-700 border-orange-200'
+    return 'bg-slate-100 text-slate-600 border-slate-200'
+}
+
+function getQtyDisplay(actionType: string, qty: number) {
+    const isPositive = actionType === 'IN' || actionType === 'VOID_RETURN'
+    const isNegative = actionType === 'OUT' || actionType === 'USAGE' || actionType.startsWith('ADJUST')
+    if (isPositive) return <span className="font-semibold text-emerald-600">+{qty}</span>
+    if (isNegative) return <span className="font-semibold text-red-500">-{qty}</span>
+    return <span className="font-medium">{qty}</span>
+}
+
 export default function InventoryReportTab() {
     const token = useAuthStore((s) => s.token)
     const today = new Date()
@@ -76,79 +94,101 @@ export default function InventoryReportTab() {
 
     return (
         <div className="space-y-4">
-            <Card>
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap gap-4 items-end">
-                        <div>
-                            <Label>วันเริ่มต้น</Label>
-                            <Input type="date" value={invStart} onChange={(e) => setInvStart(e.target.value)} />
-                        </div>
-                        <div>
-                            <Label>วันสิ้นสุด</Label>
-                            <Input type="date" value={invEnd} onChange={(e) => setInvEnd(e.target.value)} />
-                        </div>
-                        <div>
-                            <Label>ประเภท</Label>
-                            <Select value={invAction} onValueChange={setInvAction}>
-                                <SelectTrigger className="w-40">
-                                    <SelectValue placeholder="ทั้งหมด" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">ทั้งหมด</SelectItem>
-                                    {Object.entries(ACTION_LABELS).map(([k, v]) => (
-                                        <SelectItem key={k} value={k}>{v}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Summary by Type */}
-            <div className="flex flex-wrap gap-2">
-                {(inventoryData?.summary || []).map((s) => (
-                    <Badge key={s.action_type} variant="secondary" className="text-sm py-1 px-3">
-                        {ACTION_LABELS[s.action_type] || s.action_type}: {s.count} ครั้ง ({s.qty} หน่วย)
-                    </Badge>
-                ))}
+            {/* Filter Bar */}
+            <div className="flex flex-wrap gap-4 items-end p-4 bg-white rounded-xl border shadow-sm">
+                <div>
+                    <Label className="text-xs text-slate-500 uppercase tracking-wide mb-1 block">วันเริ่มต้น</Label>
+                    <Input type="date" value={invStart} onChange={(e) => setInvStart(e.target.value)} className="w-40" />
+                </div>
+                <div>
+                    <Label className="text-xs text-slate-500 uppercase tracking-wide mb-1 block">วันสิ้นสุด</Label>
+                    <Input type="date" value={invEnd} onChange={(e) => setInvEnd(e.target.value)} className="w-40" />
+                </div>
+                <div>
+                    <Label className="text-xs text-slate-500 uppercase tracking-wide mb-1 block">ประเภท</Label>
+                    <Select value={invAction} onValueChange={setInvAction}>
+                        <SelectTrigger className="w-44">
+                            <SelectValue placeholder="ทั้งหมด" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">ทั้งหมด</SelectItem>
+                            {Object.entries(ACTION_LABELS).map(([k, v]) => (
+                                <SelectItem key={k} value={k}>{v}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
+
+            {/* Summary Badges */}
+            {(inventoryData?.summary || []).length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {(inventoryData?.summary || []).map((s) => (
+                        <div
+                            key={s.action_type}
+                            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${getActionBadgeClass(s.action_type)}`}
+                        >
+                            <span>{ACTION_LABELS[s.action_type] || s.action_type}</span>
+                            <span className="opacity-60">·</span>
+                            <span>{s.count} ครั้ง</span>
+                            <span className="opacity-60">·</span>
+                            <span>{s.qty} หน่วย</span>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Movement Log */}
             <Card>
                 <CardHeader>
-                    <CardTitle>รายการเคลื่อนไหว</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        รายการเคลื่อนไหวสินค้า
+                        {inventoryData?.movements && (
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                                {inventoryData.movements.length} รายการ
+                            </span>
+                        )}
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-lg border overflow-hidden max-h-[500px] overflow-auto">
+                    <div className="rounded-xl border overflow-hidden max-h-[500px] overflow-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50">
-                                    <TableHead>วันที่</TableHead>
-                                    <TableHead>รหัส</TableHead>
-                                    <TableHead>สินค้า</TableHead>
-                                    <TableHead>ประเภท</TableHead>
-                                    <TableHead className="text-right">จำนวน</TableHead>
-                                    <TableHead>Lot</TableHead>
-                                    <TableHead>ผู้ทำรายการ</TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">วันที่</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">รหัส</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">สินค้า</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">ประเภท</TableHead>
+                                    <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">จำนวน</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">Lot</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">ผู้ทำรายการ</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {inventoryLoading ? (
-                                    <TableRow><TableCell colSpan={7} className="text-center py-8">กำลังโหลด...</TableCell></TableRow>
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center py-10">
+                                            <div className="flex flex-col items-center gap-3 text-slate-400">
+                                                <div className="h-7 w-7 rounded-full border-2 border-t-amber-500 border-amber-200 animate-spin" />
+                                                <p className="text-sm">กำลังโหลด...</p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
                                 ) : (inventoryData?.movements || []).map((m) => (
-                                    <TableRow key={m.movement_id}>
-                                        <TableCell className="text-sm">{formatDate(m.date)}</TableCell>
-                                        <TableCell className="font-mono text-sm">{m.product_code}</TableCell>
-                                        <TableCell>{m.product_name}</TableCell>
+                                    <TableRow key={m.movement_id} className="hover:bg-slate-50/60 transition-colors">
+                                        <TableCell className="text-sm text-slate-500">{formatDate(m.date)}</TableCell>
+                                        <TableCell className="font-mono text-xs text-slate-500">{m.product_code}</TableCell>
+                                        <TableCell className="font-medium">{m.product_name}</TableCell>
                                         <TableCell>
-                                            <Badge variant={m.action_type === 'IN' ? 'default' : 'secondary'}>
+                                            <Badge variant="outline" className={`text-xs ${getActionBadgeClass(m.action_type)}`}>
                                                 {ACTION_LABELS[m.action_type] || m.action_type}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-right">{m.qty}</TableCell>
-                                        <TableCell className="text-sm">{m.lot_number || '-'}</TableCell>
-                                        <TableCell className="text-sm">{m.staff}</TableCell>
+                                        <TableCell className="text-right">
+                                            {getQtyDisplay(m.action_type, m.qty)}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-slate-500 font-mono">{m.lot_number || '—'}</TableCell>
+                                        <TableCell className="text-sm text-slate-600">{m.staff}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

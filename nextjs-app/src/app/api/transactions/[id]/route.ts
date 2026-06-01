@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import jwt from 'jsonwebtoken'
+import { authenticateStaffRequest } from '@/lib/staff-auth'
 
 interface Params {
     params: Promise<{ id: string }>
-}
-
-function getStaffFromRequest(request: NextRequest): { staff_id: number; position: string } | null {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) return null
-    try {
-        const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { staff_id: number; position: string }
-        return decoded
-    } catch {
-        return null
-    }
 }
 
 // GET /api/transactions/[id] - Get single transaction detail
@@ -63,10 +51,11 @@ export async function GET(request: NextRequest, { params }: Params) {
 // DELETE /api/transactions/[id] - Void/Cancel transaction (Admin only)
 export async function DELETE(request: NextRequest, { params }: Params) {
     try {
-        const staff = getStaffFromRequest(request)
-        if (!staff) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const authResult = await authenticateStaffRequest(request)
+        if (!authResult.ok) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status })
         }
+        const staff = authResult.staff
 
         // Check if admin
         if (staff.position !== 'Admin') {

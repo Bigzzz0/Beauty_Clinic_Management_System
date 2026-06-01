@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
             if (m.action_type === 'IN') {
                 existing.stock_in += m.qty_main
-            } else if (m.action_type === 'USAGE' || m.action_type === 'TRANSFER') {
+            } else if (m.action_type === 'USAGE' || m.action_type === 'TRANSFER' || m.action_type === 'OUT' || m.action_type === 'MANUAL_OUT') {
                 existing.stock_out += m.qty_sub || m.qty_main
             } else if (['ADJUST_DAMAGED', 'ADJUST_EXPIRED', 'ADJUST_LOST'].includes(m.action_type)) {
                 existing.adjustment += m.qty_main + m.qty_sub

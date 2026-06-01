@@ -21,8 +21,7 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Generate schema SQL from Prisma (so we don't need prisma CLI at runtime)
-RUN npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > /app/schema.sql
+# Generate schema SQL from Prisma (legacy method context removed)
 
 # Build Next.js
 RUN npm run build
@@ -44,15 +43,15 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public
+
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma client (needed at runtime)
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-
-# Copy generated schema SQL
-COPY --from=builder /app/schema.sql ./schema.sql
+# Copy complete node_modules for runtime and migration stability
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
 
 # Copy entrypoint script
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh

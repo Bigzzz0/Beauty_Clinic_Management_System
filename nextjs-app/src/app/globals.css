@@ -139,6 +139,9 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   * {
@@ -148,4 +151,132 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom scrollbar — thin & minimal */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.82 0.08 75 / 50%);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.75 0.14 75 / 80%);
+  }
+
+  /* Hide spinner arrows for number inputs globally */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
 }
+
+@layer utilities {
+  /* Fade-in entrance animations */
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out both;
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-fade-in-up-delay-1 {
+    animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+  }
+  .animate-fade-in-up-delay-2 {
+    animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.10s both;
+  }
+  .animate-fade-in-up-delay-3 {
+    animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+  }
+  .animate-fade-in-up-delay-4 {
+    animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.20s both;
+  }
+
+  /* Shimmer for loading placeholders */
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 60%) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Pulse glow for alert icons */
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  /* Subtle float for decorative elements */
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  /* Glass morphism card utility */
+  .glass-card {
+    background: oklch(1 0 0 / 70%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid oklch(1 0 0 / 40%);
+  }
+
+  /* Stat number highlight gradient */
+  .gradient-text-amber {
+    background: linear-gradient(135deg, oklch(0.65 0.18 65), oklch(0.80 0.16 85));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-fade-in-up,
+    .animate-fade-in-up-delay-1,
+    .animate-fade-in-up-delay-2,
+    .animate-fade-in-up-delay-3,
+    .animate-fade-in-up-delay-4,
+    .animate-shimmer,
+    .animate-pulse-glow,
+    .animate-float {
+      animation: none !important;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.15); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}

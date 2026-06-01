@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import {
-    TrendingUp, Calendar, Download, ArrowUpRight, ArrowDownRight
+    TrendingUp, Calendar, Download, ArrowUpRight, ArrowDownRight,
+    Banknote, CreditCard, Smartphone
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -31,6 +32,41 @@ interface SalesReport {
     dailyBreakdown: Array<{ date: string; sales: number; paid: number; count: number }>
 }
 
+function getPaymentMethodConfig(method: string) {
+    if (method === 'CASH') return {
+        label: 'เงินสด',
+        icon: Banknote,
+        iconBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-100',
+        textColor: 'text-emerald-700',
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-100',
+    }
+    if (method === 'TRANSFER') return {
+        label: 'โอนเงิน',
+        icon: Smartphone,
+        iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-blue-100',
+        textColor: 'text-blue-700',
+        bg: 'bg-blue-50',
+        border: 'border-blue-100',
+    }
+    if (method === 'CREDIT') return {
+        label: 'บัตรเครดิต',
+        icon: CreditCard,
+        iconBg: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-purple-100',
+        textColor: 'text-purple-700',
+        bg: 'bg-purple-50',
+        border: 'border-purple-100',
+    }
+    return {
+        label: method,
+        icon: Banknote,
+        iconBg: 'bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-100',
+        textColor: 'text-slate-700',
+        bg: 'bg-slate-50',
+        border: 'border-slate-100',
+    }
+}
+
 export default function SalesReportTab() {
     const token = useAuthStore((s) => s.token)
     const today = new Date()
@@ -51,23 +87,13 @@ export default function SalesReportTab() {
 
     const handleExport = () => {
         if (!salesData) return;
-
         const headers = ['วันที่', 'ยอดขาย', 'รับชำระ', 'จำนวนบิล'];
         const rows = (salesData.dailyBreakdown || []).map(d => [
-            formatDate(d.date),
-            d.sales,
-            d.paid,
-            d.count
+            formatDate(d.date), d.sales, d.paid, d.count
         ]);
-
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.join(','))
-        ].join('\n');
-
+        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
-
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -79,113 +105,144 @@ export default function SalesReportTab() {
 
     return (
         <div className="space-y-4">
-            <Card>
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap gap-4 items-end">
-                        <div>
-                            <Label>วันเริ่มต้น</Label>
-                            <Input type="date" value={salesStart} onChange={(e) => setSalesStart(e.target.value)} />
-                        </div>
-                        <div>
-                            <Label>วันสิ้นสุด</Label>
-                            <Input type="date" value={salesEnd} onChange={(e) => setSalesEnd(e.target.value)} />
-                        </div>
-                        <Button variant="outline" onClick={handleExport} disabled={!salesData || salesData.dailyBreakdown.length === 0}>
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Filter Bar */}
+            <div className="flex flex-wrap gap-4 items-end p-4 bg-white rounded-xl border shadow-sm">
+                <div>
+                    <Label className="text-xs text-slate-500 uppercase tracking-wide mb-1 block">วันเริ่มต้น</Label>
+                    <Input type="date" value={salesStart} onChange={(e) => setSalesStart(e.target.value)} className="w-40" />
+                </div>
+                <div>
+                    <Label className="text-xs text-slate-500 uppercase tracking-wide mb-1 block">วันสิ้นสุด</Label>
+                    <Input type="date" value={salesEnd} onChange={(e) => setSalesEnd(e.target.value)} className="w-40" />
+                </div>
+                <Button
+                    variant="outline"
+                    onClick={handleExport}
+                    disabled={!salesData || salesData.dailyBreakdown.length === 0}
+                    className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                >
+                    <Download className="h-4 w-4" />
+                    Export CSV
+                </Button>
+            </div>
 
             {/* Summary Cards */}
             <div className="grid gap-4 md:grid-cols-4">
-                <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <TrendingUp className="h-5 w-5 text-emerald-600" />
-                            <span className="text-sm text-emerald-700 dark:text-emerald-400">ยอดขายรวม</span>
+                <Card className="border-0 shadow-sm overflow-hidden">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-100">
+                            <TrendingUp className="h-5 w-5 text-white" />
                         </div>
-                        <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">
-                            {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalSales || 0)}
-                        </p>
+                        <div>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">ยอดขายรวม</p>
+                            <p className="text-xl font-bold text-emerald-700">
+                                {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalSales || 0)}
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <ArrowUpRight className="h-5 w-5 text-primary" />
-                            <span className="text-sm text-primary">รับชำระแล้ว</span>
+
+                <Card className="border-0 shadow-sm overflow-hidden">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-100">
+                            <ArrowUpRight className="h-5 w-5 text-white" />
                         </div>
-                        <p className="text-2xl font-bold text-primary mt-1">
-                            {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalPaid || 0)}
-                        </p>
+                        <div>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">รับชำระแล้ว</p>
+                            <p className="text-xl font-bold text-amber-700">
+                                {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalPaid || 0)}
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <ArrowDownRight className="h-5 w-5 text-amber-600" />
-                            <span className="text-sm text-amber-700 dark:text-amber-400">ค้างชำระ</span>
+
+                <Card className="border-0 shadow-sm overflow-hidden">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-400 to-red-500 shadow-sm shadow-red-100">
+                            <ArrowDownRight className="h-5 w-5 text-white" />
                         </div>
-                        <p className="text-2xl font-bold text-amber-700 dark:text-amber-400 mt-1">
-                            {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalOutstanding || 0)}
-                        </p>
+                        <div>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">ค้างชำระ</p>
+                            <p className="text-xl font-bold text-red-600">
+                                {salesLoading ? '...' : formatCurrency(salesData?.summary?.totalOutstanding || 0)}
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950/30 dark:to-indigo-900/30">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-indigo-600" />
-                            <span className="text-sm text-indigo-700 dark:text-indigo-400">จำนวนบิล</span>
+
+                <Card className="border-0 shadow-sm overflow-hidden">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 shadow-sm shadow-indigo-100">
+                            <Calendar className="h-5 w-5 text-white" />
                         </div>
-                        <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mt-1">
-                            {salesLoading ? '...' : salesData?.summary?.transactionCount || 0}
-                        </p>
+                        <div>
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">จำนวนบิล</p>
+                            <p className="text-xl font-bold text-indigo-700">
+                                {salesLoading ? '...' : salesData?.summary?.transactionCount || 0}
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Payment Method Breakdown */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>แยกตามวิธีชำระ</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap gap-4">
-                        {(salesData?.byPaymentMethod || []).map((p) => (
-                            <div key={p.method} className="flex-1 min-w-[150px] p-4 rounded-lg bg-muted text-center">
-                                <p className="text-sm text-muted-foreground">{p.method === 'CASH' ? 'เงินสด' : p.method === 'TRANSFER' ? 'โอนเงิน' : 'บัตรเครดิต'}</p>
-                                <p className="text-xl font-bold">{formatCurrency(p.amount)}</p>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Payment Method Breakdown — color coded per method */}
+            {(salesData?.byPaymentMethod || []).length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">แยกตามวิธีชำระ</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-4">
+                            {(salesData?.byPaymentMethod || []).map((p) => {
+                                const config = getPaymentMethodConfig(p.method)
+                                const Icon = config.icon
+                                return (
+                                    <div
+                                        key={p.method}
+                                        className={`flex items-center gap-3 flex-1 min-w-[160px] rounded-xl border p-4 ${config.bg} ${config.border}`}
+                                    >
+                                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-sm ${config.iconBg}`}>
+                                            <Icon className="h-4 w-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className={`text-xs font-semibold uppercase tracking-wide ${config.textColor} opacity-70`}>{config.label}</p>
+                                            <p className={`text-lg font-bold ${config.textColor}`}>{formatCurrency(p.amount)}</p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
-            {/* Daily Breakdown */}
+            {/* Daily Breakdown Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>ยอดขายรายวัน</CardTitle>
+                    <CardTitle className="text-base">ยอดขายรายวัน</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-lg border overflow-hidden max-h-96 overflow-auto">
+                    <div className="rounded-xl border overflow-hidden max-h-96 overflow-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50">
-                                    <TableHead>วันที่</TableHead>
-                                    <TableHead className="text-right">ยอดขาย</TableHead>
-                                    <TableHead className="text-right">รับชำระ</TableHead>
-                                    <TableHead className="text-right">จำนวนบิล</TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">วันที่</TableHead>
+                                    <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">ยอดขาย</TableHead>
+                                    <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">รับชำระ</TableHead>
+                                    <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">จำนวนบิล</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {(salesData?.dailyBreakdown || []).map((d) => (
-                                    <TableRow key={d.date}>
-                                        <TableCell>{formatDate(d.date)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(d.sales)}</TableCell>
-                                        <TableCell className="text-right text-green-600">{formatCurrency(d.paid)}</TableCell>
-                                        <TableCell className="text-right">{d.count}</TableCell>
+                                    <TableRow key={d.date} className="hover:bg-amber-50/20 transition-colors">
+                                        <TableCell className="font-medium">{formatDate(d.date)}</TableCell>
+                                        <TableCell className="text-right font-medium">{formatCurrency(d.sales)}</TableCell>
+                                        <TableCell className="text-right text-emerald-600 font-semibold">{formatCurrency(d.paid)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <span className="inline-flex items-center justify-center h-6 min-w-6 px-1.5 rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                                                {d.count}
+                                            </span>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

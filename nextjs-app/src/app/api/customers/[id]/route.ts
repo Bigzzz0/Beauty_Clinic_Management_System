@@ -16,6 +16,8 @@ const updateCustomerSchema = z.object({
     drug_allergy: z.string().nullable().optional(),
     underlying_disease: z.string().nullable().optional(),
     member_level: z.string().nullable().optional(),
+    consent_pdpa: z.boolean().optional(),
+    consent_marketing: z.boolean().optional(),
 })
 interface Params {
     params: Promise<{ id: string }>
@@ -30,10 +32,15 @@ export async function GET(request: NextRequest, { params }: Params) {
         if (authHeader?.startsWith('Bearer ')) {
             const token = authHeader.substring(7)
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { position?: string; role?: string; staff_id?: number; id?: number }
+                if (!process.env.JWT_SECRET) {
+                    throw new Error('JWT_SECRET is not configured')
+                }
+                const decoded = jwt.verify(token, process.env.JWT_SECRET) as { position?: string; role?: string; staff_id?: number; id?: number }
                 userRole = decoded.position || decoded.role || 'General'
                 staffId = decoded.staff_id || decoded.id
-            } catch { }
+            } catch (err) {
+                console.error('JWT verification failed:', err)
+            }
         }
         const applyMask = shouldMask(userRole)
 
@@ -149,6 +156,38 @@ export async function PUT(request: NextRequest, { params }: Params) {
             },
         })
 
+        if (body.consent_pdpa !== undefined) {
+            const exist = await prisma.customer_consent.findFirst({
+                where: { customer_id: customerId, consent_type: 'PDPA_PRIVACY'}
+            });
+            if (exist) {
+                await prisma.customer_consent.update({
+                    where: { id: exist.id },
+                    data: { is_granted: body.consent_pdpa }
+                });
+            } else {
+                await prisma.customer_consent.create({
+                    data: { customer_id: customerId, consent_type: 'PDPA_PRIVACY', is_granted: body.consent_pdpa, version: 'v1.0' }
+                });
+            }
+        }
+
+        if (body.consent_marketing !== undefined) {
+            const exist = await prisma.customer_consent.findFirst({
+                where: { customer_id: customerId, consent_type: 'MARKETING'}
+            });
+            if (exist) {
+                await prisma.customer_consent.update({
+                    where: { id: exist.id },
+                    data: { is_granted: body.consent_marketing }
+                });
+            } else {
+                await prisma.customer_consent.create({
+                    data: { customer_id: customerId, consent_type: 'MARKETING', is_granted: body.consent_marketing, version: 'v1.0' }
+                });
+            }
+        }
+
         return NextResponse.json(customer)
     } catch (error: unknown) {
         console.error('Error updating customer:', error)
@@ -174,22 +213,9 @@ export async function DELETE(request: NextRequest, { params }: Params) {
             return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
         }
 
-        // Proceed to delete (Prisma cascading might handle related records, or we check relations)
-        // If we want to allow deleting customers with transactions, we need to ensure onDelete Cascade is set
-        // Or we block deletion if they have transactions.
-        const transactions = await prisma.transaction_header.count({
-            where: { customer_id: customerId }
-        })
-
-        if (transactions > 0) {
-            return NextResponse.json(
-                { error: 'ไม่สามารถลบข้อมูลลูกค้าได้ เนื่องจากมีประวัติการทำรายการในระบบ' },
-                { status: 400 }
-            )
-        }
-
-        await prisma.customer.delete({
+        await prisma.customer.update({
             where: { customer_id: customerId },
+            data: { is_active: false }
         })
 
         return NextResponse.json({ message: 'Customer deleted successfully' })

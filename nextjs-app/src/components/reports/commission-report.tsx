@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import {
-    Download
+    Download,
+    TrendingUp,
+    HandCoins,
+    Wallet
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { formatCurrency } from '@/lib/utils'
@@ -11,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
     Table,
     TableBody,
@@ -79,16 +83,26 @@ export default function CommissionReportTab() {
         document.body.removeChild(link);
     };
 
+    const getPositionColor = (position: string) => {
+        if (position.includes('Manager')) return 'bg-purple-100 text-purple-700 hover:bg-purple-200';
+        if (position.includes('Therapist')) return 'bg-blue-100 text-blue-700 hover:bg-blue-200';
+        return 'bg-slate-100 text-slate-700 hover:bg-slate-200';
+    };
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <Card>
-                <CardContent className="p-4">
-                    <div className="flex gap-4 items-end">
+                <CardContent className="p-6">
+                    <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
                         <div>
-                            <Label>เดือน</Label>
-                            <Input type="month" value={commissionMonth} onChange={(e) => setCommissionMonth(e.target.value)} />
+                            <Label className="text-sm font-medium text-slate-500 mb-2 block">เลือกเดือน</Label>
+                            <Input type="month" value={commissionMonth} onChange={(e) => setCommissionMonth(e.target.value)} className="w-48" />
                         </div>
-                        <Button variant="outline" onClick={handleExport} disabled={!commissionData || commissionData.staffSummary.length === 0}>
+                        <Button 
+                            onClick={handleExport} 
+                            disabled={!commissionData || commissionData.staffSummary.length === 0}
+                            className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-200"
+                        >
                             <Download className="h-4 w-4 mr-2" />
                             Export for Payroll
                         </Button>
@@ -96,59 +110,77 @@ export default function CommissionReportTab() {
                 </CardContent>
             </Card>
 
-            {/* Grand Total */}
             <div className="grid gap-4 md:grid-cols-3">
-                <Card className="bg-gradient-to-br from-pink-50 to-pink-100">
-                    <CardContent className="p-4">
-                        <p className="text-sm text-pink-700">DF รวม</p>
-                        <p className="text-2xl font-bold text-pink-700">
-                            {commissionLoading ? '...' : formatCurrency(commissionData?.grandTotal?.df || 0)}
-                        </p>
+                <Card className="border-none bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-lg">
+                    <CardContent className="p-6 flex items-center justify-between">
+                        <div>
+                            <p className="text-pink-100 text-sm font-medium">DF รวม</p>
+                            <p className="text-3xl font-bold mt-1">
+                                {commissionLoading ? '...' : formatCurrency(commissionData?.grandTotal?.df || 0)}
+                            </p>
+                        </div>
+                        <TrendingUp className="h-8 w-8 text-pink-200/50" />
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100">
-                    <CardContent className="p-4">
-                        <p className="text-sm text-indigo-700">Hand Fee รวม</p>
-                        <p className="text-2xl font-bold text-indigo-700">
-                            {commissionLoading ? '...' : formatCurrency(commissionData?.grandTotal?.handFee || 0)}
-                        </p>
+                <Card className="border-none bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg">
+                    <CardContent className="p-6 flex items-center justify-between">
+                        <div>
+                            <p className="text-indigo-100 text-sm font-medium">Hand Fee รวม</p>
+                            <p className="text-3xl font-bold mt-1">
+                                {commissionLoading ? '...' : formatCurrency(commissionData?.grandTotal?.handFee || 0)}
+                            </p>
+                        </div>
+                        <HandCoins className="h-8 w-8 text-indigo-200/50" />
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-green-50 to-green-100">
-                    <CardContent className="p-4">
-                        <p className="text-sm text-green-700">ค่าคอมรวม</p>
-                        <p className="text-2xl font-bold text-green-700">
-                            {commissionLoading ? '...' : formatCurrency(commissionData?.grandTotal?.total || 0)}
-                        </p>
+                <Card className="border-none bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
+                    <CardContent className="p-6 flex items-center justify-between">
+                        <div>
+                            <p className="text-emerald-100 text-sm font-medium">ค่าคอมรวม</p>
+                            <p className="text-3xl font-bold mt-1">
+                                {commissionLoading ? '...' : formatCurrency(commissionData?.grandTotal?.total || 0)}
+                            </p>
+                        </div>
+                        <Wallet className="h-8 w-8 text-emerald-200/50" />
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Staff Breakdown */}
             <Card>
                 <CardHeader>
-                    <CardTitle>สรุปรายพนักงาน</CardTitle>
+                    <CardTitle className="text-lg font-semibold">สรุปรายพนักงาน</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-lg border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50">
-                                    <TableHead>พนักงาน</TableHead>
-                                    <TableHead>ตำแหน่ง</TableHead>
-                                    <TableHead className="text-right">DF</TableHead>
-                                    <TableHead className="text-right">Hand Fee</TableHead>
-                                    <TableHead className="text-right">รวม</TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="uppercase text-xs font-bold tracking-wider">พนักงาน</TableHead>
+                                    <TableHead className="uppercase text-xs font-bold tracking-wider">ตำแหน่ง</TableHead>
+                                    <TableHead className="text-right uppercase text-xs font-bold tracking-wider">DF</TableHead>
+                                    <TableHead className="text-right uppercase text-xs font-bold tracking-wider">Hand Fee</TableHead>
+                                    <TableHead className="text-right uppercase text-xs font-bold tracking-wider">รวม</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {(commissionData?.staffSummary || []).map((s) => (
-                                    <TableRow key={s.staff_id}>
-                                        <TableCell className="font-medium">{s.full_name}</TableCell>
-                                        <TableCell><Badge variant="outline">{s.position}</Badge></TableCell>
-                                        <TableCell className="text-right text-pink-600">{formatCurrency(s.df_total)}</TableCell>
-                                        <TableCell className="text-right text-indigo-600">{formatCurrency(s.hand_fee_total)}</TableCell>
-                                        <TableCell className="text-right font-bold">{formatCurrency(s.total)}</TableCell>
+                                    <TableRow key={s.staff_id} className="hover:bg-slate-50/50">
+                                        <TableCell className="flex items-center gap-3">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarFallback className="bg-slate-100 text-xs font-bold text-slate-600">
+                                                    {s.full_name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">{s.full_name}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={`${getPositionColor(s.position)} border-none`}>
+                                                {s.position}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right text-pink-600 font-medium">{formatCurrency(s.df_total)}</TableCell>
+                                        <TableCell className="text-right text-indigo-600 font-medium">{formatCurrency(s.hand_fee_total)}</TableCell>
+                                        <TableCell className="text-right font-bold text-slate-900">{formatCurrency(s.total)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

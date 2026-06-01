@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, User, Phone, MapPin, Cake, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, User, Phone, MapPin, Cake, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,7 +30,9 @@ export default function NewPatientPage() {
         address: '',
         drug_allergy: '',
         underlying_disease: '',
-        member_level: 'General'
+        member_level: 'General',
+        consent_pdpa: false,
+        consent_marketing: false
     })
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -226,6 +228,52 @@ export default function NewPatientPage() {
                                     onChange={(e) => setFormData({ ...formData, underlying_disease: e.target.value })}
                                     placeholder="ระบุโรคประจำตัว (ถ้ามี)"
                                 />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* PDPA Consent */}
+                    <Card className="border-blue-100">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-blue-700">
+                                <ShieldCheck className="h-5 w-5" />
+                                ความยินยอม (PDPA)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-start space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="consent_pdpa"
+                                    checked={formData.consent_pdpa}
+                                    onChange={(e) => setFormData({ ...formData, consent_pdpa: e.target.checked })}
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <div className="grid gap-1.5 leading-none">
+                                    <Label htmlFor="consent_pdpa" className="text-sm font-medium leading-none">
+                                        ยินยอมให้เก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล (PDPA)
+                                    </Label>
+                                    <p className="text-sm text-muted-foreground">
+                                        ข้าพเจ้ายินยอมให้คลินิกเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล เพื่อวัตถุประสงค์ในการรักษาพยาบาลและการให้บริการ
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="consent_marketing"
+                                    checked={formData.consent_marketing}
+                                    onChange={(e) => setFormData({ ...formData, consent_marketing: e.target.checked })}
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <div className="grid gap-1.5 leading-none">
+                                    <Label htmlFor="consent_marketing" className="text-sm font-medium leading-none">
+                                        ยินยอมรับข่าวสารและโปรโมชั่นทางการตลาด
+                                    </Label>
+                                    <p className="text-sm text-muted-foreground">
+                                        ยินยอมรับแจ้งเตือนโปรโมชั่นและข้อเสนอพิเศษผ่านช่องทางติดต่อที่ให้ไว้
+                                    </p>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

@@ -31,23 +31,25 @@ done
 # Small extra wait for MySQL to fully accept queries
 sleep 2
 
-# Check if tables exist
-TABLE_COUNT=$(mysql --skip-ssl -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME';" 2>/dev/null || echo "0")
+echo "🔄 Synchronizing database schema with Prisma..."
+node node_modules/prisma/build/index.js db push --skip-generate || echo "⚠️ Prisma DB Push encountered a warning or error (e.g., data loss protection). Review logs if issues persist."
+echo "✅ Schema sync complete!"
 
-if [ "$TABLE_COUNT" = "0" ] || [ -z "$TABLE_COUNT" ]; then
-  echo "🔄 Creating database schema..."
-  mysql --skip-ssl -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < /app/schema.sql
-  echo "✅ Schema created!"
+# Check if the database needs mock data by checking if the staff table is empty
+# This is extremely robust because Prisma's db push creates all tables first, but they will be empty.
+STAFF_COUNT=$(mysql --skip-ssl -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -N -e "SELECT COUNT(*) FROM staff;" 2>/dev/null || echo "0")
 
+if [ "$STAFF_COUNT" -eq "0" ]; then
   # Seed mock data
   if [ -f /app/seed/mock_data.sql ]; then
-    echo "🌱 Seeding mock data..."
+    echo "🌱 Fresh database installation detected (0 staff accounts). Seeding mock data..."
     mysql --skip-ssl -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < /app/seed/mock_data.sql 2>&1 || echo "⚠️ Some seed data may have failed, continuing..."
     echo "✅ Seeding complete!"
   fi
 else
-  echo "📦 Database already has $TABLE_COUNT tables, skipping init."
+  echo "📦 Database already initialized (found $STAFF_COUNT staff accounts), skipping mock seed."
 fi
+
 
 echo "🚀 Starting Next.js server..."
 exec node server.js

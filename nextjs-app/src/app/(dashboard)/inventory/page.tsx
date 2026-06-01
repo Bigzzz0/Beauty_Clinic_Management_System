@@ -218,15 +218,17 @@ export default function InventoryPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Package className="h-6 w-6 text-primary" />
+                    <h1 className="text-2xl font-bold flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-200">
+                            <Package className="h-5 w-5 text-white" />
+                        </div>
                         รายงานคลังสินค้า
                     </h1>
-                    <p className="text-muted-foreground">ติดตามสต๊อกและการเคลื่อนไหวของสินค้า</p>
+                    <p className="text-muted-foreground text-sm mt-1 ml-0.5">ติดตามสต๊อกและการเคลื่อนไหวของสินค้า</p>
                 </div>
             </div>
 
@@ -257,37 +259,48 @@ export default function InventoryPage() {
                 <TabsContent value="stock" className="space-y-6">
                     {/* Summary Stats */}
                     <div className="grid gap-4 sm:grid-cols-4">
-                        <Card>
-                            <CardContent className="p-4">
-                                <p className="text-sm text-muted-foreground">สินค้าทั้งหมด</p>
-                                <p className="text-3xl font-bold">{inventory.length}</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-400 to-slate-600 shadow-sm">
+                                    <Package className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">สินค้าทั้งหมด</p>
+                                    <p className="text-2xl font-bold">{inventory.length}</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-success" />
-                                    <p className="text-sm text-muted-foreground">สต๊อกปกติ</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-100">
+                                    <CheckCircle className="h-5 w-5 text-white" />
                                 </div>
-                                <p className="text-3xl font-bold text-success">{normalStock}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">สต๊อกปกติ</p>
+                                    <p className="text-2xl font-bold text-emerald-600">{normalStock}</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    <AlertTriangle className="h-4 w-4 text-warning" />
-                                    <p className="text-sm text-muted-foreground">สต๊อกต่ำ</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 shadow-sm shadow-amber-100">
+                                    <AlertTriangle className="h-5 w-5 text-white" />
                                 </div>
-                                <p className="text-3xl font-bold text-warning">{lowStock}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">สต๊อกต่ำ</p>
+                                    <p className="text-2xl font-bold text-amber-600">{lowStock}</p>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-2">
-                                    <XCircle className="h-4 w-4 text-destructive" />
-                                    <p className="text-sm text-muted-foreground">หมด</p>
+                        <Card className="border-0 shadow-sm overflow-hidden">
+                            <CardContent className="p-4 flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-400 to-red-600 shadow-sm shadow-red-100">
+                                    <XCircle className="h-5 w-5 text-white" />
                                 </div>
-                                <p className="text-3xl font-bold text-destructive">{outOfStock}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">หมด</p>
+                                    <p className="text-2xl font-bold text-red-600">{outOfStock}</p>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -362,30 +375,33 @@ export default function InventoryPage() {
 
                     {/* Inventory Table */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle>รายการสต๊อกคงเหลือ</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                รายการสต๊อกคงเหลือ
+                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{inventory.length}</span>
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-0 sm:p-6 sm:pt-0">
                             {/* Desktop Table View */}
-                            <div className="hidden md:block rounded-lg border overflow-hidden">
+                            <div className="hidden md:block rounded-xl border overflow-hidden">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-muted/50">
-                                            <TableHead className="w-16">สถานะ</TableHead>
-                                            <TableHead>รหัส</TableHead>
-                                            <TableHead>
+                                        <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                            <TableHead className="w-16 text-xs font-semibold uppercase tracking-wide text-slate-500">สถานะ</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">รหัส</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleSort('product_name')}
-                                                    className="flex items-center gap-1 font-semibold hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
+                                                    className="flex items-center gap-1 hover:text-amber-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded px-1 -ml-1"
                                                     aria-sort={sortBy === 'product_name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                                 >
                                                     สินค้า
                                                     <ArrowUpDown className="h-3 w-3" />
                                                 </button>
                                             </TableHead>
-                                            <TableHead>หมวด</TableHead>
-                                            <TableHead className="text-right">สต๊อกคงเหลือ</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">หมวด</TableHead>
+                                            <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">สต๊อกคงเหลือ</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -418,11 +434,24 @@ export default function InventoryPage() {
                                             inventory.map((item) => {
                                                 const status = getStockStatus(item)
                                                 return (
-                                                    <TableRow key={item.product_id} className="hover:bg-muted/50">
+                                                    <TableRow
+                                                        key={item.product_id}
+                                                        className={`transition-colors ${
+                                                            status === 'out' ? 'bg-red-50/60 border-l-2 border-l-red-400 hover:bg-red-50' :
+                                                            status === 'low' ? 'border-l-2 border-l-amber-300 hover:bg-amber-50/30' :
+                                                            'hover:bg-slate-50/60'
+                                                        }`}
+                                                    >
                                                         <TableCell>
-                                                            {status === 'normal' && <CheckCircle className="h-5 w-5 text-success" />}
-                                                            {status === 'low' && <AlertTriangle className="h-5 w-5 text-warning" />}
-                                                            {status === 'out' && <XCircle className="h-5 w-5 text-destructive" />}
+                                                            {status === 'normal' && (
+                                                                <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">ปกติ</span>
+                                                            )}
+                                                            {status === 'low' && (
+                                                                <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">ใกล้หมด</span>
+                                                            )}
+                                                            {status === 'out' && (
+                                                                <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">หมด</span>
+                                                            )}
                                                         </TableCell>
                                                         <TableCell className="font-mono text-sm text-muted-foreground">
                                                             {item.product_code}
@@ -812,6 +841,7 @@ export default function InventoryPage() {
                             </div>
                         </CardContent>
                     </Card>
+
                 </TabsContent>
             </Tabs>
         </div>

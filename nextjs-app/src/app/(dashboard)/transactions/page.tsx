@@ -161,14 +161,16 @@ export default function TransactionsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-primary" />
+                <h1 className="text-2xl font-bold flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-200">
+                        <FileText className="h-5 w-5 text-white" />
+                    </div>
                     ประวัติบิล
                 </h1>
-                <p className="text-muted-foreground">รายการธุรกรรมทั้งหมด</p>
+                <p className="text-muted-foreground text-sm mt-1 ml-0.5">รายการธุรกรรมทั้งหมด</p>
             </div>
 
             {/* Filters */}
@@ -207,15 +209,15 @@ export default function TransactionsPage() {
                     <CardTitle>รายการบิล ({data?.meta?.total || 0})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-lg border overflow-hidden">
+                    <div className="rounded-xl border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-muted/50">
-                                    <TableHead>เลขบิล</TableHead>
-                                    <TableHead>วันที่</TableHead>
-                                    <TableHead>ลูกค้า</TableHead>
-                                    <TableHead className="text-right">ยอดรวม</TableHead>
-                                    <TableHead>สถานะ</TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">เลขบิล</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">วันที่</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">ลูกค้า</TableHead>
+                                    <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-slate-500">ยอดรวม</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">สถานะ</TableHead>
                                     <TableHead className="w-32"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -247,9 +249,9 @@ export default function TransactionsPage() {
                                     </TableRow>
                                 ) : (
                                     transactions.map((tx) => (
-                                        <TableRow key={tx.transaction_id}>
+                                        <TableRow key={tx.transaction_id} className="hover:bg-amber-50/30 transition-colors">
                                             <TableCell>
-                                                <span className="font-mono font-medium">#{tx.transaction_id}</span>
+                                                <span className="font-mono font-medium text-slate-700">#{tx.transaction_id}</span>
                                             </TableCell>
                                             <TableCell>
                                                 <span className="text-sm">{formatDateTime(tx.transaction_date)}</span>
@@ -372,10 +374,15 @@ export default function TransactionsPage() {
 
                     {selectedTx && (
                         <div className="space-y-4">
-                            {/* Customer */}
-                            <div className="p-3 rounded-lg bg-muted">
-                                <p className="font-medium">{selectedTx.customer.first_name} {selectedTx.customer.last_name}</p>
-                                <p className="text-sm text-muted-foreground">{selectedTx.customer.hn_code}</p>
+                            {/* Customer Card */}
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-200 text-sm font-bold text-amber-800">
+                                    {selectedTx.customer.first_name.charAt(0)}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-slate-800">{selectedTx.customer.first_name} {selectedTx.customer.last_name}</p>
+                                    <p className="text-xs text-amber-700 font-mono">{selectedTx.customer.hn_code}</p>
+                                </div>
                             </div>
 
                             {/* Items */}
@@ -433,8 +440,14 @@ export default function TransactionsPage() {
                             </div>
 
                             {Number(selectedTx.remaining_balance) > 0 && (
-                                <div className="p-3 rounded-lg bg-destructive/10 text-destructive">
-                                    <p className="text-sm">ยอดค้างชำระ: <strong>{formatCurrency(Number(selectedTx.remaining_balance))}</strong></p>
+                                <div className="flex items-center gap-3 p-3 rounded-xl border-l-4 border-red-400 bg-red-50">
+                                    <div className="shrink-0 text-red-500">
+                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-red-500">ยอดค้างชำระ</p>
+                                        <p className="text-lg font-bold text-red-600">{formatCurrency(Number(selectedTx.remaining_balance))}</p>
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -140,19 +140,29 @@ export default function PatientsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        <Users className="h-6 w-6 text-primary" />
-                        ทะเบียนคนไข้
-                    </h1>
-                    <p className="text-muted-foreground">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold flex items-center gap-2">
+                            <Users className="h-6 w-6 text-amber-500" />
+                            ทะเบียนคนไข้
+                        </h1>
+                        {data?.meta?.total > 0 && (
+                            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                                {data.meta.total.toLocaleString()} คน
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-muted-foreground text-sm mt-0.5">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
                 </div>
                 <Link href="/patients/new">
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-                        <Plus className="h-4 w-4 mr-2" />
+                    <Button
+                        className="gap-2 rounded-xl shadow-md shadow-amber-200/60 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                        style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white' }}
+                    >
+                        <Plus className="h-4 w-4" />
                         เพิ่มคนไข้ใหม่
                     </Button>
                 </Link>
@@ -216,44 +226,48 @@ export default function PatientsPage() {
             {/* Patient Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>รายชื่อคนไข้ ({data?.meta?.total || 0} คน)</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        รายชื่อคนไข้
+                        {data?.meta?.total > 0 && (
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{data.meta.total.toLocaleString()} คน</span>
+                        )}
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     {/* Desktop Table View */}
-                    <div className="hidden md:block rounded-lg border overflow-hidden">
+                    <div className="hidden md:block rounded-xl border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50">
-                                    <TableHead className="w-16"></TableHead>
-                                    <TableHead>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                    <TableHead className="w-14"></TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         <button
                                             type="button"
                                             onClick={() => handleSort('name')}
-                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
+                                            className="flex items-center gap-1 hover:text-amber-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded px-1 -ml-1"
                                             aria-sort={sortBy === 'name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                         >
                                             ชื่อ-นามสกุล
                                             <ArrowUpDown className="h-3 w-3" />
                                         </button>
                                     </TableHead>
-                                    <TableHead>เบอร์โทร</TableHead>
-
-                                    <TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">เบอร์โทร</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         <button
                                             type="button"
                                             onClick={() => handleSort('last_visit')}
-                                            className="flex items-center gap-1 font-semibold hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -ml-1"
+                                            className="flex items-center gap-1 hover:text-amber-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded px-1 -ml-1"
                                             aria-sort={sortBy === 'last_visit' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                         >
                                             มาล่าสุด
                                             <ArrowUpDown className="h-3 w-3" />
                                         </button>
                                     </TableHead>
-                                    <TableHead className="text-right">
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">
                                         <button
                                             type="button"
                                             onClick={() => handleSort('debt')}
-                                            className="flex items-center justify-end gap-1 font-semibold hover:text-primary transition-colors w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1 -mr-1"
+                                            className="flex items-center justify-end gap-1 hover:text-amber-600 transition-colors w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded px-1 -mr-1"
                                             aria-sort={sortBy === 'debt' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                                         >
                                             ยอดค้าง
@@ -291,10 +305,13 @@ export default function PatientsPage() {
                                     customers.map((customer) => (
                                         <TableRow
                                             key={customer.customer_id}
+                                            className={`hover:bg-slate-50/80 transition-colors ${
+                                                customer.total_debt > 0 ? 'border-l-2 border-l-red-300' : 'border-l-2 border-l-transparent'
+                                            }`}
                                         >
                                             <TableCell>
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                                                    <UserCircle className="h-6 w-6 text-primary" />
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-sm font-bold text-white shadow-sm">
+                                                    {(customer.full_name || customer.first_name || '?').charAt(0)}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -339,11 +356,14 @@ export default function PatientsPage() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 {customer.total_debt > 0 ? (
-                                                    <Badge className="bg-red-100 text-red-700 border-red-200">
-                                                        ค้างชำระ ฿{customer.total_debt.toLocaleString()}
-                                                    </Badge>
+                                                    <span className="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600 ring-1 ring-red-200">
+                                                        ค้าง ฿{customer.total_debt.toLocaleString()}
+                                                    </span>
                                                 ) : (
-                                                    <span className="text-sm text-green-600">-</span>
+                                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                                                        ชำระแล้ว
+                                                    </span>
                                                 )}
                                             </TableCell>
                                             <TableCell onClick={(e) => e.stopPropagation()}>
@@ -417,65 +437,45 @@ export default function PatientsPage() {
                             </div>
                         ) : (
                             customers.map((customer) => (
-                                <div key={customer.customer_id} className="relative flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20">
-                                                <UserCircle className="h-6 w-6 text-primary" />
-                                            </div>
-                                            <div>
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <Link
-                                                        href={`/patients/${customer.customer_id}`}
-                                                        className="font-medium text-slate-900 hover:text-primary hover:underline"
-                                                    >
-                                                        {customer.full_name || `${customer.first_name} ${customer.last_name}`}
-                                                    </Link>
-                                                    <Badge className={`${getMemberBadgeColor(customer.member_level)} text-[10px] px-1.5 py-0`}>
-                                                        {customer.member_level || 'General'}
-                                                    </Badge>
-                                                </div>
-                                                <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-                                                    <span className="font-mono">{customer.hn_code}</span>
-                                                    {customer.nickname && <span>• "{customer.nickname}"</span>}
-                                                </div>
-                                                {(customer.drug_allergy || customer.underlying_disease) && (
-                                                    <div className="mt-1.5 flex items-center gap-1 text-xs text-red-500 font-medium">
-                                                        <AlertTriangle className="h-3.5 w-3.5" />
-                                                        มีข้อควรระวัง
-                                                    </div>
-                                                )}
-                                            </div>
+                                <div key={customer.customer_id} className="flex flex-col gap-0 rounded-xl border bg-card shadow-sm overflow-hidden">
+                                    {/* Top row */}
+                                    <div className="flex items-start gap-3 p-4">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-sm font-bold text-white shadow-sm">
+                                            {(customer.full_name || customer.first_name || '?').charAt(0)}
                                         </div>
-                                        <div className="shrink-0 space-y-1 text-right">
-                                            <div className="text-xs text-slate-500 flex items-center justify-end gap-1">
-                                                <Phone className="h-3 w-3" />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <Link
+                                                    href={`/patients/${customer.customer_id}`}
+                                                    className="font-semibold text-slate-900 hover:text-amber-600 hover:underline truncate"
+                                                >
+                                                    {customer.full_name || `${customer.first_name} ${customer.last_name}`}
+                                                </Link>
+                                                <Badge className={`${getMemberBadgeColor(customer.member_level)} text-[10px] px-1.5 py-0 shrink-0`}>
+                                                    {customer.member_level || 'General'}
+                                                </Badge>
+                                            </div>
+                                            <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                                                <span className="font-mono">{customer.hn_code}</span>
+                                                {customer.nickname && <span>• "{customer.nickname}"</span>}
+                                            </div>
+                                            <div className="mt-1 flex items-center gap-1 text-xs text-slate-600">
+                                                <Phone className="h-3 w-3 text-slate-400 shrink-0" />
                                                 <span>{customer.phone_number}</span>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between border-t pt-3 mt-1">
-                                        <div className="text-xs text-slate-500">
-                                            มาล่าสุด: <span className="font-medium text-slate-700">{formatDate(customer.last_visit)}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {customer.total_debt > 0 ? (
-                                                <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-xs">
-                                                    ค้าง ฿{customer.total_debt.toLocaleString()}
-                                                </Badge>
-                                            ) : (
-                                                <span className="text-xs text-emerald-600 font-medium">ไม่มีค้าง</span>
+                                            {(customer.drug_allergy || customer.underlying_disease) && (
+                                                <div className="mt-1 flex items-center gap-1 text-xs text-red-500 font-medium">
+                                                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                                    มีข้อควรระวัง
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-
-                                    {/* Action Button positioned absolutely or just simple dropdown */}
-                                    <div className="absolute right-2 top-2">
+                                        {/* Action menu */}
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-slate-400">
                                                     <span className="sr-only">ตัวเลือก</span>
-                                                    <Edit className="h-4 w-4" /> {/* Or dots icon */}
+                                                    <Edit className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
@@ -499,6 +499,21 @@ export default function PatientsPage() {
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
+                                    </div>
+                                    {/* Bottom row */}
+                                    <div className="flex items-center justify-between border-t bg-slate-50/60 px-4 py-2.5">
+                                        <div className="text-xs text-slate-500">
+                                            มาล่าสุด: <span className="font-medium text-slate-700">{formatDate(customer.last_visit)}</span>
+                                        </div>
+                                        <div>
+                                            {customer.total_debt > 0 ? (
+                                                <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-xs">
+                                                    ค้าง ฿{customer.total_debt.toLocaleString()}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-xs text-emerald-600 font-medium">ไม่มีค้าง</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))

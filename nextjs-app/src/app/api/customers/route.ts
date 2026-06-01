@@ -20,6 +20,8 @@ const customerSchema = z.object({
     drug_allergy: z.string().nullable().optional(),
     underlying_disease: z.string().nullable().optional(),
     member_level: z.string().nullable().optional(),
+    consent_pdpa: z.boolean().optional().default(false),
+    consent_marketing: z.boolean().optional().default(false),
 })
 export async function GET(request: NextRequest) {
     try {
@@ -28,9 +30,14 @@ export async function GET(request: NextRequest) {
         if (authHeader?.startsWith('Bearer ')) {
             const token = authHeader.substring(7)
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any
+                if (!process.env.JWT_SECRET) {
+                    throw new Error('JWT_SECRET is not configured')
+                }
+                const decoded = jwt.verify(token, process.env.JWT_SECRET) as any
                 userRole = decoded.position || decoded.role || 'General'
-            } catch (e) { }
+            } catch (err) {
+                console.error('JWT verification failed:', err)
+            }
         }
         const applyMask = shouldMask(userRole)
 
@@ -67,11 +74,78 @@ export async function GET(request: NextRequest) {
             whereCondition.customer_id = { in: baseCustomerIdsWithDebt }
         }
 
-        // Fetch paginated customers without heavy transaction data
-        const customers = await prisma.customer.findMany({
+        // Fetch ALL matching IDs to compute global sort efficiently
+        const allCustomerIdsDb = await prisma.customer.findMany({
             where: whereCondition,
-            skip,
-            take: limit,
+            select: { customer_id: true, first_name: true, last_name: true, full_name: true, created_at: true }
+        })
+        const allCustomerIds = allCustomerIdsDb.map(c => c.customer_id)
+
+        // Fetch aggregated stats for ALL matched customers
+        const stats = allCustomerIds.length > 0 ? await prisma.transaction_header.groupBy({
+            by: ['customer_id'],
+            where: { customer_id: { in: allCustomerIds } },
+            _sum: { remaining_balance: true },
+            _max: { transaction_date: true },
+        }) : []
+
+        const statsMap = new Map(stats.map(s => [
+            s.customer_id,
+            {
+                debt: Number(s._sum.remaining_balance || 0),
+                lastVisit: s._max.transaction_date
+            }
+        ]))
+
+        // Create a lightweight array to sort
+        const sortableArray = allCustomerIdsDb.map(c => ({
+            customer_id: c.customer_id,
+            name: c.full_name || `${c.first_name} ${c.last_name}`,
+            created_at: c.created_at,
+            debt: statsMap.get(c.customer_id)?.debt || 0,
+            lastVisit: statsMap.get(c.customer_id)?.lastVisit || null
+        }))
+
+        // Global Sort
+        sortableArray.sort((a, b) => {
+            if (sortBy === 'name') {
+                return sortOrder === 'asc' ? a.name.localeCompare(b.name, 'th') : b.name.localeCompare(a.name, 'th');
+            }
+
+            let valA: any = null
+            let valB: any = null
+
+            if (sortBy === 'last_visit') {
+                if (!a.lastVisit && b.lastVisit) return 1;
+                if (a.lastVisit && !b.lastVisit) return -1;
+                if (!a.lastVisit && !b.lastVisit) return 0;
+                valA = new Date(a.lastVisit!).getTime()
+                valB = new Date(b.lastVisit!).getTime()
+            } else if (sortBy === 'debt') {
+                valA = a.debt
+                valB = b.debt
+            } else {
+                if (!a.created_at && b.created_at) return 1;
+                if (a.created_at && !b.created_at) return -1;
+                if (!a.created_at && !b.created_at) return 0;
+                valA = new Date(a.created_at!).getTime()
+                valB = new Date(b.created_at!).getTime()
+            }
+
+            if (valA === valB) return 0;
+            if (sortOrder === 'asc') return valA > valB ? 1 : -1;
+            return valA < valB ? 1 : -1;
+        })
+
+        const total = sortableArray.length
+        
+        // Paginate using slices
+        const paginatedItems = sortableArray.slice(skip, skip + limit)
+        const paginatedIds = paginatedItems.map(item => item.customer_id)
+
+        // Fetch full details for the paginated slice
+        const paginatedCustomers = await prisma.customer.findMany({
+            where: { customer_id: { in: paginatedIds } },
             select: {
                 customer_id: true,
                 hn_code: true,
@@ -87,28 +161,9 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        // Fetch aggregated stats for these customers only
-        const customerIds = customers.map(c => c.customer_id)
-
-        const stats = customerIds.length > 0 ? await prisma.transaction_header.groupBy({
-            by: ['customer_id'],
-            where: { customer_id: { in: customerIds } },
-            _sum: { remaining_balance: true },
-            _max: { transaction_date: true },
-        }) : []
-
-        const statsMap = new Map(stats.map(s => [
-            s.customer_id,
-            {
-                debt: Number(s._sum.remaining_balance || 0),
-                lastVisit: s._max.transaction_date
-            }
-        ]))
-
-        // Add calculated fields
-        const customersWithStats = customers.map((c) => {
-            const stat = statsMap.get(c.customer_id) || { debt: 0, lastVisit: null }
-
+        // Map them back into correct sorted order explicitly
+        const customersWithStats = paginatedItems.map(sortItem => {
+            const c = paginatedCustomers.find(pc => pc.customer_id === sortItem.customer_id)!
             return {
                 customer_id: c.customer_id,
                 hn_code: c.hn_code,
@@ -117,52 +172,14 @@ export async function GET(request: NextRequest) {
                 full_name: c.full_name,
                 nickname: c.nickname,
                 phone_number: applyMask ? maskPhoneNumber(c.phone_number) : c.phone_number,
-                // Note: GET /customers (list view) might not need id_card_number, but if added later, decrypt it here.
                 member_level: c.member_level,
                 drug_allergy: c.drug_allergy,
                 underlying_disease: c.underlying_disease,
                 created_at: c.created_at,
-                total_debt: stat.debt,
-                last_visit: stat.lastVisit,
+                total_debt: sortItem.debt,
+                last_visit: sortItem.lastVisit,
             }
         })
-
-        // Sorting will be handled correctly with JS logic
-
-        // Sort
-        customersWithStats.sort((a, b) => {
-            if (sortBy === 'name') {
-                const valA = a.full_name || `${a.first_name} ${a.last_name}`;
-                const valB = b.full_name || `${b.first_name} ${b.last_name}`;
-                return sortOrder === 'asc' ? valA.localeCompare(valB, 'th') : valB.localeCompare(valA, 'th');
-            }
-
-            let valA: any = null
-            let valB: any = null
-
-            if (sortBy === 'last_visit') {
-                if (!a.last_visit && b.last_visit) return 1;
-                if (a.last_visit && !b.last_visit) return -1;
-                if (!a.last_visit && !b.last_visit) return 0;
-                valA = new Date(a.last_visit!).getTime()
-                valB = new Date(b.last_visit!).getTime()
-            } else if (sortBy === 'debt') {
-                valA = a.total_debt
-                valB = b.total_debt
-            } else {
-                if (!a.created_at && b.created_at) return 1;
-                if (a.created_at && !b.created_at) return -1;
-                if (!a.created_at && !b.created_at) return 0;
-                valA = new Date(a.created_at!).getTime()
-                valB = new Date(b.created_at!).getTime()
-            }
-
-            if (valA === valB) return 0;
-            if (sortOrder === 'asc') return valA > valB ? 1 : -1;
-            return valA < valB ? 1 : -1;
-        })
-
-        const total = await prisma.customer.count({ where: whereCondition })
 
         return NextResponse.json({
             data: customersWithStats,
@@ -221,6 +238,24 @@ export async function POST(request: NextRequest) {
             where: { customer_id: tempCustomer.customer_id },
             data: { hn_code },
         })
+
+        // Step 3: Insert Consent records
+        await prisma.customer_consent.createMany({
+            data: [
+                {
+                    customer_id: tempCustomer.customer_id,
+                    consent_type: 'PDPA_PRIVACY',
+                    is_granted: body.consent_pdpa,
+                    version: 'v1.0'
+                },
+                {
+                    customer_id: tempCustomer.customer_id,
+                    consent_type: 'MARKETING',
+                    is_granted: body.consent_marketing,
+                    version: 'v1.0'
+                }
+            ]
+        });
 
         return NextResponse.json(customer, { status: 201 })
     } catch (error: any) {
