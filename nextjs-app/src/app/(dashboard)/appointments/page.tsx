@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Filter, User, Download } from 'lucide-react'
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Filter, User, Download, Bell, BellOff } from 'lucide-react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths } from 'date-fns'
 import { th } from 'date-fns/locale'
 import { useQuery } from '@tanstack/react-query'
@@ -27,6 +27,10 @@ export default function AppointmentsPage() {
     const [currentDate, setCurrentDate] = useState(new Date())
     const [view, setView] = useState<ViewType>('day')
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
+
+    // Live Web Notification Alerts Support
+    const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'unsupported'>('default')
+    const [notifiedIds, setNotifiedIds] = useState<number[]>([])
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -126,6 +130,125 @@ export default function AppointmentsPage() {
         setIsModalOpen(true)
     }
 
+    // Active Daemon loops and notification helper triggers
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if ('Notification' in window) {
+                setPermissionStatus(Notification.permission)
+            } else {
+                setPermissionStatus('unsupported')
+            }
+        }
+    }, [])
+
+    const playChimeSound = () => {
+        if (typeof window === 'undefined') return
+        try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+            if (!AudioContextClass) return
+            const context = new AudioContextClass()
+            
+            const osc1 = context.createOscillator()
+            const osc2 = context.createOscillator()
+            const gain1 = context.createGain()
+            const gain2 = context.createGain()
+            
+            osc1.connect(gain1)
+            gain1.connect(context.destination)
+            
+            osc2.connect(gain2)
+            gain2.connect(context.destination)
+            
+            osc1.type = 'sine'
+            osc1.frequency.setValueAtTime(523.25, context.currentTime) // C5
+            gain1.gain.setValueAtTime(0.08, context.currentTime)
+            gain1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.6)
+            
+            osc2.type = 'sine'
+            osc2.frequency.setValueAtTime(659.25, context.currentTime + 0.15) // E5
+            gain2.gain.setValueAtTime(0.08, context.currentTime + 0.15)
+            gain2.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.75)
+            
+            osc1.start(context.currentTime)
+            osc1.stop(context.currentTime + 0.6)
+            
+            osc2.start(context.currentTime + 0.15)
+            osc2.stop(context.currentTime + 0.75)
+        } catch (e) {
+            console.error('Audio chime failed:', e)
+        }
+    }
+
+    const requestNotificationPermission = async () => {
+        if (typeof window === 'undefined' || !('Notification' in window)) return
+        try {
+            const status = await Notification.requestPermission()
+            setPermissionStatus(status)
+            if (status === 'granted') {
+                toast.success('เปิดระบบแจ้งเตือนสำเร็จ')
+                playChimeSound()
+                new Notification('ระบบแจ้งเตือนระบบนัดหมาย', {
+                    body: 'เปิดใช้งานการแจ้งเตือนแบบเรียลไทม์สำเร็จแล้ว',
+                })
+            } else if (status === 'denied') {
+                toast.warning('การแจ้งเตือนถูกปฏิเสธ คุณสามารถเปิดใช้งานในตั้งค่าเบราว์เซอร์ได้')
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    useEffect(() => {
+        if (!appointments || appointments.length === 0) return
+
+        const checkUpcomingAppointments = () => {
+            const now = new Date()
+            const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000)
+
+            appointments.forEach((app) => {
+                if (app.status !== 'SCHEDULED') return
+                if (notifiedIds.includes(app.id)) return
+
+                const appDate = new Date(app.appointment_date)
+                // Check if appointment is starting within the next 30 minutes, and not in the past
+                if (appDate > now && appDate <= thirtyMinutesFromNow) {
+                    setNotifiedIds(prev => [...prev, app.id])
+                    
+                    const customerName = app.customer 
+                        ? app.customer.full_name || `${app.customer.first_name || ''} ${app.customer.last_name || ''}`.trim()
+                        : 'ไม่ระบุชื่อ'
+                    const timeStr = format(appDate, 'HH:mm')
+                    
+                    // 1. Play sound chime
+                    playChimeSound()
+
+                    // 2. Show desktop browser notification
+                    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                        new Notification(`แจ้งเตือนนัดหมายคนไข้: ${customerName}`, {
+                            body: `มีนัดหมายเข้าบริการเวลา ${timeStr} น. (${app.notes || 'ไม่มีหมายเหตุ'})`,
+                            tag: `app-${app.id}`,
+                        })
+                    }
+
+                    // 3. Show standard UI Toast
+                    toast(`🔔 เตือนนัดหมายอีก 30 นาที: คุณ ${customerName}`, {
+                        description: `เวลา ${timeStr} น. - ${app.notes || 'ไม่มีหมายเหตุ'}`,
+                        action: {
+                            label: 'ดูรายละเอียด',
+                            onClick: () => handleAppointmentClick(app)
+                        },
+                        duration: 10000,
+                    })
+                }
+            })
+        }
+
+        checkUpcomingAppointments()
+        const interval = setInterval(checkUpcomingAppointments, 15000)
+        return () => clearInterval(interval)
+    }, [appointments, notifiedIds])
+
+
     const handleAppointmentDrop = async (appointmentId: number, newDate: Date) => {
         try {
             const res = await fetch(`/api/appointments/${appointmentId}`, {
@@ -206,6 +329,34 @@ export default function AppointmentsPage() {
                     )}
                 </div>
                 <div className="flex items-center gap-2">
+                    {permissionStatus !== 'unsupported' && (
+                        <Button
+                            variant={permissionStatus === 'granted' ? 'ghost' : 'outline'}
+                            size="sm"
+                            onClick={requestNotificationPermission}
+                            className={`rounded-xl gap-2 text-xs font-semibold ${
+                                permissionStatus === 'granted' 
+                                    ? 'text-emerald-600 hover:text-emerald-700 bg-emerald-50/50' 
+                                    : 'text-amber-600 border-amber-200 hover:bg-amber-50'
+                            }`}
+                        >
+                            {permissionStatus === 'granted' ? (
+                                <>
+                                    <span className="relative flex h-2 w-2 mr-0.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    </span>
+                                    <Bell className="h-4 w-4 text-emerald-500" />
+                                    ระบบเตือนทำงานอยู่
+                                </>
+                            ) : (
+                                <>
+                                    <BellOff className="h-4 w-4 text-amber-500" />
+                                    เปิดระบบแจ้งเตือนจริง
+                                </>
+                            )}
+                        </Button>
+                    )}
                     <Button variant="outline" onClick={handleExport} disabled={appointments.length === 0} className="rounded-xl gap-2">
                         <Download className="h-4 w-4" />
                         Export CSV
