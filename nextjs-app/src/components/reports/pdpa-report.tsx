@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { 
     ShieldCheck, ShieldAlert, Users, Phone, Calendar, 
-    ChevronRight, Eye, UserX, CheckCircle, Info
+    ChevronRight, Eye, UserX, CheckCircle, Info, Download
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDateTime } from '@/lib/utils'
@@ -53,6 +53,59 @@ export default function PdpaReportTab() {
             return res.json()
         }
     })
+
+    const handleExport = () => {
+        if (!data) return;
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const stats = data.stats;
+        const pdpaPercent = stats ? Math.round((stats.pdpaGranted / stats.totalPatients) * 100) : 0;
+        const marketingPercent = stats ? Math.round((stats.marketingGranted / stats.totalPatients) * 100) : 0;
+        const medicalPercent = stats ? Math.round((stats.medicalGranted / stats.totalPatients) * 100) : 0;
+
+        const metadata = [
+            ['รายงานความสอดคล้องทางกฎหมาย PDPA (PDPA Compliance Report)'],
+            ['จำนวนคนไข้ทั้งหมด', `${stats?.totalPatients || 0} คน`],
+            ['ยินยอมนโยบายความเป็นส่วนตัว (Privacy)', `${stats?.pdpaGranted || 0} คน (${pdpaPercent}%)`],
+            ['รอดำเนินการความยินยอมความเป็นส่วนตัว', `${stats?.pdpaPending || 0} คน`],
+            ['ยินยอมข้อมูลการตลาด (Marketing)', `${stats?.marketingGranted || 0} คน (${marketingPercent}%)`],
+            ['รอดำเนินการความยินยอมการตลาด', `${stats?.marketingPending || 0} คน`],
+            ['ยินยอมข้อมูลหัตถการการรักษา (Medical)', `${stats?.medicalGranted || 0} คน (${medicalPercent}%)`],
+            ['รอดำเนินการความยินยอมหัตถการ', `${stats?.medicalPending || 0} คน`],
+            ['บัญชีที่ขอลบ/ปกปิดตัวตน (Anonymized)', `${stats?.anonymizedCount || 0} ราย`],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['วันเวลานัดหมาย', 'รหัสคนไข้ (HN)', 'ชื่อ-นามสกุล คนไข้', 'เบอร์โทรติดต่อ', 'สถานะความยินยอม PDPA'];
+        const dataRows = (data.pendingPDPAAppointments || []).map(app => [
+            app.appointment_date ? formatDateTime(app.appointment_date) : '-',
+            app.hn_code,
+            app.full_name,
+            app.phone_number,
+            app.is_pdpa_granted ? 'ยินยอมแล้ว' : 'ยังไม่เซ็นยินยอม'
+        ]).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `pdpa_compliance_report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     if (isLoading) {
         return (
@@ -178,14 +231,26 @@ export default function PdpaReportTab() {
 
             {/* Upcoming Appointments lacking Consent */}
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
-                        <ShieldAlert className="h-5 w-5 text-amber-500" />
-                        รายชื่อคนไข้ที่มีนัดหมายใน 7 วันข้างหน้า แต่ยังไม่ได้เซ็นยินยอม PDPA
-                    </CardTitle>
-                    <CardDescription>
-                        โปรดให้คนไข้เซ็นเอกสารยินยอมความปลอดภัยทันทีเมื่อมาถึงคลินิก
-                    </CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                    <div className="space-y-1">
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <ShieldAlert className="h-5 w-5 text-amber-500" />
+                            รายชื่อคนไข้ที่มีนัดหมายใน 7 วันข้างหน้า แต่ยังไม่ได้เซ็นยินยอม PDPA
+                        </CardTitle>
+                        <CardDescription>
+                            โปรดให้คนไข้เซ็นเอกสารยินยอมความปลอดภัยทันทีเมื่อมาถึงคลินิก
+                        </CardDescription>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExport}
+                        disabled={!data || pendingAppointments.length === 0}
+                        className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                    >
+                        <Download className="h-4 w-4" />
+                        Export CSV
+                    </Button>
                 </CardHeader>
                 <CardContent className="p-0">
                     {pendingAppointments.length === 0 ? (

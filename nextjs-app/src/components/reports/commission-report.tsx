@@ -57,19 +57,35 @@ export default function CommissionReportTab() {
     const handleExport = () => {
         if (!commissionData) return;
 
-        const headers = ['พนักงาน', 'ตำแหน่ง', 'DF', 'Hand Fee', 'รวม'];
-        const rows = (commissionData.staffSummary || []).map(s => [
-            `"${s.full_name}"`,
-            `"${s.position}"`,
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const metadata = [
+            ['รายงานสรุปค่าคอมมิชชันพนักงาน (Commission Report)'],
+            ['ประจำเดือน', commissionMonth],
+            ['DF รวม (บาท)', commissionData.grandTotal?.df || 0],
+            ['Hand Fee รวม (บาท)', commissionData.grandTotal?.handFee || 0],
+            ['ยอดรวมทั้งหมด (บาท)', commissionData.grandTotal?.total || 0],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['พนักงาน', 'ตำแหน่ง', 'DF (บาท)', 'Hand Fee (บาท)', 'รวม (บาท)'];
+        const dataRows = (commissionData.staffSummary || []).map(s => [
+            s.full_name,
+            s.position,
             s.df_total,
             s.hand_fee_total,
             s.total
-        ]);
+        ]).map(row => row.map(formatCSVCell).join(','));
 
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.join(','))
-        ].join('\n');
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
 
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });

@@ -87,11 +87,36 @@ export default function SalesReportTab() {
 
     const handleExport = () => {
         if (!salesData) return;
-        const headers = ['วันที่', 'ยอดขาย', 'รับชำระ', 'จำนวนบิล'];
-        const rows = (salesData.dailyBreakdown || []).map(d => [
-            formatDate(d.date), d.sales, d.paid, d.count
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const metadata = [
+            ['รายงานสรุปยอดขาย (Sales Summary Report)'],
+            ['ช่วงเวลา', `${formatDate(salesStart)} ถึง ${formatDate(salesEnd)}`],
+            ['ยอดขายรวม (บาท)', salesData.summary?.totalSales || 0],
+            ['รับชำระแล้ว (บาท)', salesData.summary?.totalPaid || 0],
+            ['ค้างชำระ (บาท)', salesData.summary?.totalOutstanding || 0],
+            ['จำนวนบิลทั้งหมด', salesData.summary?.transactionCount || 0],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['วันที่', 'ยอดขาย (บาท)', 'รับชำระ (บาท)', 'จำนวนบิล'];
+        const dataRows = (salesData.dailyBreakdown || []).map(d => [
+            formatDate(d.date),
+            d.sales,
+            d.paid,
+            d.count
+        ]).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');

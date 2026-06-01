@@ -23,6 +23,8 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth-store'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 
 interface InventoryReport {
     summary: Array<{ action_type: string; count: number; qty: number }>
@@ -92,6 +94,54 @@ export default function InventoryReportTab() {
         },
     })
 
+    const handleExport = () => {
+        if (!inventoryData) return;
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const activeActionLabel = ACTION_LABELS[invAction] || 'ทั้งหมด';
+
+        const metadata = [
+            ['รายงานการเคลื่อนไหวสินค้าคลัง (Inventory Movement Report)'],
+            ['ช่วงเวลา', `${formatDate(invStart)} ถึง ${formatDate(invEnd)}`],
+            ['ประเภทรายการ', activeActionLabel],
+            ['จำนวนรายการทั้งหมด', `${inventoryData.movements?.length || 0} รายการ`],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['วันที่', 'รหัสสินค้า', 'ชื่อสินค้า', 'ประเภทรายการ', 'จำนวน', 'Lot Number', 'ผู้ทำรายการ', 'หมายเหตุ'];
+        const dataRows = (inventoryData.movements || []).map(m => [
+            formatDate(m.date),
+            m.product_code,
+            m.product_name,
+            ACTION_LABELS[m.action_type] || m.action_type,
+            m.qty,
+            m.lot_number || '',
+            m.staff,
+            m.note || ''
+        ]).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `inventory_report_${invStart}_to_${invEnd}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-4">
             {/* Filter Bar */}
@@ -118,6 +168,15 @@ export default function InventoryReportTab() {
                         </SelectContent>
                     </Select>
                 </div>
+                <Button
+                    variant="outline"
+                    onClick={handleExport}
+                    disabled={!inventoryData || (inventoryData.movements || []).length === 0}
+                    className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                >
+                    <Download className="h-4 w-4" />
+                    Export CSV
+                </Button>
             </div>
 
             {/* Summary Badges */}

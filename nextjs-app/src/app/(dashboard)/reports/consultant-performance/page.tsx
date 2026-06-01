@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
     Users, TrendingUp, DollarSign, UserPlus,
     Calendar, ArrowUpRight, ChevronLeft, ChevronRight,
-    ArrowLeft, Award
+    ArrowLeft, Award, Download
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -85,6 +85,54 @@ export default function ConsultantPerformancePage() {
         },
     })
 
+    const handleExport = () => {
+        if (!data) return;
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const metadata = [
+            ['รายงานผลงานพนักงาน (Consultant Performance Report)'],
+            ['ประจำเดือน', formatMonth(selectedMonth)],
+            ['ยอดขายรวม (บาท)', data.grandTotal?.total_sales || 0],
+            ['ลูกค้าทั้งหมด', `${data.grandTotal?.total_customers || 0} คน`],
+            ['ลูกค้าใหม่เดือนนี้', `${data.grandTotal?.new_customers || 0} คน`],
+            ['รายการทั้งหมด', `${data.grandTotal?.total_transactions || 0} รายการ`],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['อันดับ', 'ชื่อ', 'ตำแหน่ง', 'ลูกค้าทั้งหมด', 'ลูกค้าใหม่', 'จำนวนบิล/ธุรกรรม', 'ยอดขาย (บาท)', 'เฉลี่ยต่อลูกค้า (บาท)'];
+        const dataRows = (data.consultants || []).map((c, idx) => [
+            idx + 1,
+            c.full_name,
+            c.position,
+            c.customer_count,
+            c.new_customers_this_month,
+            c.transaction_count,
+            c.total_sales,
+            c.average_per_customer
+        ]).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `consultant_performance_${selectedMonth}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const handlePrevMonth = () => {
         const date = new Date(selectedMonth + '-01')
         date.setMonth(date.getMonth() - 1)
@@ -132,6 +180,15 @@ export default function ConsultantPerformancePage() {
                     />
                     <Button variant="outline" size="icon" onClick={handleNextMonth}>
                         <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={handleExport}
+                        disabled={!data || (data.consultants || []).length === 0}
+                        className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                    >
+                        <Download className="h-4 w-4" />
+                        Export CSV
                     </Button>
                 </div>
             </div>

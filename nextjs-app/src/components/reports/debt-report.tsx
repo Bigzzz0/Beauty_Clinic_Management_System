@@ -12,6 +12,8 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { useAuthStore } from '@/stores/auth-store'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 
 interface DebtReport {
     summary: { totalDebt: number; customerCount: number; transactionCount: number }
@@ -38,6 +40,53 @@ export default function DebtReportTab() {
             return res.json()
         },
     })
+
+    const handleExport = () => {
+        if (!debtData) return;
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const metadata = [
+            ['รายงานสรุปลูกหนี้ค้างชำระ (Debtor Summary Report)'],
+            ['ยอดหนี้ค้างชำระรวม (บาท)', debtData.summary?.totalDebt || 0],
+            ['จำนวนลูกหนี้ทั้งหมด', `${debtData.summary?.customerCount || 0} คน`],
+            ['จำนวนบิลค้างชำระทั้งหมด', `${debtData.summary?.transactionCount || 0} บิล`],
+            ['วิเคราะห์อายุหนี้ - น้อยกว่า 30 วัน (บาท)', debtData.ageAnalysis?.current || 0],
+            ['วิเคราะห์อายุหนี้ - 30-60 วัน (บาท)', debtData.ageAnalysis?.days30 || 0],
+            ['วิเคราะห์อายุหนี้ - 60-90 วัน (บาท)', debtData.ageAnalysis?.days60 || 0],
+            ['วิเคราะห์อายุหนี้ - มากกว่า 90 วัน (บาท)', debtData.ageAnalysis?.days90 || 0],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['HN', 'ชื่อลูกค้า', 'ยอดหนี้ค้างชำระ (บาท)', 'วันที่เกิดหนี้เก่าที่สุด', 'จำนวนบิลค้างชำระ'];
+        const dataRows = (debtData.customers || []).map(c => [
+            c.hn_code,
+            c.full_name,
+            c.total_debt,
+            formatDate(c.oldest_date),
+            c.transaction_count
+        ]).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `debtor_report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="space-y-4">
@@ -125,7 +174,7 @@ export default function DebtReportTab() {
 
             {/* Customer List */}
             <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                     <CardTitle className="flex items-center gap-2">
                         รายชื่อลูกหนี้
                         {debtData?.customers && (
@@ -134,6 +183,16 @@ export default function DebtReportTab() {
                             </span>
                         )}
                     </CardTitle>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExport}
+                        disabled={!debtData || debtData.customers.length === 0}
+                        className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                    >
+                        <Download className="h-4 w-4" />
+                        Export CSV
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-xl border overflow-hidden">
