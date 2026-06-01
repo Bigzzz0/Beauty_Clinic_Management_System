@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📑 คู่มือระบบการจัดการคลินิกความงาม (Beauty Clinic Management System)
 
-## Getting Started
+ยินดีต้อนรับสู่ระบบการจัดการคลินิกความงาม (Beauty Clinic Management System) เอกสารฉบับนี้เป็นคู่มือแบบละเอียดสำหรับการติดตั้ง การดูแลระบบความปลอดภัย และการใช้งานระบบสำหรับผู้ใช้ทั่วไป เพื่อความถูกต้องในการส่งมอบโครงการที่เป็นมืออาชีพ
 
-First, run the development server:
+---
 
+## 🛠️ ส่วนที่ 1: รายละเอียดโครงสร้างเทคโนโลยี (Tech Stack)
+
+* **Framework**: Next.js 15+ (App Router) ด้วย React 19 และ TypeScript
+* **Database**: MySQL 8.0+ จัดการ Schema และคิวรีผ่าน **Prisma ORM**
+* **State Management**: Zustand (เช่น `auth-store` และ `cart-store`)
+* **Styling & Icons**: Tailwind CSS 4.0+, Shadcn UI Components และ Lucide Icons
+* **Security & Auth**: JWT Authentication และระบบควบคุมสิทธิ์ตามหน้าที่งาน **Role-Based Access Control (RBAC)**
+* **Scheduling & Daemon Check**: React hooks loops และ Web Audio Synthesizer
+
+---
+
+## 📥 ส่วนที่ 2: คู่มือการติดตั้งและการเริ่มใช้งาน (Developer & Admin Installation Guide)
+
+### 1. ความต้องการของระบบ (Prerequisites)
+* Node.js เวอร์ชัน 20.0.0 หรือสูงกว่า
+* MySQL Server เวอร์ชัน 8.0 หรือสูงกว่า
+* เครื่องมือจัดการแพ็กเกจ `npm` (ติดตั้งมาพร้อม Node.js)
+
+### 3. การติดตั้งโค้ดและไลบรารี
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# คัดลอกโครงการ (Clone Repository)
+git clone https://github.com/Bigzzz0/Beauty_Clinic_Management_System.git
+cd Beauty_Clinic_Management_System/nextjs-app
+
+# ติดตั้งแพ็กเกจไลบรารีทั้งหมด
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. การกำหนดค่าสภาพแวดล้อม (.env Configuration)
+คัดลอกไฟล์ต้นแบบสภาพแวดล้อม:
+```bash
+cp .env.example .env
+```
+เปิดไฟล์ `.env` และกำหนดค่าตัวแปรสำคัญดังต่อไปนี้:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| ตัวแปร | คำอธิบาย | ตัวอย่างการตั้งค่า |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | ลิงก์เชื่อมต่อฐานข้อมูล MySQL สำหรับ Prisma | `mysql://root:password@127.0.0.1:3306/beauty_clinic_db` |
+| `JWT_SECRET` | คีย์ลับสำหรับสร้างและตรวจสอบความปลอดภัยโทเค็นล็อกอิน | `your-super-secret-jwt-key-change-this` |
+| `DB_BACKUP_USER` | ชื่อผู้ใช้ MySQL สำหรับระบบสำรองข้อมูลอัตโนมัติ | `root` |
+| `DB_BACKUP_PASSWORD` | รหัสผ่าน MySQL สำหรับการสำรองข้อมูล (จำเป็นต้องกรอก) | `your_mysql_root_password` |
+| `DB_NAME` | ชื่อฐานข้อมูลในการรันและสำรองข้อมูล | `beauty_clinic_db` |
+| `BACKUP_ENCRYPTION_KEY` | คีย์ความลับสำหรับเข้ารหัสไฟล์สำรองข้อมูล (AES-256) | `your-secure-backup-encryption-key` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. การจัดการโครงสร้างฐานข้อมูล (Database Migrations)
+```bash
+# รันการสร้างตารางและดึงข้อมูลเริ่มต้น (Database Schema & Seed)
+npx prisma migrate dev
+npx prisma db seed
+```
 
-## Learn More
+### 5. การรันระบบในเครื่องโลคัล (Local Development)
+```bash
+# รันพัฒนาเพื่อเข้าทดสอบโค้ด
+npm run dev
+```
+เปิดเบราว์เซอร์และเข้าไปยัง [http://localhost:3000](http://localhost:3000)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔒 ส่วนที่ 3: ระบบสำรองความปลอดภัยและการกู้คืนข้อมูล (Database Backup & Disaster Recovery)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+ระบบความปลอดภัยข้อมูลถูกออกแบบด้วยการสำรองไฟล์บีบอัด เข้ารหัสระดับทหาร และทำความสะอาดคราบร่องรอยการโจมตีอัตโนมัติ
 
-## Deploy on Vercel
+### 1. การทำงานของระบบสำรองข้อมูล (`scripts/backup_db.js`)
+* **บีบอัดข้อมูล (Gzip)**: บีบอัดข้อมูลแบบกูบิเปิลเพื่อย่อไฟล์ให้เล็กที่สุด
+* **เข้ารหัสหนาแน่น (AES-256-CBC)**: เข้ารหัสผ่านรหัสผ่าน `BACKUP_ENCRYPTION_KEY` โดยแฮชผ่าน SHA-256 เพื่อความปลอดภัยและเพิ่ม Random 16-byte IV ด้านหน้าไฟล์
+* **ลบข้อมูลชั่วคราว (Secure Cleanup)**: ล้างไฟล์ SQL ที่เป็นข้อความปกติทิ้งทันทีหลังรันสำเร็จ
+* **หมุนเวียนไฟล์เก่า (Automatic Rotation)**: เก็บไฟล์สำรองย้อนหลัง 14 วัน และทำการลบไฟล์เก่ากว่านั้นอัตโนมัติ
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### วิธีรันสำรองข้อมูลด้วยตนเอง:
+```bash
+node scripts/backup_db.js
+```
+*ไฟล์จะถูกจัดเก็บอย่างปลอดภัยในโฟลเดอร์ `/nextjs-app/backups` ในรูปแบบไฟล์ `.sql.gz.enc`*
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### การตั้งค่ารันอัตโนมัติทุกเที่ยงคืน (Unix Cron):
+```bash
+0 0 * * * node /path/to/nextjs-app/scripts/backup_db.js >> /var/log/clinic-backup.log 2>&1
+```
+
+### 2. การกู้คืนข้อมูล (Database Decryption & Restore)
+หากต้องการกู้คืนฐานข้อมูลจากไฟล์เข้ารหัสลับ ให้ดำเนินการตาม 2 ขั้นตอนนี้:
+
+#### ขั้นตอนที่ 1: ถอดรหัสไฟล์สำรองข้อมูลคืนเป็นไฟล์ SQL ปกติ
+```bash
+# กำหนด BACKUP_ENCRYPTION_KEY ให้ตรงกับรหัสตอนสำรองข้อมูล
+# รันสคริปต์ถอดรหัส (ส่งพารามิเตอร์พาธไฟล์สำรอง)
+node scripts/decrypt_backup.js backups/beauty_clinic_db-backup-[timestamp].sql.gz.enc
+```
+*ผลลัพธ์: จะได้ไฟล์ถอดรหัส `.sql` กลับมาในโฟลเดอร์ backups*
+
+#### ขั้นตอนที่ 2: นำข้อมูลกลับเข้าสู่ MySQL
+```bash
+mysql -h 127.0.0.1 -u root -p beauty_clinic_db < backups/beauty_clinic_db-backup-[timestamp].sql
+```
+
+---
+
+## 💻 ส่วนที่ 4: คู่มือการใช้งานสำหรับบุคลากรคลินิก (User Manual)
+
+### 1. แดชบอร์ดอัจฉริยะ (Clickable Dashboard & Urgent Notifications)
+* **ทางลัดด่วน (Clickable Shortcuts)**: กล่องสถิติตัวเลขด้านบนทั้งหมด (จำนวนคนไข้, ยอดธุรกรรม, ยอดสินค้าในคลัง) สามารถกดเพื่อข้ามไปยังหน้าจัดการนั้นๆ ได้ทันที
+* **ไฮไลต์นัดด่วน (Upcoming Alerts)**: นัดหมายที่กำลังจะมาถึงภายใน 30 นาที จะแสดงเส้นขอบสีทองและไฟกระพริบอนิเมชันสีส้ม เพื่อเตือนให้ฝ่ายรับลูกค้าต้อนรับคนไข้ได้ทันท่วงที
+
+### 2. จุดรับชำระเงิน POS (POS Preset Cashier & Change Calculator)
+* **กรอกจำนวนเงินรวดเร็ว**: หน้ารับชำระเงินสด (POS Dialog) มาพร้อมปุ่มใส่เงินด่วนลอย เช่น `100`, `500`, `1,000`, `2,000`, `5,000` บาท
+* **คำนวณเงินทอนอัตโนมัติ**: เมื่อรับเงินสดมากกว่ายอดชำระ ระบบจะทำการคำนวณเงินทอนให้พนักงานแคชเชียร์เห็นบนหน้าจอทันทีเพื่อความแม่นยำ
+
+### 3. ตารางนัดหมายและระบบเตือนภัยสด (Live Appointments & Notification Switches)
+* **ตัวกรองด่วนแบบสด (Live Status Filters)**: คัดแยกแสดงนัดหมายทั้งหมด / นัดหมายแล้ว / เสร็จสิ้น / ยกเลิก ได้ในคลิกเดียว พร้อมแสดงตัวเลขจำนวนนัดหมายคงคลังของวันแบบอัปเดตทันที
+* **สวิตช์เปิด-ปิดระบบเตือนภัยจริง (Notification Toggle)**:
+  * กดปุ่ม `🔔 เปิดระบบแจ้งเตือน` บริเวณหัวมุมขวาของตารางนัดหมายเพื่อขออนุญาตขอสิทธิ์ Desktop Notification จากเบราว์เซอร์
+  * เมื่ออนุญาตแล้ว ระบบจะเริ่ม **ตรวจสอบรายการทุกๆ 15 วินาที** หากตรวจพบนัดหมายที่จะเข้าบริการในอีก 30 นาทีข้างหน้า ระบบจะส่งการแจ้งเตือนพุชหน้าจอเบราว์เซอร์ (Desktop Push) และรันเสียงกระดิ่งเตือนสังเคราะห์ (Double Chime Audio) พร้อมแสดงกล่องเตือน Toast สีส้มในระบบที่กดคลิกดูรายละเอียดเคสได้ทันที
+  * สามารถกดปุ่มกระดิ่งเดิมอีกครั้งเพื่อสลับเป็น **ปิดแจ้งเตือน** ได้ตลอดเวลา (ระบบจะบันทึกการตั้งค่าการปิดไว้ในเครื่องผู้ใช้ผ่าน `localStorage` ถาวร)
+
+### 4. บันทึกการรับบริการคอร์สของคนไข้ (Course Session Steps & Progress Bars)
+* **ตัวระบุขั้นตอน (Step Indicator)**: ระบบจดบันทึกแบ่งการทำงานออกเป็น 3 ขั้นตอนชัดเจน (เลือกลูกค้า → เลือกคอร์สคงเหลือ → บันทึกข้อมูลการรักษา) ช่วยป้องกันความสับสนในการทำงาน
+* **แถบประวัติคอร์สคงเหลือ (Progress Bars)**: การ์ดคอร์สคงเหลือแสดงเปอร์เซ็นต์การใช้งานเป็นแถบสีแบ่งระดับชัดเจน (สีเขียว = คอร์สยังเหลือเยอะ, สีส้ม = คอร์สใกล้หมดอายุการใช้งาน) เพื่อให้แพทย์/พนักงานแนะนำการซื้อคอร์สต่อได้ง่ายขึ้น
+
+### 5. ระบบบริหารจัดการหนี้สิ้น (Aging Debt & Color-Coded badges)
+* **ตัวระบุอายุหนี้ (Debt Aging Badge)**: แสดงระดับความเสี่ยงของลูกหนี้ตามอายุการค้างชำระ:
+  * 🟢 **สีเขียว**: ค้างชำระน้อยกว่า 7 วัน
+  * 🟡 **สีเหลือง**: ค้างชำระ 7 - 30 วัน
+  * 🔴 **สีแดง**: ค้างชำระมากกว่า 30 วัน (เร่งด่วนที่สุด)
+
+### 6. ตารางความดีความชอบแพทย์และพนักงาน (Consultant Podiums)
+* **เหรียญเกียรติยศและอันดับ**: หน้ารายงานคะแนนความสามารถพนักงานขาย (Consultant Performance) แสดงสัญรูปเหรียญทอง 🥇, เหรียญเงิน 🥈, และเหรียญทองแดง 🥉 บนพนักงานที่ทำยอดขายและบริการสูงสุด 3 อันดับแรกของสัปดาห์/เดือน พร้อมเน้นไฮไลต์แถวของบอร์ดผู้นำเพื่อจูงใจทีมงาน
+
+### 7. การส่งออกข้อมูลความละเอียดสูง (Premium CSV Data Exports)
+* ปุ่ม **Export CSV** ในทุกหน้าหลักและตารางรายงาน ออกแบบให้ส่งออกข้อมูลระดับพรีเมียม:
+  * เข้ารหัสแบบ **UTF-8 BOM** รองรับตัวอักษรภาษาไทยสมบูรณ์แบบ เปิดใน Excel สระไม่เพี้ยน
+  * มีบล็อกข้อมูล **Metadata Header** แสดงหัวข้อรายงาน วันเวลาที่ดึง และเงื่อนไขตัวกรอง
+  * ข้อมูลตัวเลข ค่าบริการ ยอดรวมค้างส่ง จัดเก็บเป็นข้อมูลตัวเลขดิบที่สามารถกดสูตรคำนวณ `SUM` หรือ `AVERAGE` ใน Excel ได้ทันที
+
+---
+
+## 🛡️ ส่วนที่ 5: สิทธิ์ความปลอดภัยระดับองค์กร (System Access Security & RBAC)
+
+ระบบกำหนดให้สิทธิ์ความปลอดภัยในแต่ละตำแหน่งงานแยกจากกันอย่างเด็ดขาด ผ่าน Middleware ตรวจสอบ JWT:
+
+* 🔐 **Admin (ผู้ดูแลระบบ)**: เข้าถึงได้ทุกฟังก์ชัน เมนูการเงิน ธุรกรรม คลังสินค้า รายงาน และระบบรันสำรองข้อมูล API
+* 🩺 **Doctor (แพทย์)**: เข้าถึงตารางนัดหมาย ประวัติการรักษาของคนไข้ บันทึกการทำบริการของแพทย์ และอัตราค่าตอบแทนแพทย์ (DF)
+* 💆 **Therapist (พนักงานทรีทเมนต์)**: เข้าถึงตารางนัดหมาย บันทึกการรับบริการ และข้อมูลค่าตอบแทนพนักงาน (Hand Fee)
+* 💼 **Receptionist (ฝ่ายต้อนรับ/แคชเชียร์)**: เข้าถึงตารางนัดหมาย ทะเบียนข้อมูลคนไข้ ระบบแคชเชียร์ชำระเงิน POS และบันทึกคลังสินค้า
+
+---
+
+*เอกสารฉบับนี้เป็นทรัพย์สินและสิทธิ์การดูแลระบบความปลอดภัยของ Beauty Clinic Management System จัดทำขึ้นเพื่อสนับสนุนงานบริการที่เป็นมาตรฐานสูงสุด*
