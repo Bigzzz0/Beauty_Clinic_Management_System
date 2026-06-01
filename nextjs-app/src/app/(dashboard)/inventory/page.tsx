@@ -248,6 +248,7 @@ export default function InventoryPage() {
 
     const getStockStatus = (item: InventoryItem) => {
         if (item.total_sub_units === 0) return 'out'
+        if (item.total_sub_units <= 3) return 'critical'
         if (item.total_sub_units <= 10) return 'low'
         return 'normal'
     }
@@ -496,6 +497,7 @@ export default function InventoryPage() {
                                                         key={item.product_id}
                                                         className={`transition-colors ${
                                                             status === 'out' ? 'bg-red-50/60 border-l-2 border-l-red-400 hover:bg-red-50' :
+                                                            status === 'critical' ? 'bg-orange-50/60 border-l-2 border-l-orange-400 hover:bg-orange-50' :
                                                             status === 'low' ? 'border-l-2 border-l-amber-300 hover:bg-amber-50/30' :
                                                             'hover:bg-slate-50/60'
                                                         }`}
@@ -506,6 +508,9 @@ export default function InventoryPage() {
                                                             )}
                                                             {status === 'low' && (
                                                                 <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">ใกล้หมด</span>
+                                                            )}
+                                                            {status === 'critical' && (
+                                                                <span className="inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">วิกฤต</span>
                                                             )}
                                                             {status === 'out' && (
                                                                 <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">หมด</span>
@@ -523,7 +528,12 @@ export default function InventoryPage() {
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            <span className="font-medium">{item.full_qty}</span>
+                                                            <span className={`font-semibold ${
+                                                                status === 'out' ? 'text-red-600 font-bold' :
+                                                                status === 'critical' ? 'text-orange-600 font-semibold' :
+                                                                status === 'low' ? 'text-amber-600 font-medium' :
+                                                                'text-slate-900'
+                                                            }`}>{item.full_qty}</span>
                                                             <span className="text-muted-foreground ml-1">{item.main_unit}</span>
                                                             {item.opened_qty > 0 && (
                                                                 <span className="text-primary ml-1">(+{item.opened_qty} {item.sub_unit})</span>
@@ -583,13 +593,27 @@ export default function InventoryPage() {
                                                     <div className="flex items-center gap-1.5">
                                                         {status === 'normal' && <CheckCircle className="h-4 w-4 text-success" />}
                                                         {status === 'low' && <AlertTriangle className="h-4 w-4 text-warning" />}
-                                                        {status === 'out' && <XCircle className="h-4 w-4 text-destructive" />}
-                                                        <span className={`text-sm font-medium ${status === 'normal' ? 'text-success' : status === 'low' ? 'text-warning' : 'text-destructive'}`}>
-                                                            {status === 'normal' ? 'ปกติ' : status === 'low' ? 'ใกล้หมด' : 'หมด'}
+                                                        {status === 'critical' && <AlertTriangle className="h-4 w-4 text-orange-500 animate-pulse" />}
+                                                        {status === 'out' && <XCircle className="h-4 w-4 text-destructive animate-bounce" />}
+                                                        <span className={`text-sm font-medium ${
+                                                            status === 'normal' ? 'text-success' : 
+                                                            status === 'critical' ? 'text-orange-500' : 
+                                                            status === 'low' ? 'text-warning' : 
+                                                            'text-destructive'
+                                                        }`}>
+                                                            {status === 'normal' ? 'ปกติ' : 
+                                                             status === 'critical' ? 'วิกฤต' : 
+                                                             status === 'low' ? 'ใกล้หมด' : 
+                                                             'หมด'}
                                                         </span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="text-xl font-bold">{item.full_qty}</span>
+                                                        <span className={`text-xl font-bold ${
+                                                            status === 'out' ? 'text-red-600 font-bold' :
+                                                            status === 'critical' ? 'text-orange-600 font-semibold' :
+                                                            status === 'low' ? 'text-amber-600 font-medium' :
+                                                            'text-slate-900'
+                                                        }`}>{item.full_qty}</span>
                                                         <span className="ml-1 text-sm text-muted-foreground">{item.main_unit}</span>
                                                         {item.opened_qty > 0 && (
                                                             <span className="ml-1 text-sm text-primary">(+{item.opened_qty} {item.sub_unit})</span>

@@ -126,10 +126,10 @@ export default function DashboardPage() {
     })
 
     const stats = apiData ? [
-        { ...apiData[0], icon: Users, color: 'from-sky-500 to-sky-600' },
-        { ...apiData[1], icon: ShoppingCart, color: 'from-amber-500 to-amber-600' },
-        { ...apiData[2], icon: Package, color: 'from-slate-600 to-slate-700' },
-        { ...apiData[3], icon: TrendingUp, color: 'from-emerald-500 to-emerald-600' },
+        { ...apiData[0], icon: Users, color: 'from-sky-500 to-sky-600', href: '/patients' },
+        { ...apiData[1], icon: ShoppingCart, color: 'from-amber-500 to-amber-600', href: '/transactions' },
+        { ...apiData[2], icon: Package, color: 'from-slate-600 to-slate-700', href: '/inventory' },
+        { ...apiData[3], icon: TrendingUp, color: 'from-emerald-500 to-emerald-600', href: '/reports' },
     ] : []
 
     const appointments: any[] = appointmentData?.appointments || []
@@ -245,23 +245,25 @@ export default function DashboardPage() {
             {canViewFinancials && stats.length > 0 && (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {stats.map((stat, i) => (
-                        <Card key={stat.title} className={`overflow-hidden border-0 shadow-sm animate-fade-in-up-delay-${i + 1}`}>
-                            <CardContent className="p-5">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
-                                        <p className="mt-1.5 text-2xl font-bold text-slate-800">{stat.value}</p>
-                                        <p className="mt-1 flex items-center text-xs text-emerald-600 font-medium">
-                                            <ArrowUpRight className="mr-1 h-3 w-3" />
-                                            {stat.change} {stat.title === 'ยอดขายวันนี้' ? 'จากเมื่อวาน' : 'จากเดือนที่แล้ว'}
-                                        </p>
+                        <Link key={stat.title} href={stat.href} className={`block animate-fade-in-up-delay-${i + 1} group`}>
+                            <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                                <CardContent className="p-5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
+                                            <p className="mt-1.5 text-2xl font-bold text-slate-800">{stat.value}</p>
+                                            <p className="mt-1 flex items-center text-xs text-emerald-600 font-medium">
+                                                <ArrowUpRight className="mr-1 h-3 w-3" />
+                                                {stat.change} {stat.title === 'ยอดขายวันนี้' ? 'จากเมื่อวาน' : 'จากเดือนที่แล้ว'}
+                                            </p>
+                                        </div>
+                                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.color} text-white shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                                            <stat.icon className="h-6 w-6" aria-hidden="true" />
+                                        </div>
                                     </div>
-                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.color} text-white shadow-lg`}>
-                                        <stat.icon className="h-6 w-6" aria-hidden="true" />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </Link>
                     ))}
                 </div>
             )}
@@ -309,10 +311,15 @@ export default function DashboardPage() {
                 {/* Upcoming Appointments */}
                 <Card className="flex flex-col">
                     <CardHeader className="flex flex-col items-start sm:flex-row sm:items-center justify-between pb-2">
-                        <CardTitle className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
-                            นัดหมายวันนี้
-                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2">
+                                <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
+                                นัดหมายวันนี้
+                            </CardTitle>
+                            <Link href="/appointments" className="text-xs text-amber-600 font-medium hover:underline">
+                                ดูทั้งหมด
+                            </Link>
+                        </div>
                         {/* Appointment Status Badges */}
                         {appointments.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mt-2 sm:mt-0">
@@ -347,13 +354,20 @@ export default function DashboardPage() {
                                     const statusTextColor = apt.status === 'COMPLETED' ? 'text-emerald-600' : apt.status === 'CANCELLED' ? 'text-red-500' : 'text-blue-600'
                                     const initial = (apt.customer?.first_name || apt.customer || '?').charAt(0)
 
+                                    // Check if appointment is coming up within 30 minutes
+                                    const aptTime = apt.appointment_date ? new Date(apt.appointment_date) : null
+                                    const now = new Date()
+                                    const minsUntil = aptTime ? Math.round((aptTime.getTime() - now.getTime()) / 60000) : null
+                                    const isUpcomingSoon = apt.status === 'SCHEDULED' && minsUntil !== null && minsUntil >= 0 && minsUntil <= 30
+
                                     return (
-                                        <div
+                                        <Link
                                             key={apt.appointment_id || i}
-                                            className={`flex items-center justify-between rounded-xl border-l-4 bg-white px-3 py-3 shadow-xs hover:shadow-sm transition-shadow ${statusColor}`}
+                                            href="/appointments"
+                                            className={`flex items-center justify-between rounded-xl border-l-4 bg-white px-3 py-3 shadow-xs hover:shadow-sm transition-shadow ${isUpcomingSoon ? 'border-amber-400 bg-amber-50/60 ring-1 ring-amber-200' : statusColor}`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-sm font-bold text-white shadow-sm">
+                                                <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm ${isUpcomingSoon ? 'bg-gradient-to-br from-amber-500 to-orange-500 animate-pulse' : 'bg-gradient-to-br from-amber-400 to-amber-500'}`}>
                                                     {initial}
                                                 </div>
                                                 <div>
@@ -364,20 +378,28 @@ export default function DashboardPage() {
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
                                                         {apt.customer_course?.course?.course_name || apt.service || 'นัดหมาย'}
+                                                        {apt.duration_minutes && (
+                                                            <span className="ml-1 text-slate-400">· {apt.duration_minutes} นาที</span>
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-amber-600 text-sm">
-                                                    {apt.appointment_date
-                                                        ? new Date(apt.appointment_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                                            <div className="text-right shrink-0">
+                                                <p className={`font-bold text-sm ${isUpcomingSoon ? 'text-amber-600' : 'text-amber-600'}`}>
+                                                    {aptTime
+                                                        ? aptTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
                                                         : apt.time}
                                                 </p>
-                                                {apt.status && (
+                                                {isUpcomingSoon ? (
+                                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse inline-block" />
+                                                        {minsUntil === 0 ? 'ถึงแล้ว!' : `อีก ${minsUntil} น.`}
+                                                    </span>
+                                                ) : apt.status && (
                                                     <span className={`text-xs font-medium ${statusTextColor}`}>{statusText}</span>
                                                 )}
                                             </div>
-                                        </div>
+                                        </Link>
                                     )
                                 })}
                                 {appointments.length === 0 && !isLoadingAppoint && (

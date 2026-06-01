@@ -52,6 +52,18 @@ interface Debtor {
     }>
 }
 
+// Returns aging info from the oldest unpaid transaction date
+const getAgingInfo = (transactions: Debtor['transactions']) => {
+    if (!transactions.length) return null
+    const oldest = transactions.reduce((oldest, tx) => {
+        return new Date(tx.transaction_date) < new Date(oldest.transaction_date) ? tx : oldest
+    })
+    const days = Math.floor((Date.now() - new Date(oldest.transaction_date).getTime()) / 86400000)
+    if (days <= 7) return { days, label: `${days} วัน`, className: 'bg-emerald-100 text-emerald-700 border border-emerald-200' }
+    if (days <= 30) return { days, label: `${days} วัน`, className: 'bg-amber-100 text-amber-700 border border-amber-200' }
+    return { days, label: `${days} วัน`, className: 'bg-red-100 text-red-700 border border-red-200 font-bold' }
+}
+
 export default function DebtorPage() {
     const token = useAuthStore((s) => s.token)
     const queryClient = useQueryClient()
@@ -186,6 +198,7 @@ export default function DebtorPage() {
                                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">ลูกค้า</TableHead>
                                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">เบอร์โทร</TableHead>
                                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">จำนวนบิล</TableHead>
+                                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500">อายุหนี้</TableHead>
                                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-slate-500 text-right">ยอดค้าง</TableHead>
                                     <TableHead className="w-32"></TableHead>
                                 </TableRow>
@@ -210,7 +223,9 @@ export default function DebtorPage() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredDebtors.map((debtor) => (
+                                    filteredDebtors.map((debtor) => {
+                                        const aging = getAgingInfo(debtor.transactions)
+                                        return (
                                         <TableRow key={debtor.customer_id} className="hover:bg-red-50/40 transition-colors border-l-4 border-l-transparent hover:border-l-red-200">
                                             <TableCell>
                                                 <div className="flex items-center gap-2.5">
@@ -231,6 +246,14 @@ export default function DebtorPage() {
                                             </TableCell>
                                             <TableCell>
                                                 <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{debtor.transactions.length} บิล</span>
+                                            </TableCell>
+                                            <TableCell>
+                                                {aging && (
+                                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs ${aging.className}`}>
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                                                        {aging.label}
+                                                    </span>
+                                                )}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <span className="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-sm font-bold text-red-600 ring-1 ring-red-200">
@@ -255,7 +278,8 @@ export default function DebtorPage() {
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
-                                    ))
+                                        )
+                                    })
                                 )}
                             </TableBody>
                         </Table>
@@ -286,9 +310,25 @@ export default function DebtorPage() {
                     {selectedDebtor && (
                         <div className="space-y-4">
                             {/* Customer Info */}
-                            <div className="p-3 rounded-lg bg-muted">
-                                <p className="text-sm text-slate-500">ยอดหนี้รวม</p>
-                                <p className="text-2xl font-bold text-red-600">{formatCurrency(selectedDebtor.total_debt)}</p>
+                            <div className="p-3 rounded-lg bg-muted flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-slate-500">ยอดหนี้รวม</p>
+                                    <p className="text-2xl font-bold text-red-600">{formatCurrency(selectedDebtor.total_debt)}</p>
+                                </div>
+                                {selectedDebtor.transactions.length === 1 && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-xs border-red-200 text-red-600 hover:bg-red-50"
+                                        onClick={() => {
+                                            const tx = selectedDebtor.transactions[0]
+                                            setSelectedTransaction(tx.transaction_id)
+                                            setPayAmount(tx.remaining_balance.toString())
+                                        }}
+                                    >
+                                        เลือกอัตโนมัติ
+                                    </Button>
+                                )}
                             </div>
 
                             {/* Transaction Select */}
@@ -362,6 +402,21 @@ export default function DebtorPage() {
                                     disabled={!selectedTransaction}
                                     className="text-lg"
                                 />
+                                {/* Quick fill buttons */}
+                                {selectedTransaction && (
+                                    <div className="flex gap-2 mt-2">
+                                        {[500, 1000, 2000, 5000].map(amt => (
+                                            <button
+                                                key={amt}
+                                                type="button"
+                                                onClick={() => setPayAmount(amt.toString())}
+                                                className="flex-1 rounded-lg border border-slate-200 bg-slate-50 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                                            >
+                                                {amt >= 1000 ? `${amt/1000}K` : amt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Submit */}

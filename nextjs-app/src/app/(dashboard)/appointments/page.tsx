@@ -20,11 +20,13 @@ import { WeeklyTimeline } from '@/components/appointments/weekly-timeline'
 import { MonthlyCalendar } from '@/components/appointments/monthly-calendar'
 import { CalendarCheck } from 'lucide-react';
 type ViewType = 'day' | 'week' | 'month';
+type StatusFilter = 'ALL' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
 
 export default function AppointmentsPage() {
     const token = useAuthStore((state) => state.token)
     const [currentDate, setCurrentDate] = useState(new Date())
     const [view, setView] = useState<ViewType>('day')
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -153,6 +155,15 @@ export default function AppointmentsPage() {
         return `สัปดาห์ของ ${format(currentDate, 'd MMMM yyyy', { locale: th })}`
     }
 
+    // Compute status counts and filtered appointments
+    const scheduledCount = appointments.filter((a: Appointment) => a.status === 'SCHEDULED').length
+    const completedCount = appointments.filter((a: Appointment) => a.status === 'COMPLETED').length
+    const cancelledCount = appointments.filter((a: Appointment) => a.status === 'CANCELLED').length
+
+    const filteredAppointments = statusFilter === 'ALL'
+        ? appointments
+        : appointments.filter((a: Appointment) => a.status === statusFilter)
+
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -169,18 +180,35 @@ export default function AppointmentsPage() {
                         )}
                     </div>
                     <p className="text-muted-foreground text-sm mt-0.5">จัดการและติดตามการนัดหมายของลูกค้าในแต่ละวัน</p>
+
+                    {/* Status Filter Pills */}
+                    {appointments.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                            {([
+                                { key: 'ALL', label: 'ทั้งหมด', count: appointments.length, activeClass: 'bg-slate-700 text-white', inactiveClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+                                { key: 'SCHEDULED', label: 'รอดำเนินการ', count: scheduledCount, activeClass: 'bg-blue-600 text-white', inactiveClass: 'bg-blue-50 text-blue-600 hover:bg-blue-100' },
+                                { key: 'COMPLETED', label: 'เสร็จสิ้น', count: completedCount, activeClass: 'bg-emerald-600 text-white', inactiveClass: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' },
+                                { key: 'CANCELLED', label: 'ยกเลิก', count: cancelledCount, activeClass: 'bg-red-500 text-white', inactiveClass: 'bg-red-50 text-red-500 hover:bg-red-100' },
+                            ] as const).map(pill => (
+                                <button
+                                    key={pill.key}
+                                    type="button"
+                                    onClick={() => setStatusFilter(pill.key)}
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${statusFilter === pill.key ? pill.activeClass : pill.inactiveClass}`}
+                                >
+                                    {pill.label}
+                                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${statusFilter === pill.key ? 'bg-white/20' : 'bg-white/70'}`}>
+                                        {pill.count}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" aria-label="ตัวกรอง" className="rounded-xl">
-                        <Filter className="h-4 w-4" />
-                    </Button>
                     <Button variant="outline" onClick={handleExport} disabled={appointments.length === 0} className="rounded-xl gap-2">
                         <Download className="h-4 w-4" />
                         Export CSV
-                    </Button>
-                    <Button variant="outline" onClick={() => window.location.href = '/patients'} className="rounded-xl gap-2">
-                        <User className="h-4 w-4" />
-                        รายชื่อคนไข้ทั้งหมด
                     </Button>
                     <Button
                         onClick={() => handleTimeSlotClick(currentDate)}
@@ -244,7 +272,7 @@ export default function AppointmentsPage() {
                             {view === 'day' && (
                                 <DailyTimeline
                                     date={currentDate}
-                                    appointments={appointments}
+                                    appointments={filteredAppointments}
                                     onTimeSlotClick={handleTimeSlotClick}
                                     onAppointmentClick={handleAppointmentClick}
                                     onAppointmentDrop={handleAppointmentDrop}
@@ -253,7 +281,7 @@ export default function AppointmentsPage() {
                             {view === 'week' && (
                                 <WeeklyTimeline
                                     date={currentDate}
-                                    appointments={appointments}
+                                    appointments={filteredAppointments}
                                     onTimeSlotClick={handleTimeSlotClick}
                                     onAppointmentClick={handleAppointmentClick}
                                     onAppointmentDrop={handleAppointmentDrop}
@@ -262,7 +290,7 @@ export default function AppointmentsPage() {
                             {view === 'month' && (
                                 <MonthlyCalendar
                                     date={currentDate}
-                                    appointments={appointments}
+                                    appointments={filteredAppointments}
                                     onTimeSlotClick={handleTimeSlotClick}
                                     onAppointmentClick={handleAppointmentClick}
                                     onAppointmentDrop={handleAppointmentDrop}

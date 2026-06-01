@@ -87,11 +87,23 @@ interface Transaction {
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'PAID':
-            return <Badge className="bg-green-100 text-green-700"><CheckCircle className="h-3 w-3 mr-1" />ชำระแล้ว</Badge>
+            return <Badge className="bg-green-100 text-green-700 border border-green-200"><CheckCircle className="h-3 w-3 mr-1" />ชำระแล้ว</Badge>
         case 'PARTIAL':
-            return <Badge className="bg-amber-100 text-amber-700"><Clock className="h-3 w-3 mr-1" />ค้างชำระ</Badge>
+            return (
+                <Badge className="bg-amber-100 text-amber-700 border border-amber-300 gap-1 pr-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <Clock className="h-3 w-3" />
+                    ค้างชำระ
+                </Badge>
+            )
         case 'UNPAID':
-            return <Badge className="bg-red-100 text-red-700"><Clock className="h-3 w-3 mr-1" />ยังไม่ชำระ</Badge>
+            return (
+                <Badge className="bg-red-100 text-red-700 border border-red-300 gap-1 pr-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                    <Clock className="h-3 w-3" />
+                    ยังไม่ชำระ
+                </Badge>
+            )
         case 'VOIDED':
             return <Badge className="bg-slate-100 text-slate-700"><XCircle className="h-3 w-3 mr-1" />ยกเลิก</Badge>
         default:

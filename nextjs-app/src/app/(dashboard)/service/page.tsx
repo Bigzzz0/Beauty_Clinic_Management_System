@@ -389,6 +389,41 @@ export default function ServicePage() {
                 </div>
             </div>
 
+            {/* Step Indicator */}
+            <div className="flex items-center gap-0">
+                {[
+                    { step: 1, label: 'เลือกลูกค้า', done: !!selectedCustomer },
+                    { step: 2, label: 'เลือกคอร์ส', done: !!selectedCourse },
+                    { step: 3, label: 'บันทึกบริการ', done: false },
+                ].map((s, idx) => {
+                    const isActive = s.step === (selectedCourse ? 3 : selectedCustomer ? 2 : 1)
+                    const isPast = s.done
+                    return (
+                        <>
+                            <div key={s.step} className="flex flex-col items-center">
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                                    isPast ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200' :
+                                    isActive ? 'bg-amber-500 text-white shadow-sm shadow-amber-200 ring-4 ring-amber-100' :
+                                    'bg-slate-100 text-slate-400'
+                                }`}>
+                                    {isPast ? <Check className="h-4 w-4" /> : s.step}
+                                </div>
+                                <span className={`mt-1.5 text-xs font-medium ${
+                                    isPast ? 'text-emerald-600' :
+                                    isActive ? 'text-amber-600' :
+                                    'text-slate-400'
+                                }`}>{s.label}</span>
+                            </div>
+                            {idx < 2 && (
+                                <div className={`h-0.5 flex-1 mx-2 mb-5 rounded-full transition-all ${
+                                    isPast ? 'bg-emerald-400' : 'bg-slate-200'
+                                }`} />
+                            )}
+                        </>
+                    )
+                })}
+            </div>
+
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Left: Customer & Course Selection */}
                 <div className="space-y-4">
@@ -534,29 +569,47 @@ export default function ServicePage() {
                                         </p>
                                     ) : (
                                         <div className="space-y-3">
-                                            {customerCourses.map((cc) => (
+                                            {customerCourses.map((cc) => {
+                                                const usedSessions = cc.total_sessions - cc.remaining_sessions
+                                                const progressPct = cc.total_sessions > 0 ? (usedSessions / cc.total_sessions) * 100 : 0
+                                                const isLow = cc.remaining_sessions <= 2 && cc.remaining_sessions > 0
+                                                const isEmpty = cc.remaining_sessions <= 0
+                                                return (
                                                 <div
                                                     key={cc.id}
-                                                    className="p-4 border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all group"
-                                                    onClick={() => handleSelectCourse(cc)}
+                                                    className={`p-4 border rounded-lg transition-all group ${isEmpty ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:border-primary hover:bg-primary/5 cursor-pointer'}`}
+                                                    onClick={() => !isEmpty && handleSelectCourse(cc)}
                                                 >
                                                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                                        <div className="min-w-0">
+                                                        <div className="min-w-0 flex-1">
                                                             <h4 className="font-semibold group-hover:text-primary transition-colors text-sm sm:text-base">
                                                                 {cc.course.course_name}
                                                             </h4>
                                                             <div className="flex flex-wrap items-center gap-2 mt-1">
-                                                                <Badge variant={cc.remaining_sessions > 0 ? 'default' : 'secondary'} className="text-xs">
+                                                                <Badge variant={cc.remaining_sessions > 0 ? 'default' : 'secondary'} className={`text-xs ${isLow ? 'bg-amber-500 hover:bg-amber-500 text-white' : ''}`}>
                                                                     เหลือ {cc.remaining_sessions}/{cc.total_sessions} ครั้ง
                                                                 </Badge>
                                                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                                                                     ซื้อ: {new Date(cc.purchase_date).toLocaleDateString('th-TH')}
                                                                 </span>
                                                             </div>
+                                                            {/* Session Progress Bar */}
+                                                            <div className="mt-2.5">
+                                                                <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                                                                    <span>ใช้ไปแล้ว {usedSessions} ครั้ง</span>
+                                                                    <span className={isLow ? 'text-amber-600 font-bold' : ''}>{cc.remaining_sessions > 0 ? `เหลือ ${cc.remaining_sessions} ครั้ง` : 'หมดแล้ว'}</span>
+                                                                </div>
+                                                                <div className="h-1.5 w-full rounded-full bg-slate-100">
+                                                                    <div
+                                                                        className={`h-full rounded-full transition-all ${isEmpty ? 'bg-slate-300' : isLow ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                                                                        style={{ width: `${progressPct}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <Button
                                                             size="sm"
-                                                            disabled={cc.remaining_sessions <= 0}
+                                                            disabled={isEmpty}
                                                             variant="outline"
                                                             className="border-primary text-primary hover:bg-primary hover:text-white shadow-sm w-full sm:w-auto"
                                                         >
@@ -565,7 +618,8 @@ export default function ServicePage() {
                                                         </Button>
                                                     </div>
                                                 </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     )}
                                 </div>

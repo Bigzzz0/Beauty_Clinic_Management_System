@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import {
-    Users, TrendingUp, DollarSign, UserPlus,
-    Calendar, ArrowUpRight, ChevronLeft, ChevronRight,
-    ArrowLeft, Award, Download
+    Users, ChevronLeft, ChevronRight, Download, ArrowLeft,
+    DollarSign, TrendingUp, UserPlus, Award, Trophy, Medal
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -326,14 +325,31 @@ export default function ConsultantPerformancePage() {
                                 </TableHeader>
                                 <TableBody>
                                     {data.consultants.map((consultant, index) => (
-                                        <TableRow key={consultant.staff_id}>
+                                        <TableRow
+                                            key={consultant.staff_id}
+                                            className={`transition-colors ${
+                                                index === 0 ? 'bg-yellow-50/60 hover:bg-yellow-100/40' :
+                                                index === 1 ? 'bg-slate-50/60 hover:bg-slate-100/40' :
+                                                index === 2 ? 'bg-amber-50/60 hover:bg-amber-100/40' :
+                                                'hover:bg-muted/30'
+                                            }`}
+                                        >
                                             <TableCell className="text-center">
                                                 {index === 0 ? (
-                                                    <Badge className="bg-yellow-500 hover:bg-yellow-500 text-white rounded-full h-6 w-6 flex items-center justify-center p-0 mx-auto font-bold">1</Badge>
+                                                    <div className="flex flex-col items-center">
+                                                        <Trophy className="h-5 w-5 text-yellow-500" />
+                                                        <span className="text-[10px] font-bold text-yellow-600">อันดับ 1</span>
+                                                    </div>
                                                 ) : index === 1 ? (
-                                                    <Badge className="bg-slate-400 hover:bg-slate-400 text-white rounded-full h-6 w-6 flex items-center justify-center p-0 mx-auto font-bold">2</Badge>
+                                                    <div className="flex flex-col items-center">
+                                                        <Medal className="h-5 w-5 text-slate-400" />
+                                                        <span className="text-[10px] font-bold text-slate-500">อันดับ 2</span>
+                                                    </div>
                                                 ) : index === 2 ? (
-                                                    <Badge className="bg-amber-600 hover:bg-amber-600 text-white rounded-full h-6 w-6 flex items-center justify-center p-0 mx-auto font-bold">3</Badge>
+                                                    <div className="flex flex-col items-center">
+                                                        <Medal className="h-5 w-5 text-amber-600" />
+                                                        <span className="text-[10px] font-bold text-amber-700">อันดับ 3</span>
+                                                    </div>
                                                 ) : (
                                                     <span className="text-muted-foreground font-semibold">{index + 1}</span>
                                                 )}
