@@ -31,6 +31,19 @@ export default function AppointmentsPage() {
     // Live Web Notification Alerts Support
     const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'unsupported'>('default')
     const [notifiedIds, setNotifiedIds] = useState<number[]>([])
+    const [isAlertsEnabled, setIsAlertsEnabled] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('isAlertsEnabled')
+            return stored !== 'false' // default to true
+        }
+        return true
+    })
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('isAlertsEnabled', String(isAlertsEnabled))
+        }
+    }, [isAlertsEnabled])
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -75,7 +88,7 @@ export default function AppointmentsPage() {
 
         const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
         const headers = ['วันเวลานัดหมาย', 'ระยะเวลา (นาที)', 'รหัสคนไข้ (HN)', 'ชื่อ-นามสกุล คนไข้', 'เบอร์โทร', 'สถานะการนัดหมาย', 'แพทย์ผู้ดูแล', 'ผู้เชี่ยวชาญ/ผู้บำบัด', 'หมายเหตุ'];
-        
+
         const dataRows = appointments.map(app => {
             const dateStr = app.appointment_date ? format(new Date(app.appointment_date), 'yyyy-MM-dd HH:mm') : '-';
             return [
@@ -147,31 +160,31 @@ export default function AppointmentsPage() {
             const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
             if (!AudioContextClass) return
             const context = new AudioContextClass()
-            
+
             const osc1 = context.createOscillator()
             const osc2 = context.createOscillator()
             const gain1 = context.createGain()
             const gain2 = context.createGain()
-            
+
             osc1.connect(gain1)
             gain1.connect(context.destination)
-            
+
             osc2.connect(gain2)
             gain2.connect(context.destination)
-            
+
             osc1.type = 'sine'
             osc1.frequency.setValueAtTime(523.25, context.currentTime) // C5
             gain1.gain.setValueAtTime(0.08, context.currentTime)
             gain1.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.6)
-            
+
             osc2.type = 'sine'
             osc2.frequency.setValueAtTime(659.25, context.currentTime + 0.15) // E5
             gain2.gain.setValueAtTime(0.08, context.currentTime + 0.15)
             gain2.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.75)
-            
+
             osc1.start(context.currentTime)
             osc1.stop(context.currentTime + 0.6)
-            
+
             osc2.start(context.currentTime + 0.15)
             osc2.stop(context.currentTime + 0.75)
         } catch (e) {
@@ -185,6 +198,7 @@ export default function AppointmentsPage() {
             const status = await Notification.requestPermission()
             setPermissionStatus(status)
             if (status === 'granted') {
+                setIsAlertsEnabled(true)
                 toast.success('เปิดระบบแจ้งเตือนสำเร็จ')
                 playChimeSound()
                 new Notification('ระบบแจ้งเตือนระบบนัดหมาย', {
@@ -198,8 +212,25 @@ export default function AppointmentsPage() {
         }
     }
 
+    const toggleAlerts = async () => {
+        if (permissionStatus !== 'granted') {
+            await requestNotificationPermission()
+        } else {
+            setIsAlertsEnabled(prev => {
+                const next = !prev
+                if (next) {
+                    toast.success('เปิดระบบแจ้งเตือนแล้ว')
+                    playChimeSound()
+                } else {
+                    toast.info('ปิดระบบแจ้งเตือนแล้ว')
+                }
+                return next
+            })
+        }
+    }
+
     useEffect(() => {
-        if (!appointments || appointments.length === 0) return
+        if (!appointments || appointments.length === 0 || !isAlertsEnabled) return
 
         const checkUpcomingAppointments = () => {
             const now = new Date()
@@ -213,12 +244,12 @@ export default function AppointmentsPage() {
                 // Check if appointment is starting within the next 30 minutes, and not in the past
                 if (appDate > now && appDate <= thirtyMinutesFromNow) {
                     setNotifiedIds(prev => [...prev, app.id])
-                    
-                    const customerName = app.customer 
+
+                    const customerName = app.customer
                         ? app.customer.full_name || `${app.customer.first_name || ''} ${app.customer.last_name || ''}`.trim()
                         : 'ไม่ระบุชื่อ'
                     const timeStr = format(appDate, 'HH:mm')
-                    
+
                     // 1. Play sound chime
                     playChimeSound()
 
@@ -246,7 +277,7 @@ export default function AppointmentsPage() {
         checkUpcomingAppointments()
         const interval = setInterval(checkUpcomingAppointments, 15000)
         return () => clearInterval(interval)
-    }, [appointments, notifiedIds])
+    }, [appointments, notifiedIds, isAlertsEnabled])
 
 
     const handleAppointmentDrop = async (appointmentId: number, newDate: Date) => {
@@ -331,16 +362,16 @@ export default function AppointmentsPage() {
                 <div className="flex items-center gap-2">
                     {permissionStatus !== 'unsupported' && (
                         <Button
-                            variant={permissionStatus === 'granted' ? 'ghost' : 'outline'}
+                            variant={(permissionStatus === 'granted' && isAlertsEnabled) ? 'ghost' : 'outline'}
                             size="sm"
-                            onClick={requestNotificationPermission}
+                            onClick={toggleAlerts}
                             className={`rounded-xl gap-2 text-xs font-semibold ${
-                                permissionStatus === 'granted' 
-                                    ? 'text-emerald-600 hover:text-emerald-700 bg-emerald-50/50' 
+                                (permissionStatus === 'granted' && isAlertsEnabled)
+                                    ? 'text-emerald-600 hover:text-emerald-700 bg-emerald-50/50'
                                     : 'text-amber-600 border-amber-200 hover:bg-amber-50'
                             }`}
                         >
-                            {permissionStatus === 'granted' ? (
+                            {(permissionStatus === 'granted' && isAlertsEnabled) ? (
                                 <>
                                     <span className="relative flex h-2 w-2 mr-0.5">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -352,7 +383,7 @@ export default function AppointmentsPage() {
                             ) : (
                                 <>
                                     <BellOff className="h-4 w-4 text-amber-500" />
-                                    เปิดระบบแจ้งเตือนจริง
+                                    {permissionStatus === 'granted' ? 'ระบบเตือนถูกปิดอยู่' : 'เปิดระบบแจ้งเตือน'}
                                 </>
                             )}
                         </Button>
