@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
     Users, Search, ArrowUpDown, Plus,
     UserCircle, Phone, Edit, History, ShoppingCart,
-    AlertTriangle, X, Loader2, Trash2
+    AlertTriangle, X, Loader2, Trash2, Download
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -100,6 +100,32 @@ export default function PatientsPage() {
         },
     })
 
+    const handleExport = async () => {
+        try {
+            toast.loading('กำลังเตรียมข้อมูลคนไข้...');
+            const res = await fetch('/api/export?type=customers', {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) {
+                if (res.status === 403) throw new Error('ไม่มีสิทธิ์เข้าถึง: เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น');
+                throw new Error('ไม่สามารถเชื่อมต่อข้อมูลส่งออกได้');
+            }
+            const blob = await res.blob();
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `customers_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.dismiss();
+            toast.success('ส่งออกข้อมูลคนไข้สำเร็จ');
+        } catch (error: any) {
+            toast.dismiss();
+            toast.error(error.message || 'เกิดข้อผิดพลาดในการส่งออก');
+        }
+    };
+
     const handleDeleteCustomer = async (id: number, name: string) => {
         if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลลูกค้ารายนี้ (${name})?\nการกระทำนี้ไม่สามารถย้อนกลับได้`)) return;
         try {
@@ -157,15 +183,25 @@ export default function PatientsPage() {
                     </div>
                     <p className="text-muted-foreground text-sm mt-0.5">จัดการข้อมูลผู้ป่วยและประวัติการรักษา</p>
                 </div>
-                <Link href="/patients/new">
+                <div className="flex gap-2">
                     <Button
-                        className="gap-2 rounded-xl shadow-md shadow-amber-200/60 transition-all hover:-translate-y-0.5 hover:shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white' }}
+                        variant="outline"
+                        onClick={handleExport}
+                        className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
                     >
-                        <Plus className="h-4 w-4" />
-                        เพิ่มคนไข้ใหม่
+                        <Download className="h-4 w-4" />
+                        Export CSV
                     </Button>
-                </Link>
+                    <Link href="/patients/new">
+                        <Button
+                            className="gap-2 rounded-xl shadow-md shadow-amber-200/60 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                            style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white' }}
+                        >
+                            <Plus className="h-4 w-4" />
+                            เพิ่มคนไข้ใหม่
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Filter Tabs */}

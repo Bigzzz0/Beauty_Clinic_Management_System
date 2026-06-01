@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
     FileText, Search, Eye, Printer, Ban, ChevronLeft, ChevronRight,
-    CheckCircle, Clock, XCircle, User, Phone
+    CheckCircle, Clock, XCircle, User, Phone, Download
 } from 'lucide-react'
 import Link from 'next/link'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -128,6 +128,32 @@ export default function TransactionsPage() {
         },
     })
 
+    const handleExport = async () => {
+        try {
+            toast.loading('กำลังเตรียมข้อมูลประวัติบิล...');
+            const res = await fetch('/api/export?type=transactions', {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) {
+                if (res.status === 403) throw new Error('ไม่มีสิทธิ์เข้าถึง: เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น');
+                throw new Error('ไม่สามารถเชื่อมต่อข้อมูลส่งออกได้');
+            }
+            const blob = await res.blob();
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `transactions_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.dismiss();
+            toast.success('ส่งออกข้อมูลประวัติบิลสำเร็จ');
+        } catch (error: any) {
+            toast.dismiss();
+            toast.error(error.message || 'เกิดข้อผิดพลาดในการส่งออก');
+        }
+    };
+
     const voidMutation = useMutation({
         mutationFn: async (id: number) => {
             const res = await fetch(`/api/transactions/${id}`, {
@@ -163,14 +189,26 @@ export default function TransactionsPage() {
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-200">
-                        <FileText className="h-5 w-5 text-white" />
-                    </div>
-                    ประวัติบิล
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1 ml-0.5">รายการธุรกรรมทั้งหมด</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-200">
+                            <FileText className="h-5 w-5 text-white" />
+                        </div>
+                        ประวัติบิล
+                    </h1>
+                    <p className="text-muted-foreground text-sm mt-1 ml-0.5">รายการธุรกรรมทั้งหมด</p>
+                </div>
+                {isAdmin() && (
+                    <Button
+                        variant="outline"
+                        onClick={handleExport}
+                        className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                    >
+                        <Download className="h-4 w-4" />
+                        Export CSV
+                    </Button>
+                )}
             </div>
 
             {/* Filters */}

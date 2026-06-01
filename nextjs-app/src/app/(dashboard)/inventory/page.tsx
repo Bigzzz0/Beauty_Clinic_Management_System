@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
     Search, Package, ArrowUpDown,
     AlertTriangle, CheckCircle, XCircle, TrendingDown,
-    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe, X
+    Calendar, FileSpreadsheet, PackagePlus, Truck, ClipboardEdit, Syringe, X, Download
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useSearchParams } from 'next/navigation'
@@ -158,6 +158,55 @@ export default function InventoryPage() {
             return res.json()
         },
     })
+
+    const handleExport = () => {
+        if (!inventory || inventory.length === 0) return;
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const activeCategoryLabel = category === 'all' ? 'ทั้งหมด' : category;
+
+        const metadata = [
+            ['รายงานสรุปสต๊อกสินค้าคงเหลือคลัง (Inventory Stock Balance Report)'],
+            ['หมวดหมู่สินค้า', activeCategoryLabel],
+            ['ค้นหาฟิลเตอร์', search || 'ทั้งหมด'],
+            ['จำนวนสินค้าคงคลังรวม', `${inventory.length} รายการ`],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['รหัสสินค้า', 'ชื่อสินค้า', 'หมวดหมู่', 'สต๊อกคงเหลือ (เต็มกล่อง/ชิ้น)', 'หน่วยกล่อง/ชิ้นหลัก', 'จำนวนชิ้นเปิดใช้ (ย่อย)', 'หน่วยชิ้นย่อย', 'จำนวนชิ้นย่อยรวม'];
+        
+        const dataRows = inventory.map(item => [
+            item.product_code || '',
+            item.product_name,
+            item.category,
+            item.full_qty,
+            item.main_unit,
+            item.opened_qty,
+            item.sub_unit,
+            item.total_sub_units
+        ]).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `inventory_stock_balance_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     // Fetch daily usage
     const { data: dailyUsage } = useQuery<DailyUsageData>({
@@ -373,13 +422,22 @@ export default function InventoryPage() {
                         </Select>
                     </div>
 
-                    {/* Inventory Table */}
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                             <CardTitle className="flex items-center gap-2">
                                 รายการสต๊อกคงเหลือ
                                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{inventory.length}</span>
                             </CardTitle>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleExport}
+                                disabled={inventory.length === 0}
+                                className="gap-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-sm"
+                            >
+                                <Download className="h-4 w-4" />
+                                Export CSV
+                            </Button>
                         </CardHeader>
                         <CardContent className="p-0 sm:p-6 sm:pt-0">
                             {/* Desktop Table View */}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Filter, User } from 'lucide-react'
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Filter, User, Download } from 'lucide-react'
 import { format, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths } from 'date-fns'
 import { th } from 'date-fns/locale'
 import { useQuery } from '@tanstack/react-query'
@@ -44,6 +44,59 @@ export default function AppointmentsPage() {
             return data.appointments
         }
     })
+
+    const handleExport = () => {
+        if (!appointments || appointments.length === 0) return;
+
+        const formatCSVCell = (val: any) => {
+            const str = String(val ?? '');
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const viewLabel = view === 'day' ? 'รายวัน' : view === 'week' ? 'รายสัปดาห์' : 'รายเดือน';
+
+        const metadata = [
+            ['รายงานตารางนัดหมายคนไข้ (Patient Appointments Report)'],
+            ['วันที่นัดหมายอ้างอิง', format(currentDate, 'yyyy-MM-dd')],
+            ['ประเภทมุมมอง', viewLabel],
+            ['จำนวนรายการนัดหมายที่โหลด', `${appointments.length} รายการ`],
+            ['วันที่ดึงรายงาน', new Date().toLocaleString('th-TH')],
+            [], // เว้นบรรทัด
+        ];
+
+        const metadataRows = metadata.map(row => row.map(formatCSVCell).join(','));
+        const headers = ['วันเวลานัดหมาย', 'ระยะเวลา (นาที)', 'รหัสคนไข้ (HN)', 'ชื่อ-นามสกุล คนไข้', 'เบอร์โทร', 'สถานะการนัดหมาย', 'แพทย์ผู้ดูแล', 'ผู้เชี่ยวชาญ/ผู้บำบัด', 'หมายเหตุ'];
+        
+        const dataRows = appointments.map(app => {
+            const dateStr = app.appointment_date ? format(new Date(app.appointment_date), 'yyyy-MM-dd HH:mm') : '-';
+            return [
+                dateStr,
+                app.duration_minutes,
+                app.customer?.hn_code || '',
+                app.customer?.full_name || `${app.customer?.first_name || ''} ${app.customer?.last_name || ''}`,
+                app.customer?.phone_number || '',
+                app.status === 'SCHEDULED' ? 'นัดหมายแล้ว' : app.status === 'COMPLETED' ? 'เสร็จสิ้น' : app.status === 'CANCELLED' ? 'ยกเลิก' : app.status === 'NO_SHOW' ? 'ไม่มาตามนัด' : app.status,
+                app.doctor?.full_name || '',
+                app.therapist?.full_name || '',
+                app.notes || ''
+            ];
+        }).map(row => row.map(formatCSVCell).join(','));
+
+        const csvContent = [...metadataRows, headers.join(','), ...dataRows].join('\n');
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `appointments_report_${format(currentDate, 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const handlePrev = () => {
         if (view === 'day') setCurrentDate(prev => subDays(prev, 1))
@@ -120,6 +173,10 @@ export default function AppointmentsPage() {
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" aria-label="ตัวกรอง" className="rounded-xl">
                         <Filter className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" onClick={handleExport} disabled={appointments.length === 0} className="rounded-xl gap-2">
+                        <Download className="h-4 w-4" />
+                        Export CSV
                     </Button>
                     <Button variant="outline" onClick={() => window.location.href = '/patients'} className="rounded-xl gap-2">
                         <User className="h-4 w-4" />
